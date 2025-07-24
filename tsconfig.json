@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "skipLibCheck": true,
+        "strict": true,
+        "sourceMap": true,
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
+        "lib": ["DOM", "DOM.Iterable", "ESNext"],
+        "baseUrl": "src",
+        "paths": {
+            "@client/*": ["client/*"],
+            "@server/*": ["server/*"]
+        }
+    },
+    "include": ["vite.config.ts"]
+}

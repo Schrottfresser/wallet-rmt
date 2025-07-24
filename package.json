@@ -1,0 +1,52 @@
+{
+    "name": "walletrmt",
+    "version": "0.0.1",
+    "type": "module",
+    "scripts": {
+        "dev": "nodemon -e .json,.ts,.yml --watch src/server -x tsx src/server/index.ts",
+        "build:client": "vite build --outDir dist/client",
+        "build:ssr": "vite build --ssr src/client/entry-server.tsx --outDir dist/ssr",
+        "build:server": "tsc -project src/server/tsconfig.json && tsc-alias -f -p src/server/tsconfig.json",
+        "build": "pnpm build:client && pnpm build:ssr && pnpm build:server",
+        "clean": "rm -r ./dist",
+        "serve": "NODE_ENV=production node dist/server/index.js",
+        "test": "vitest",
+        "doc": "typedoc --out dist/client/docs --tsconfig src/server/tsconfig.json src/server/**/*.ts"
+    },
+    "author": "Schrottfresser",
+    "license": "MIT",
+    "dependencies": {
+        "compression": "^1.8.1",
+        "express": "^5.1.0",
+        "express-session": "^1.18.2",
+        "react": "^19.1.0",
+        "react-dom": "^19.1.0",
+        "react-router": "^7.7.0",
+        "sirv": "^3.0.1",
+        "vite": "^7.0.6"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.31.0",
+        "@tailwindcss/vite": "^4.1.11",
+        "@types/compression": "^1.8.1",
+        "@types/express": "^5.0.3",
+        "@types/react": "^19.1.8",
+        "@types/react-dom": "^19.1.6",
+        "@typescript-eslint/eslint-plugin": "^8.38.0",
+        "@typescript-eslint/parser": "^8.38.0",
+        "@vitejs/plugin-react": "^4.7.0",
+        "eslint": "^9.31.0",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-react": "^7.37.5",
+        "eslint-plugin-react-hooks": "^5.2.0",
+        "eslint-plugin-react-refresh": "^0.4.20",
+        "nodemon": "^3.1.10",
+        "tailwindcss": "^4.1.11",
+        "tsc-alias": "^1.8.16",
+        "tsx": "^4.20.3",
+        "typedoc": "^0.28.7",
+        "typescript": "^5.8.3",
+        "typescript-eslint": "^8.38.0",
+        "vitest": "^3.2.4"
+    }
+}
