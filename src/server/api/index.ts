@@ -1,8 +1,8 @@
-import testRouter from "@server/api/test.js";
+import walletsRouter from "@server/api/wallets.js";
 import { Router } from "express";
 
 const router = Router();
 
-router.use("/test", testRouter);
+router.use("/wallets", walletsRouter);
 
 export default router;

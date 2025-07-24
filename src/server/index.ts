@@ -5,6 +5,7 @@ import compression from "compression";
 import sirv from "sirv";
 import api from "@server/api/index.js";
 import { createServer } from "http";
+import mongoose from "mongoose";
 
 const isProd = process.env.NODE_ENV === "production";
 
@@ -14,7 +15,7 @@ const serverBase = process.env.SERVER_BASE || "";
 
 const dbIp = process.env.DB_IP || "127.0.0.1";
 const dbPort = process.env.DB_PORT || "27017";
-const dbName = process.env.DB_NAME || "planning-poker";
+const dbName = process.env.DB_NAME || "wallet-rmt";
 
 const app = express();
 const server = createServer(app);
@@ -102,6 +103,8 @@ if (isProd) {
         }
     );
 }
+
+await mongoose.connect(`mongodb://${dbIp}:${dbPort}/${dbName}`);
 
 server.listen(serverPort, serverIp, () => {
     console.log(

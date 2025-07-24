@@ -13,12 +13,17 @@
         "test": "vitest",
         "doc": "typedoc --out dist/client/docs --tsconfig src/server/tsconfig.json src/server/**/*.ts"
     },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Schrottfresser/wallet-rmt.git"
+    },
     "author": "Schrottfresser",
     "license": "MIT",
     "dependencies": {
         "compression": "^1.8.1",
         "express": "^5.1.0",
         "express-session": "^1.18.2",
+        "mongoose": "^8.16.4",
         "react": "^19.1.0",
         "react-dom": "^19.1.0",
         "react-router": "^7.7.0",
