@@ -1,4 +1,4 @@
-import Wallet from "@server/model/wallet.js";
+import Wallet, { IWallet } from "@server/model/wallet.js";
 import mongoose from "mongoose";
 
 /**
@@ -30,8 +30,8 @@ export const retrieveWallet = async (walletId: mongoose.Types.ObjectId) => {
  * @param name name of the new wallet
  * @returns the created wallet
  */
-export const createWallet = async (name: string) => {
-    const wallet = await Wallet.create({ name: name });
+export const createWallet = async (newWallet: IWallet) => {
+    const wallet = await Wallet.create(newWallet);
 
     return wallet;
 };

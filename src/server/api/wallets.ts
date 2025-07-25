@@ -1,9 +1,8 @@
 import {
+    retrieveAllWallets,
     createWallet,
     deleteWallet,
-    retrieveAllWallets,
 } from "@server/lib/wallet.js";
-import Wallet from "@server/model/wallet.js";
 import { Router } from "express";
 import mongoose from "mongoose";
 
@@ -16,7 +15,7 @@ walletsRouter.get("/", async (_req, res) => {
 });
 
 walletsRouter.post("/", async (req, res) => {
-    const wallet = await createWallet(req.body.name);
+    const wallet = await createWallet(req.body);
 
     res.status(201).json(wallet);
 });
