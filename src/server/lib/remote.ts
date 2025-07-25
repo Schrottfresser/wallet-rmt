@@ -7,7 +7,7 @@ import mongoose from "mongoose";
  * @returns all existing remotes
  */
 export const retrieveAllRemotes = async () => {
-    const allRemotes = await Wallet.find();
+    const allRemotes = await Remote.find();
 
     return allRemotes;
 };
@@ -17,7 +17,7 @@ export const retrieveAllRemotes = async () => {
  * @param remoteId id of the wallet to search for
  * @returns the found remote or undefined if not found
  */
-export const retrieveWallet = async (remoteId: mongoose.Types.ObjectId) => {
+export const retrieveRemote = async (remoteId: mongoose.Types.ObjectId) => {
     const remote = await Remote.findById(remoteId);
     if (!remote) {
         return undefined;
