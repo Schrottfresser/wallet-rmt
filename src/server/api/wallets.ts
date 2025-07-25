@@ -4,6 +4,8 @@ import {
     createWallet,
     deleteWallet,
     refreshWallet,
+    loadWallet,
+    unloadWallet,
 } from "@server/lib/wallet.js";
 import { Router } from "express";
 import mongoose from "mongoose";
@@ -23,6 +25,9 @@ walletsRouter.get("/:walletId", async (req, res, next) => {
 
     const walletId = new mongoose.Types.ObjectId(req.params.walletId);
     const wallet = await retrieveWallet(walletId);
+    if (!wallet) {
+        return next({ status: 404, message: "Wallet not found" });
+    }
 
     res.status(200).json(wallet);
 });
@@ -54,6 +59,37 @@ walletsRouter.get("/:walletId/refresh", async (req, res, next) => {
 
     const walletId = new mongoose.Types.ObjectId(req.params.walletId);
     const wallet = await refreshWallet(walletId);
+    if (!wallet) {
+        return next({ status: 404, message: "Wallet not found" });
+    }
+
+    res.status(200).json(wallet);
+});
+
+walletsRouter.get("/:walletId/load", async (req, res, next) => {
+    if (!mongoose.Types.ObjectId.isValid(req.params.walletId)) {
+        return next({ status: 404, message: "Wallet ID not valid" });
+    }
+
+    const walletId = new mongoose.Types.ObjectId(req.params.walletId);
+    const wallet = await loadWallet(walletId);
+    if (!wallet) {
+        return next({ status: 404, message: "Wallet not found" });
+    }
+
+    res.status(200).json(wallet);
+});
+
+walletsRouter.get("/:walletId/unload", async (req, res, next) => {
+    if (!mongoose.Types.ObjectId.isValid(req.params.walletId)) {
+        return next({ status: 404, message: "Wallet ID not valid" });
+    }
+
+    const walletId = new mongoose.Types.ObjectId(req.params.walletId);
+    const wallet = await unloadWallet(walletId);
+    if (!wallet) {
+        return next({ status: 404, message: "Wallet not found" });
+    }
 
     res.status(200).json(wallet);
 });

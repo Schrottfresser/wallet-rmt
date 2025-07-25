@@ -24,11 +24,11 @@ export default class RPC {
     }
 
     protected async request<T>(
-        path: string,
         method: string,
+        path?: string,
         params?: string[]
-    ) {
-        const requestUrl = `${this.url}/${path}`;
+    ): Promise<T> {
+        const requestUrl = `${this.url}/${path ? path : ""}`;
         const response = await fetch(requestUrl, {
             method: "POST",
             headers: {
@@ -52,9 +52,7 @@ export default class RPC {
 
         if (responseJson.error) {
             throw new Error(
-                `JSON RPC request error: ${
-                    response.status
-                } ${responseJson.error.toString()}`
+                `JSON RPC error: ${responseJson.error.code}: ${responseJson.error.message}`
             );
         }
 

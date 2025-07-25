@@ -81,3 +81,61 @@ export const refreshWallet = async (walletId: mongoose.Types.ObjectId) => {
 
     return wallet;
 };
+
+/**
+ * Takes a wallet id and refreshes the corresponding wallet
+ * @param walletId id of the wallet to refresh
+ * @returns the refreshed wallet or undefined if not found
+ */
+export const loadWallet = async (walletId: mongoose.Types.ObjectId) => {
+    const wallet = await Wallet.findById(walletId).populate<{
+        remote: IRemote;
+    }>("remote");
+    if (!wallet) {
+        return undefined;
+    }
+
+    if (!wallet.isLoaded) {
+        const bitcoinRpc = new BitcoinRPC(
+            wallet.remote.url,
+            wallet.remote.username,
+            wallet.remote.password
+        );
+
+        await bitcoinRpc.loadwallet(wallet.remoteName);
+
+        wallet.isLoaded = true;
+        await wallet.save();
+    }
+
+    return wallet;
+};
+
+/**
+ * Takes a wallet id and refreshes the corresponding wallet
+ * @param walletId id of the wallet to refresh
+ * @returns the refreshed wallet or undefined if not found
+ */
+export const unloadWallet = async (walletId: mongoose.Types.ObjectId) => {
+    const wallet = await Wallet.findById(walletId).populate<{
+        remote: IRemote;
+    }>("remote");
+    if (!wallet) {
+        return undefined;
+    }
+
+    if (wallet.isLoaded) {
+        const bitcoinRpc = new BitcoinRPC(
+            wallet.remote.url,
+            wallet.remote.username,
+            wallet.remote.password
+        );
+
+        await bitcoinRpc.unloadwallet(wallet.remoteName);
+
+        wallet.isLoaded = false;
+        await wallet.save();
+    }
+
+    return wallet;
+};
