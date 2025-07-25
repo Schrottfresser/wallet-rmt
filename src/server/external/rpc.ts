@@ -29,7 +29,6 @@ export default class RPC {
         params?: string[]
     ) {
         const requestUrl = `${this.url}/${path}`;
-        console.log(requestUrl);
         const response = await fetch(requestUrl, {
             method: "POST",
             headers: {
