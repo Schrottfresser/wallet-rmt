@@ -26,7 +26,7 @@ export default class RPC {
     protected async request<T>(
         method: string,
         path?: string,
-        params?: string[]
+        params?: unknown[]
     ): Promise<T> {
         const requestUrl = `${this.url}/${path ? path : ""}`;
         const response = await fetch(requestUrl, {

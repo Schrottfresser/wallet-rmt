@@ -1,5 +1,5 @@
 import BitcoinRPC from "@server/external/bitcoinRpc.js";
-import { IRemote } from "@server/model/remote.js";
+import Remote, { IRemote } from "@server/model/remote.js";
 import Wallet, { IWallet } from "@server/model/wallet.js";
 import mongoose from "mongoose";
 
@@ -19,7 +19,9 @@ export const retrieveAllWallets = async () => {
  * @returns the found wallet or undefined if not found
  */
 export const retrieveWallet = async (walletId: mongoose.Types.ObjectId) => {
-    const wallet = await Wallet.findById(walletId);
+    const wallet = await Wallet.findById(walletId).populate<{
+        remote: IRemote;
+    }>("remote");
     if (!wallet) {
         return undefined;
     }
@@ -28,11 +30,37 @@ export const retrieveWallet = async (walletId: mongoose.Types.ObjectId) => {
 };
 
 /**
- * Creates a new wallet with the given name
+ * Creates or adds a new wallet with the given name
  * @param name name of the new wallet
- * @returns the created wallet
+ * @returns the created/added wallet, the already existing wallet without loading it or undefined if remote does not exist
  */
 export const createWallet = async (newWallet: IWallet) => {
+    const remote = await Remote.findById(newWallet.remote);
+    if (!remote) {
+        return undefined;
+    }
+
+    const existingWallet = await Wallet.findOne({
+        remoteName: newWallet.remoteName,
+    });
+    if (existingWallet) {
+        return existingWallet;
+    }
+
+    const bitcoinRpc = new BitcoinRPC(
+        remote.url,
+        remote.username,
+        remote.password
+    );
+
+    const allWallets = await bitcoinRpc.listwalletdir();
+    if (allWallets.find((wallet) => wallet.name === newWallet.remoteName)) {
+        await bitcoinRpc.loadwallet(newWallet.remoteName);
+    } else {
+        await bitcoinRpc.createwallet(newWallet.remoteName);
+    }
+
+    newWallet.isLoaded = true;
     const wallet = await Wallet.create(newWallet);
 
     return wallet;
@@ -44,9 +72,21 @@ export const createWallet = async (newWallet: IWallet) => {
  * @returns `true` if the given wallet was found and deleted and `false` if not
  */
 export const deleteWallet = async (walletId: mongoose.Types.ObjectId) => {
-    const wallet = await Wallet.findById(walletId);
+    const wallet = await Wallet.findById(walletId).populate<{
+        remote: IRemote;
+    }>("remote");
     if (!wallet) {
         return false;
+    }
+
+    if (wallet.isLoaded) {
+        const bitcoinRpc = new BitcoinRPC(
+            wallet.remote.url,
+            wallet.remote.username,
+            wallet.remote.password
+        );
+
+        bitcoinRpc.unloadwallet(wallet.remoteName);
     }
 
     const deleteResult = await wallet.deleteOne();

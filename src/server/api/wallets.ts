@@ -32,8 +32,11 @@ walletsRouter.get("/:walletId", async (req, res, next) => {
     res.status(200).json(wallet);
 });
 
-walletsRouter.post("/", async (req, res) => {
+walletsRouter.post("/", async (req, res, next) => {
     const wallet = await createWallet(req.body);
+    if (!wallet) {
+        return next({ status: 404, message: "Remote not found" });
+    }
 
     res.status(201).json(wallet);
 });

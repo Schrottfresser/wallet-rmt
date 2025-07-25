@@ -5,6 +5,23 @@ export default class BitcoinRPC extends RPC {
         super(url, "2.0", "bitcoin", username, password);
     }
 
+    public async listwalletdir() {
+        const wallets = (
+            await this.request<{ wallets: [{ name: string }] }>("listwalletdir")
+        ).wallets;
+
+        return wallets;
+    }
+
+    public async createwallet(wallet: string, passphrase?: string) {
+        await this.request<{ name: string }>("createwallet", undefined, [
+            wallet,
+            false,
+            false,
+            passphrase,
+        ]);
+    }
+
     public async getbalance(wallet: string) {
         const walletPath = `wallet/${wallet}`;
 
