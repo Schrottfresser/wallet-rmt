@@ -1,3 +1,5 @@
+import BitcoinRPC from "@server/external/bitcoinRpc.js";
+import { IRemote } from "@server/model/remote.js";
 import Wallet, { IWallet } from "@server/model/wallet.js";
 import mongoose from "mongoose";
 
@@ -53,4 +55,29 @@ export const deleteWallet = async (walletId: mongoose.Types.ObjectId) => {
     }
 
     return true;
+};
+
+/**
+ * Takes a wallet id and refreshes the corresponding wallet
+ * @param walletId id of the wallet to refresh
+ * @returns the refreshed wallet or undefined if not found
+ */
+export const refreshWallet = async (walletId: mongoose.Types.ObjectId) => {
+    const wallet = await Wallet.findById(walletId).populate<{
+        remote: IRemote;
+    }>("remote");
+    if (!wallet) {
+        return undefined;
+    }
+
+    const bitcoinRpc = new BitcoinRPC(
+        wallet.remote.url,
+        wallet.remote.username,
+        wallet.remote.password
+    );
+
+    wallet.balance = await bitcoinRpc.getbalance(wallet.remoteName);
+    await wallet.save();
+
+    return wallet;
 };
