@@ -47,4 +47,23 @@ export default class BitcoinRPC extends RPC {
 
         return result;
     }
+
+    public async walletpassphrase(
+        wallet: string,
+        passphrase: string,
+        timeout: number
+    ) {
+        const walletPath = `wallet/${wallet}`;
+
+        await this.request<string>("walletpassphrase", walletPath, [
+            passphrase,
+            timeout,
+        ]);
+    }
+
+    public async walletlock(wallet: string) {
+        const walletPath = `wallet/${wallet}`;
+
+        await this.request<string>("walletlock", walletPath);
+    }
 }

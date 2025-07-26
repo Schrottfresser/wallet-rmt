@@ -7,6 +7,8 @@ import {
     loadWallet,
     unloadWallet,
     encryptWallet,
+    lockWallet,
+    unlockWallet,
 } from "@server/lib/wallet.js";
 import { Router } from "express";
 import mongoose from "mongoose";
@@ -105,6 +107,38 @@ walletsRouter.post("/:walletId/encrypt", async (req, res, next) => {
 
     const walletId = new mongoose.Types.ObjectId(req.params.walletId);
     const wallet = await encryptWallet(walletId, req.body.passphrase);
+    if (!wallet) {
+        return next({ status: 404, message: "Wallet not found" });
+    }
+
+    res.status(200).json(wallet);
+});
+
+walletsRouter.get("/:walletId/lock", async (req, res, next) => {
+    if (!mongoose.Types.ObjectId.isValid(req.params.walletId)) {
+        return next({ status: 404, message: "Wallet ID not valid" });
+    }
+
+    const walletId = new mongoose.Types.ObjectId(req.params.walletId);
+    const wallet = await lockWallet(walletId);
+    if (!wallet) {
+        return next({ status: 404, message: "Wallet not found" });
+    }
+
+    res.status(200).json(wallet);
+});
+
+walletsRouter.post("/:walletId/unlock", async (req, res, next) => {
+    if (!mongoose.Types.ObjectId.isValid(req.params.walletId)) {
+        return next({ status: 404, message: "Wallet ID not valid" });
+    }
+
+    const walletId = new mongoose.Types.ObjectId(req.params.walletId);
+    const wallet = await unlockWallet(
+        walletId,
+        req.body.passphrase,
+        req.body.timeout
+    );
     if (!wallet) {
         return next({ status: 404, message: "Wallet not found" });
     }

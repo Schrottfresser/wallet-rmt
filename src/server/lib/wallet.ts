@@ -203,13 +203,70 @@ export const encryptWallet = async (
         wallet.remote.password
     );
 
-    const response = await bitcoinRpc.encryptwallet(
-        wallet.remoteName,
-        passphrase
-    );
+    await bitcoinRpc.encryptwallet(wallet.remoteName, passphrase);
 
-    wallet.isEncrypted = true;
+    wallet.isLocked = true;
     await wallet.save();
 
-    return response;
+    return wallet;
+};
+
+/**
+ * Unlocks the wallet with the given id temporarily
+ * @param walletId id of the wallet to unlock temporarily
+ * @param passphrase key to decrypt the wallet with
+ * @param timeout the timeout to temporarily unlock the wallet in
+ * @returns the decrypted wallet or undefined if not found
+ */
+export const unlockWallet = async (
+    walletId: mongoose.Types.ObjectId,
+    passphrase: string,
+    timeout: number
+) => {
+    const wallet = await Wallet.findById(walletId).populate<{
+        remote: IRemote;
+    }>("remote");
+    if (!wallet) {
+        return undefined;
+    }
+
+    const bitcoinRpc = new BitcoinRPC(
+        wallet.remote.url,
+        wallet.remote.username,
+        wallet.remote.password
+    );
+
+    await bitcoinRpc.walletpassphrase(wallet.remoteName, passphrase, timeout);
+
+    wallet.isLocked = false;
+    await wallet.save();
+
+    return wallet;
+};
+
+/**
+ * Locks the wallet with the given id
+ * @param walletId id of the wallet to lock
+ * @returns the locked wallet or undefined if not found
+ */
+export const lockWallet = async (walletId: mongoose.Types.ObjectId) => {
+    const wallet = await Wallet.findById(walletId).populate<{
+        remote: IRemote;
+    }>("remote");
+    if (!wallet) {
+        return undefined;
+    }
+
+    const bitcoinRpc = new BitcoinRPC(
+        wallet.remote.url,
+        wallet.remote.username,
+        wallet.remote.password
+    );
+
+    await bitcoinRpc.walletlock(wallet.remoteName);
+
+    wallet.isLocked = true;
+    await wallet.save();
+
+    return wallet;
 };
