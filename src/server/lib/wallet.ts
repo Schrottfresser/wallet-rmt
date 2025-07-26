@@ -63,6 +63,7 @@ export const createWallet = async (newWallet: IWallet) => {
     );
 
     const allWallets = await bitcoinRpc.listwalletdir();
+    console.log(allWallets);
     if (allWallets.find((wallet) => wallet.name === newWallet.remoteName)) {
         await bitcoinRpc.loadwallet(newWallet.remoteName);
     } else {
@@ -125,7 +126,10 @@ export const refreshWallet = async (walletId: mongoose.Types.ObjectId) => {
         wallet.remote.password
     );
 
-    wallet.balance = await bitcoinRpc.getbalance(wallet.remoteName);
+    const result = await bitcoinRpc.getbalances(wallet.remoteName);
+    wallet.balance = result.mine.trusted;
+    wallet.untrustedBalance = result.mine.untrusted_pending;
+    wallet.blockHeight = result.lastprocessedblock.height;
     await wallet.save();
 
     return wallet;

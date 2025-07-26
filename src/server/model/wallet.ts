@@ -5,6 +5,8 @@ export interface IWallet {
     remote: Types.ObjectId;
     remoteName: string;
     balance?: number;
+    untrustedBalance?: number;
+    blockHeight?: number;
     isLoaded?: boolean;
     isLocked?: boolean;
 }
@@ -30,6 +32,8 @@ export const walletSchema = new mongoose.Schema<IWallet>({
         unique: true,
     },
     balance: Number,
+    untrustedBalance: Number,
+    blockHeight: Number,
     isLoaded: Boolean,
     isLocked: Boolean,
 });

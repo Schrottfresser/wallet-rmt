@@ -1,5 +1,33 @@
 import RPC from "@server/external/rpc.js";
 
+interface ListwalletdirResponse {
+    wallets: [
+        {
+            name: string;
+        }
+    ];
+}
+
+interface GetbalancesResponse {
+    mine: {
+        trusted: number;
+        untrusted_pending: number;
+        immature: number;
+        used?: number;
+    };
+
+    watchonly?: {
+        trusted: number;
+        untrusted_pending: number;
+        immature: number;
+    };
+
+    lastprocessedblock: {
+        hash: string;
+        height: number;
+    };
+}
+
 export default class BitcoinRPC extends RPC {
     constructor(url: string, username?: string, password?: string) {
         super(url, "2.0", "bitcoin", username, password);
@@ -7,14 +35,14 @@ export default class BitcoinRPC extends RPC {
 
     public async listwalletdir() {
         const wallets = (
-            await this.request<{ wallets: [{ name: string }] }>("listwalletdir")
+            await this.request<ListwalletdirResponse>("listwalletdir")
         ).wallets;
 
         return wallets;
     }
 
     public async createwallet(wallet: string, passphrase?: string) {
-        await this.request<{ name: string }>("createwallet", undefined, [
+        await this.request("createwallet", undefined, [
             wallet,
             false,
             false,
@@ -22,10 +50,13 @@ export default class BitcoinRPC extends RPC {
         ]);
     }
 
-    public async getbalance(wallet: string) {
+    public async getbalances(wallet: string) {
         const walletPath = `wallet/${wallet}`;
 
-        const result = await this.request<number>("getbalance", walletPath);
+        const result = await this.request<GetbalancesResponse>(
+            "getbalances",
+            walletPath
+        );
 
         return result;
     }
@@ -41,11 +72,7 @@ export default class BitcoinRPC extends RPC {
     public async encryptwallet(wallet: string, passphrase: string) {
         const walletPath = `wallet/${wallet}`;
 
-        const result = await this.request<string>("encryptwallet", walletPath, [
-            passphrase,
-        ]);
-
-        return result;
+        await this.request("encryptwallet", walletPath, [passphrase]);
     }
 
     public async walletpassphrasechange(
@@ -55,7 +82,7 @@ export default class BitcoinRPC extends RPC {
     ) {
         const walletPath = `wallet/${wallet}`;
 
-        await this.request<string>("walletpassphrasechange", walletPath, [
+        await this.request("walletpassphrasechange", walletPath, [
             oldpassphrase,
             newpassphrase,
         ]);
@@ -68,7 +95,7 @@ export default class BitcoinRPC extends RPC {
     ) {
         const walletPath = `wallet/${wallet}`;
 
-        await this.request<string>("walletpassphrase", walletPath, [
+        await this.request("walletpassphrase", walletPath, [
             passphrase,
             timeout,
         ]);
@@ -77,6 +104,6 @@ export default class BitcoinRPC extends RPC {
     public async walletlock(wallet: string) {
         const walletPath = `wallet/${wallet}`;
 
-        await this.request<string>("walletlock", walletPath);
+        await this.request("walletlock", walletPath);
     }
 }
