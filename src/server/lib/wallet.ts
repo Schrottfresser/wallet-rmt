@@ -106,7 +106,7 @@ export const deleteWallet = async (walletId: mongoose.Types.ObjectId) => {
 };
 
 /**
- * Takes a wallet id and refreshes the corresponding wallet
+ * Refreshes the wallet with the given id
  * @param walletId id of the wallet to refresh
  * @returns the refreshed wallet
  * @throwsError {@link NotFoundError} if the specified wallet was not found
@@ -228,7 +228,6 @@ export const encryptWallet = async (
  * @param walletId id of the wallet to change the passphrase of
  * @param oldPassphrase current key of the wallet
  * @param newPassphrase new key of the wallet to change the passphrase to
- * @returns the new encrypted wallet with changed passphrase
  * @throwsError {@link NotFoundError} if the specified wallet was not found
  */
 export const changeWalletPassphrase = async (
@@ -254,8 +253,6 @@ export const changeWalletPassphrase = async (
         oldPassphrase,
         newPassphrase
     );
-
-    return wallet;
 };
 
 /**

@@ -23,6 +23,12 @@ walletsRouter.get("/", async (_req, res) => {
     res.status(200).json(allWallets);
 });
 
+walletsRouter.post("/", async (req, res) => {
+    const wallet = await createWallet(req.body);
+
+    res.status(201).json(wallet);
+});
+
 walletsRouter.get("/:walletId", async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.walletId)) {
         throw new NotFoundError("Wallet ID not valid");
@@ -32,12 +38,6 @@ walletsRouter.get("/:walletId", async (req, res) => {
     const wallet = await retrieveWallet(walletId);
 
     res.status(200).json(wallet);
-});
-
-walletsRouter.post("/", async (req, res) => {
-    const wallet = await createWallet(req.body);
-
-    res.status(201).json(wallet);
 });
 
 walletsRouter.delete("/:walletId", async (req, res) => {
@@ -101,13 +101,13 @@ walletsRouter.post("/:walletId/passphrase", async (req, res) => {
     }
 
     const walletId = new mongoose.Types.ObjectId(req.params.walletId);
-    const wallet = await changeWalletPassphrase(
+    await changeWalletPassphrase(
         walletId,
         req.body.oldPassphrase,
         req.body.newPassphrase
     );
 
-    res.status(200).json(wallet);
+    res.status(200).send();
 });
 
 walletsRouter.get("/:walletId/lock", async (req, res) => {
