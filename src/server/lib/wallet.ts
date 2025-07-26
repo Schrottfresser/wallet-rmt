@@ -212,6 +212,40 @@ export const encryptWallet = async (
 };
 
 /**
+ * Changes the passphrase of the wallet with the given id
+ * @param walletId id of the wallet to change the passphrase of
+ * @param oldPassphrase current key of the wallet
+ * @param newPassphrase new key of the wallet to change the passphrase to
+ * @returns the new encrypted wallet with changed passphrase or undefined if not found
+ */
+export const changeWalletPassphrase = async (
+    walletId: mongoose.Types.ObjectId,
+    oldPassphrase: string,
+    newPassphrase: string
+) => {
+    const wallet = await Wallet.findById(walletId).populate<{
+        remote: IRemote;
+    }>("remote");
+    if (!wallet) {
+        return undefined;
+    }
+
+    const bitcoinRpc = new BitcoinRPC(
+        wallet.remote.url,
+        wallet.remote.username,
+        wallet.remote.password
+    );
+
+    await bitcoinRpc.walletpassphrasechange(
+        wallet.remoteName,
+        oldPassphrase,
+        newPassphrase
+    );
+
+    return wallet;
+};
+
+/**
  * Unlocks the wallet with the given id temporarily
  * @param walletId id of the wallet to unlock temporarily
  * @param passphrase key to decrypt the wallet with

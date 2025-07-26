@@ -7,6 +7,7 @@ import {
     loadWallet,
     unloadWallet,
     encryptWallet,
+    changeWalletPassphrase,
     lockWallet,
     unlockWallet,
 } from "@server/lib/wallet.js";
@@ -107,6 +108,24 @@ walletsRouter.post("/:walletId/encrypt", async (req, res, next) => {
 
     const walletId = new mongoose.Types.ObjectId(req.params.walletId);
     const wallet = await encryptWallet(walletId, req.body.passphrase);
+    if (!wallet) {
+        return next({ status: 404, message: "Wallet not found" });
+    }
+
+    res.status(200).json(wallet);
+});
+
+walletsRouter.post("/:walletId/passphrase", async (req, res, next) => {
+    if (!mongoose.Types.ObjectId.isValid(req.params.walletId)) {
+        return next({ status: 404, message: "Wallet ID not valid" });
+    }
+
+    const walletId = new mongoose.Types.ObjectId(req.params.walletId);
+    const wallet = await changeWalletPassphrase(
+        walletId,
+        req.body.oldPassphrase,
+        req.body.newPassphrase
+    );
     if (!wallet) {
         return next({ status: 404, message: "Wallet not found" });
     }
