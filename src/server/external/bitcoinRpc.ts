@@ -37,4 +37,14 @@ export default class BitcoinRPC extends RPC {
     public async unloadwallet(wallet: string) {
         await this.request("unloadwallet", undefined, [wallet]);
     }
+
+    public async encryptwallet(wallet: string, passphrase: string) {
+        const walletPath = `wallet/${wallet}`;
+
+        const result = await this.request<string>("encryptwallet", walletPath, [
+            passphrase,
+        ]);
+
+        return result;
+    }
 }

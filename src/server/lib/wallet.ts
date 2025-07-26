@@ -123,9 +123,9 @@ export const refreshWallet = async (walletId: mongoose.Types.ObjectId) => {
 };
 
 /**
- * Takes a wallet id and refreshes the corresponding wallet
- * @param walletId id of the wallet to refresh
- * @returns the refreshed wallet or undefined if not found
+ * Loads the wallet with the given id
+ * @param walletId id of the wallet to load
+ * @returns the loaded wallet or undefined if not found
  */
 export const loadWallet = async (walletId: mongoose.Types.ObjectId) => {
     const wallet = await Wallet.findById(walletId).populate<{
@@ -152,9 +152,9 @@ export const loadWallet = async (walletId: mongoose.Types.ObjectId) => {
 };
 
 /**
- * Takes a wallet id and refreshes the corresponding wallet
- * @param walletId id of the wallet to refresh
- * @returns the refreshed wallet or undefined if not found
+ * Unloads the wallet with the given id
+ * @param walletId id of the wallet to unload
+ * @returns the unloaded wallet or undefined if not found
  */
 export const unloadWallet = async (walletId: mongoose.Types.ObjectId) => {
     const wallet = await Wallet.findById(walletId).populate<{
@@ -178,4 +178,38 @@ export const unloadWallet = async (walletId: mongoose.Types.ObjectId) => {
     }
 
     return wallet;
+};
+
+/**
+ * Encrypts the wallet with the given id permanently
+ * @param walletId id of the wallet to encrypt permanently
+ * @param passphrase key to encrypt the wallet with
+ * @returns the encrypted wallet or undefined if not found
+ */
+export const encryptWallet = async (
+    walletId: mongoose.Types.ObjectId,
+    passphrase: string
+) => {
+    const wallet = await Wallet.findById(walletId).populate<{
+        remote: IRemote;
+    }>("remote");
+    if (!wallet) {
+        return undefined;
+    }
+
+    const bitcoinRpc = new BitcoinRPC(
+        wallet.remote.url,
+        wallet.remote.username,
+        wallet.remote.password
+    );
+
+    const response = await bitcoinRpc.encryptwallet(
+        wallet.remoteName,
+        passphrase
+    );
+
+    wallet.isEncrypted = true;
+    await wallet.save();
+
+    return response;
 };

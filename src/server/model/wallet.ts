@@ -6,6 +6,7 @@ export interface IWallet {
     remoteName: string;
     balance?: number;
     isLoaded?: boolean;
+    isEncrypted?: boolean;
 }
 
 export interface IWalletWithMeta extends IWallet {
@@ -30,6 +31,7 @@ export const walletSchema = new mongoose.Schema<IWallet>({
     },
     balance: Number,
     isLoaded: Boolean,
+    isEncrypted: Boolean,
 });
 
 const Wallet = mongoose.model("Wallet", walletSchema);
