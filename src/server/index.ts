@@ -1,5 +1,5 @@
 import fs from "fs/promises";
-import express, { NextFunction, Request, Response } from "express";
+import express from "express";
 import { createServer as createViteServer, ViteDevServer } from "vite";
 import compression from "compression";
 import sirv from "sirv";
@@ -49,10 +49,11 @@ app.use("*all", async (req, res, next) => {
             template = await fs.readFile("dist/client/index.html", "utf-8");
 
             // @ts-expect-error vite server entry import
-            const entryServer = await import("../../dist/ssr/entry-server.js");
+            const entryServer = await import("../ssr/entry-server.js");
             render = entryServer.render;
         } else {
             template = await fs.readFile("./index.html", "utf-8");
+
             template = await vite.transformIndexHtml(url, template);
             render = (await vite.ssrLoadModule("@client/entry-server")).render;
         }
@@ -64,11 +65,12 @@ app.use("*all", async (req, res, next) => {
             .replace("<!--app-html-->", rendered.html ?? "");
 
         res.status(200).set({ "Content-Type": "text/html" }).send(html);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (e: any) {
-        vite?.ssrFixStacktrace(e);
-        console.log(e.stack);
-        next(e);
+    } catch (error) {
+        if (error instanceof Error) {
+            vite?.ssrFixStacktrace(error);
+            console.log(error.stack);
+            next(error);
+        }
     }
 });
 
