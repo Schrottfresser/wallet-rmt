@@ -1,3 +1,5 @@
+import InternalServerError from "@server/errors/internalServerError.js";
+
 export default class RPC {
     private url: string;
     private version: string;
@@ -45,13 +47,15 @@ export default class RPC {
         });
 
         if (!response.ok) {
-            throw new Error(`JSON RPC request error : ${response.status}`);
+            throw new InternalServerError(
+                `JSON RPC request error: ${response.status}`
+            );
         }
 
         const responseJson = await response.json();
 
         if (responseJson.error) {
-            throw new Error(
+            throw new InternalServerError(
                 `JSON RPC error: ${responseJson.error.code}: ${responseJson.error.message}`
             );
         }

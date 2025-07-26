@@ -1,3 +1,4 @@
+import NotFoundError from "@server/errors/notFoundError.js";
 import {
     retrieveAllWallets,
     retrieveWallet,
@@ -22,102 +23,81 @@ walletsRouter.get("/", async (_req, res) => {
     res.status(200).json(allWallets);
 });
 
-walletsRouter.get("/:walletId", async (req, res, next) => {
+walletsRouter.get("/:walletId", async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.walletId)) {
-        return next({ status: 404, message: "Wallet ID not valid" });
+        throw new NotFoundError("Wallet ID not valid");
     }
 
     const walletId = new mongoose.Types.ObjectId(req.params.walletId);
     const wallet = await retrieveWallet(walletId);
-    if (!wallet) {
-        return next({ status: 404, message: "Wallet not found" });
-    }
 
     res.status(200).json(wallet);
 });
 
-walletsRouter.post("/", async (req, res, next) => {
+walletsRouter.post("/", async (req, res) => {
     const wallet = await createWallet(req.body);
-    if (!wallet) {
-        return next({ status: 404, message: "Remote not found" });
-    }
 
     res.status(201).json(wallet);
 });
 
-walletsRouter.delete("/:walletId", async (req, res, next) => {
+walletsRouter.delete("/:walletId", async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.walletId)) {
-        return next({ status: 404, message: "Wallet ID not valid" });
+        throw new NotFoundError("Wallet ID not valid");
     }
 
     const walletId = new mongoose.Types.ObjectId(req.params.walletId);
-    const deleteResult = deleteWallet(walletId);
-    if (!deleteResult) {
-        return next({ status: 404, message: "Wallet not found" });
-    }
+    await deleteWallet(walletId);
 
     res.status(200).send();
 });
 
-walletsRouter.get("/:walletId/refresh", async (req, res, next) => {
+walletsRouter.get("/:walletId/refresh", async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.walletId)) {
-        return next({ status: 404, message: "Wallet ID not valid" });
+        throw new NotFoundError("Wallet ID not valid");
     }
 
     const walletId = new mongoose.Types.ObjectId(req.params.walletId);
     const wallet = await refreshWallet(walletId);
-    if (!wallet) {
-        return next({ status: 404, message: "Wallet not found" });
-    }
 
     res.status(200).json(wallet);
 });
 
-walletsRouter.get("/:walletId/load", async (req, res, next) => {
+walletsRouter.get("/:walletId/load", async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.walletId)) {
-        return next({ status: 404, message: "Wallet ID not valid" });
+        throw new NotFoundError("Wallet ID not valid");
     }
 
     const walletId = new mongoose.Types.ObjectId(req.params.walletId);
     const wallet = await loadWallet(walletId);
-    if (!wallet) {
-        return next({ status: 404, message: "Wallet not found" });
-    }
 
     res.status(200).json(wallet);
 });
 
-walletsRouter.get("/:walletId/unload", async (req, res, next) => {
+walletsRouter.get("/:walletId/unload", async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.walletId)) {
-        return next({ status: 404, message: "Wallet ID not valid" });
+        throw new NotFoundError("Wallet ID not valid");
     }
 
     const walletId = new mongoose.Types.ObjectId(req.params.walletId);
     const wallet = await unloadWallet(walletId);
-    if (!wallet) {
-        return next({ status: 404, message: "Wallet not found" });
-    }
 
     res.status(200).json(wallet);
 });
 
-walletsRouter.post("/:walletId/encrypt", async (req, res, next) => {
+walletsRouter.post("/:walletId/encrypt", async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.walletId)) {
-        return next({ status: 404, message: "Wallet ID not valid" });
+        throw new NotFoundError("Wallet ID not valid");
     }
 
     const walletId = new mongoose.Types.ObjectId(req.params.walletId);
     const wallet = await encryptWallet(walletId, req.body.passphrase);
-    if (!wallet) {
-        return next({ status: 404, message: "Wallet not found" });
-    }
 
     res.status(200).json(wallet);
 });
 
-walletsRouter.post("/:walletId/passphrase", async (req, res, next) => {
+walletsRouter.post("/:walletId/passphrase", async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.walletId)) {
-        return next({ status: 404, message: "Wallet ID not valid" });
+        throw new NotFoundError("Wallet ID not valid");
     }
 
     const walletId = new mongoose.Types.ObjectId(req.params.walletId);
@@ -126,30 +106,24 @@ walletsRouter.post("/:walletId/passphrase", async (req, res, next) => {
         req.body.oldPassphrase,
         req.body.newPassphrase
     );
-    if (!wallet) {
-        return next({ status: 404, message: "Wallet not found" });
-    }
 
     res.status(200).json(wallet);
 });
 
-walletsRouter.get("/:walletId/lock", async (req, res, next) => {
+walletsRouter.get("/:walletId/lock", async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.walletId)) {
-        return next({ status: 404, message: "Wallet ID not valid" });
+        throw new NotFoundError("Wallet ID not valid");
     }
 
     const walletId = new mongoose.Types.ObjectId(req.params.walletId);
     const wallet = await lockWallet(walletId);
-    if (!wallet) {
-        return next({ status: 404, message: "Wallet not found" });
-    }
 
     res.status(200).json(wallet);
 });
 
-walletsRouter.post("/:walletId/unlock", async (req, res, next) => {
+walletsRouter.post("/:walletId/unlock", async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.walletId)) {
-        return next({ status: 404, message: "Wallet ID not valid" });
+        throw new NotFoundError("Wallet ID not valid");
     }
 
     const walletId = new mongoose.Types.ObjectId(req.params.walletId);
@@ -158,9 +132,6 @@ walletsRouter.post("/:walletId/unlock", async (req, res, next) => {
         req.body.passphrase,
         req.body.timeout
     );
-    if (!wallet) {
-        return next({ status: 404, message: "Wallet not found" });
-    }
 
     res.status(200).json(wallet);
 });

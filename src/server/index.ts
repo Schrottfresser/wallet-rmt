@@ -6,6 +6,7 @@ import sirv from "sirv";
 import api from "@server/api/index.js";
 import { createServer } from "http";
 import mongoose from "mongoose";
+import { errorHandler, prodErrorHandler } from "@server/errorHandler.js";
 
 const isProd = process.env.NODE_ENV === "production";
 
@@ -71,38 +72,7 @@ app.use("*all", async (req, res, next) => {
     }
 });
 
-if (isProd) {
-    app.use(
-        (
-            err: { status: number; message: string; errors: string[] },
-            _req: Request,
-            res: Response,
-            // We must provide a next function for the function signature here even though its not used
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            _next: NextFunction
-        ) => {
-            res.status(err.status || 500).json({
-                message: err.message,
-            });
-        }
-    );
-} else {
-    app.use(
-        (
-            err: { status: number; message: string; errors: string[] },
-            _req: Request,
-            res: Response,
-            // We must provide a next function for the function signature here even though its not used
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            _next: NextFunction
-        ) => {
-            res.status(err.status || 500).json({
-                message: err.message,
-                errors: err.errors,
-            });
-        }
-    );
-}
+app.use(isProd ? prodErrorHandler : errorHandler);
 
 await mongoose.connect(`mongodb://${dbIp}:${dbPort}/${dbName}`);
 

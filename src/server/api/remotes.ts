@@ -1,3 +1,4 @@
+import NotFoundError from "@server/errors/notFoundError.js";
 import {
     retrieveAllRemotes,
     retrieveRemote,
@@ -15,9 +16,9 @@ remotesRouter.get("/", async (_req, res) => {
     res.status(200).json(allRemotes);
 });
 
-remotesRouter.get("/:remoteId", async (req, res, next) => {
+remotesRouter.get("/:remoteId", async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.remoteId)) {
-        return next({ status: 404, message: "Remote ID not valid" });
+        throw new NotFoundError("Remote ID not valid");
     }
 
     const remoteId = new mongoose.Types.ObjectId(req.params.remoteId);
@@ -32,16 +33,13 @@ remotesRouter.post("/", async (req, res) => {
     res.status(201).json(remote);
 });
 
-remotesRouter.delete("/:remoteId", async (req, res, next) => {
+remotesRouter.delete("/:remoteId", async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.remoteId)) {
-        return next({ status: 404, message: "Remote ID not valid" });
+        throw new NotFoundError("Remote ID not valid");
     }
 
     const remoteId = new mongoose.Types.ObjectId(req.params.remoteId);
-    const deleteResult = deleteRemote(remoteId);
-    if (!deleteResult) {
-        return next({ status: 404, message: "Remote not found" });
-    }
+    deleteRemote(remoteId);
 
     res.status(200).send();
 });

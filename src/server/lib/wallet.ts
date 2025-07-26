@@ -1,3 +1,6 @@
+import BadRequestError from "@server/errors/badRequestError.js";
+import InternalServerError from "@server/errors/internalServerError.js";
+import NotFoundError from "@server/errors/notFoundError.js";
 import BitcoinRPC from "@server/external/bitcoinRpc.js";
 import Remote, { IRemote } from "@server/model/remote.js";
 import Wallet, { IWallet } from "@server/model/wallet.js";
@@ -16,14 +19,15 @@ export const retrieveAllWallets = async () => {
 /**
  * Takes a wallet id and returns the corresponding wallet
  * @param walletId id of the wallet to search for
- * @returns the found wallet or undefined if not found
+ * @returns the found wallet
+ * @throwsError {@link NotFoundError} if the specified wallet was not found
  */
 export const retrieveWallet = async (walletId: mongoose.Types.ObjectId) => {
     const wallet = await Wallet.findById(walletId).populate<{
         remote: IRemote;
     }>("remote");
     if (!wallet) {
-        return undefined;
+        throw new NotFoundError("Wallet not found");
     }
 
     return wallet;
@@ -31,20 +35,25 @@ export const retrieveWallet = async (walletId: mongoose.Types.ObjectId) => {
 
 /**
  * Creates or adds a new wallet with the given name
- * @param name name of the new wallet
- * @returns the created/added wallet, the already existing wallet without loading it or undefined if remote does not exist
+ * @param newWallet the new wallet
+ * @returns the created/added wallet
+ * @throwsError {@link BadRequestError} if the specified remote was not found
+ * @throwsError {@link BadRequestError} if a wallet with this remoteName already exists at the specified remote
  */
 export const createWallet = async (newWallet: IWallet) => {
     const remote = await Remote.findById(newWallet.remote);
     if (!remote) {
-        return undefined;
+        throw new NotFoundError("Remote not found");
     }
 
     const existingWallet = await Wallet.findOne({
+        remote: newWallet.remote,
         remoteName: newWallet.remoteName,
     });
     if (existingWallet) {
-        return existingWallet;
+        throw new BadRequestError(
+            `The wallet ${newWallet.remoteName} already exists at remote ${newWallet.remote}`
+        );
     }
 
     const bitcoinRpc = new BitcoinRPC(
@@ -69,14 +78,15 @@ export const createWallet = async (newWallet: IWallet) => {
 /**
  * Deletes a wallet by the given id
  * @param walletId id of the wallet to delete
- * @returns `true` if the given wallet was found and deleted and `false` if not
+ * @throwsError {@link NotFoundError} if the specified wallet was not found
+ * @throwsError {@link InternalServerError} if the deletion failed
  */
 export const deleteWallet = async (walletId: mongoose.Types.ObjectId) => {
     const wallet = await Wallet.findById(walletId).populate<{
         remote: IRemote;
     }>("remote");
     if (!wallet) {
-        return false;
+        throw new NotFoundError("Wallet not found");
     }
 
     if (wallet.isLoaded) {
@@ -91,23 +101,22 @@ export const deleteWallet = async (walletId: mongoose.Types.ObjectId) => {
 
     const deleteResult = await wallet.deleteOne();
     if (!deleteResult.acknowledged || deleteResult.deletedCount < 1) {
-        throw new Error(`Deletion of wallet ${walletId} failed`);
+        throw new InternalServerError(`Deletion of wallet ${walletId} failed`);
     }
-
-    return true;
 };
 
 /**
  * Takes a wallet id and refreshes the corresponding wallet
  * @param walletId id of the wallet to refresh
- * @returns the refreshed wallet or undefined if not found
+ * @returns the refreshed wallet
+ * @throwsError {@link NotFoundError} if the specified wallet was not found
  */
 export const refreshWallet = async (walletId: mongoose.Types.ObjectId) => {
     const wallet = await Wallet.findById(walletId).populate<{
         remote: IRemote;
     }>("remote");
     if (!wallet) {
-        return undefined;
+        throw new NotFoundError("Wallet not found");
     }
 
     const bitcoinRpc = new BitcoinRPC(
@@ -125,14 +134,15 @@ export const refreshWallet = async (walletId: mongoose.Types.ObjectId) => {
 /**
  * Loads the wallet with the given id
  * @param walletId id of the wallet to load
- * @returns the loaded wallet or undefined if not found
+ * @returns the loaded wallet
+ * @throwsError {@link NotFoundError} if the specified wallet was not found
  */
 export const loadWallet = async (walletId: mongoose.Types.ObjectId) => {
     const wallet = await Wallet.findById(walletId).populate<{
         remote: IRemote;
     }>("remote");
     if (!wallet) {
-        return undefined;
+        throw new NotFoundError("Wallet not found");
     }
 
     if (!wallet.isLoaded) {
@@ -154,14 +164,15 @@ export const loadWallet = async (walletId: mongoose.Types.ObjectId) => {
 /**
  * Unloads the wallet with the given id
  * @param walletId id of the wallet to unload
- * @returns the unloaded wallet or undefined if not found
+ * @returns the unloaded wallet
+ * @throwsError {@link NotFoundError} if the specified wallet was not found
  */
 export const unloadWallet = async (walletId: mongoose.Types.ObjectId) => {
     const wallet = await Wallet.findById(walletId).populate<{
         remote: IRemote;
     }>("remote");
     if (!wallet) {
-        return undefined;
+        throw new NotFoundError("Wallet not found");
     }
 
     if (wallet.isLoaded) {
@@ -184,7 +195,8 @@ export const unloadWallet = async (walletId: mongoose.Types.ObjectId) => {
  * Encrypts the wallet with the given id permanently
  * @param walletId id of the wallet to encrypt permanently
  * @param passphrase key to encrypt the wallet with
- * @returns the encrypted wallet or undefined if not found
+ * @returns the encrypted wallet
+ * @throwsError {@link NotFoundError} if the specified wallet was not found
  */
 export const encryptWallet = async (
     walletId: mongoose.Types.ObjectId,
@@ -194,7 +206,7 @@ export const encryptWallet = async (
         remote: IRemote;
     }>("remote");
     if (!wallet) {
-        return undefined;
+        throw new NotFoundError("Wallet not found");
     }
 
     const bitcoinRpc = new BitcoinRPC(
@@ -216,7 +228,8 @@ export const encryptWallet = async (
  * @param walletId id of the wallet to change the passphrase of
  * @param oldPassphrase current key of the wallet
  * @param newPassphrase new key of the wallet to change the passphrase to
- * @returns the new encrypted wallet with changed passphrase or undefined if not found
+ * @returns the new encrypted wallet with changed passphrase
+ * @throwsError {@link NotFoundError} if the specified wallet was not found
  */
 export const changeWalletPassphrase = async (
     walletId: mongoose.Types.ObjectId,
@@ -227,7 +240,7 @@ export const changeWalletPassphrase = async (
         remote: IRemote;
     }>("remote");
     if (!wallet) {
-        return undefined;
+        throw new NotFoundError("Wallet not found");
     }
 
     const bitcoinRpc = new BitcoinRPC(
@@ -250,7 +263,8 @@ export const changeWalletPassphrase = async (
  * @param walletId id of the wallet to unlock temporarily
  * @param passphrase key to decrypt the wallet with
  * @param timeout the timeout to temporarily unlock the wallet in
- * @returns the decrypted wallet or undefined if not found
+ * @returns the decrypted wallet
+ * @throwsError {@link NotFoundError} if the specified wallet was not found
  */
 export const unlockWallet = async (
     walletId: mongoose.Types.ObjectId,
@@ -261,7 +275,7 @@ export const unlockWallet = async (
         remote: IRemote;
     }>("remote");
     if (!wallet) {
-        return undefined;
+        throw new NotFoundError("Wallet not found");
     }
 
     const bitcoinRpc = new BitcoinRPC(
@@ -281,14 +295,15 @@ export const unlockWallet = async (
 /**
  * Locks the wallet with the given id
  * @param walletId id of the wallet to lock
- * @returns the locked wallet or undefined if not found
+ * @returns the locked wallet
+ * @throwsError {@link NotFoundError} if the specified wallet was not found
  */
 export const lockWallet = async (walletId: mongoose.Types.ObjectId) => {
     const wallet = await Wallet.findById(walletId).populate<{
         remote: IRemote;
     }>("remote");
     if (!wallet) {
-        return undefined;
+        throw new NotFoundError("Wallet not found");
     }
 
     const bitcoinRpc = new BitcoinRPC(

@@ -1,5 +1,6 @@
+import InternalServerError from "@server/errors/internalServerError.js";
+import NotFoundError from "@server/errors/notFoundError.js";
 import Remote, { IRemote } from "@server/model/remote.js";
-import Wallet, { IWallet } from "@server/model/wallet.js";
 import mongoose from "mongoose";
 
 /**
@@ -13,14 +14,15 @@ export const retrieveAllRemotes = async () => {
 };
 
 /**
- * Takes a remote id and returns the corresponding wallet
- * @param remoteId id of the wallet to search for
- * @returns the found remote or undefined if not found
+ * Takes a remote id and returns the corresponding remote
+ * @param remoteId id of the remote to search for
+ * @returns the found remote
+ * @throwsError {@link NotFoundError} if the specified remote was not found
  */
 export const retrieveRemote = async (remoteId: mongoose.Types.ObjectId) => {
     const remote = await Remote.findById(remoteId);
     if (!remote) {
-        return undefined;
+        throw new NotFoundError("Remote not found");
     }
 
     return remote;
@@ -40,17 +42,18 @@ export const createRemote = async (newRemote: IRemote) => {
 /**
  * Deletes a remote by the given id
  * @param remoteId id of the remote to delete
- * @returns `true` if the given remote was found and deleted and `false` if not
+ * @throwsError {@link NotFoundError} if the specified remote was not found
+ * @throwsError {@link InternalServerError} if the deletion failed
  */
 export const deleteRemote = async (remoteId: mongoose.Types.ObjectId) => {
     const remote = await Remote.findById(remoteId);
     if (!remote) {
-        return false;
+        throw new NotFoundError("Remote not found");
     }
 
     const deleteResult = await remote.deleteOne();
     if (!deleteResult.acknowledged || deleteResult.deletedCount < 1) {
-        throw new Error(`Deletion of remote ${remoteId} failed`);
+        throw new InternalServerError(`Deletion of remote ${remoteId} failed`);
     }
 
     return true;
