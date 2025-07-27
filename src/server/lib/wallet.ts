@@ -63,7 +63,6 @@ export const createWallet = async (newWallet: IWallet) => {
     );
 
     const allWallets = await bitcoinRpc.listwalletdir();
-    console.log(allWallets);
     if (allWallets.find((wallet) => wallet.name === newWallet.remoteName)) {
         await bitcoinRpc.loadwallet(newWallet.remoteName);
     } else {
