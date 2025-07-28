@@ -33,13 +33,13 @@ transactionsRouter.get(
 transactionsRouter.post(
     "/",
     createValidatedHandler(sendTransactionSchema, async (data, _req, res) => {
-        await sendTransaction(
+        const txid = await sendTransaction(
             data.query.walletId,
             data.body.address,
             data.body.amount
         );
 
-        res.status(200).send();
+        res.status(201).send(txid);
     })
 );
 
