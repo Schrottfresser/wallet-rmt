@@ -154,3 +154,29 @@ export const setTransactionFee = async (
 
     await bitcoinRpc.settxfee(wallet.remoteName, fee);
 };
+
+/**
+ * Abandons a transaction of the wallet with the given id
+ * @param walletId id of the wallet to abandon a transaction of
+ * @param txid if of the transaction to abandon
+ * @throwsError {@link NotFoundError} if the specified wallet was not found
+ */
+export const abandonTransaction = async (
+    walletId: Types.ObjectId,
+    txid: string
+) => {
+    const wallet = await Wallet.findById(walletId).populate<{
+        remote: IRemote;
+    }>("remote");
+    if (!wallet) {
+        throw new NotFoundError("Wallet not found");
+    }
+
+    const bitcoinRpc = new BitcoinRPC(
+        wallet.remote.url,
+        wallet.remote.username,
+        wallet.remote.password
+    );
+
+    await bitcoinRpc.abandontransaction(wallet.remoteName, txid);
+};

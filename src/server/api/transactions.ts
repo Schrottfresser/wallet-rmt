@@ -4,12 +4,14 @@ import {
     sendTransactionSchema,
     retrieveWalletTransactionSchema,
     setTransactionFeeSchema,
+    abandonTransactionSchema,
 } from "@server/api/validation/transactions.js";
 import {
     listWalletTransactions,
     sendTransaction,
     retrieveWalletTransaction,
     setTransactionFee,
+    abandonTransaction,
 } from "@server/lib/transaction.js";
 import { Router } from "express";
 
@@ -63,6 +65,18 @@ transactionsRouter.post(
 
         res.status(200).send();
     })
+);
+
+transactionsRouter.get(
+    "/:txid/abandon",
+    createValidatedHandler(
+        abandonTransactionSchema,
+        async (data, _req, res) => {
+            await abandonTransaction(data.query.walletId, data.params.txid);
+
+            res.status(200).send();
+        }
+    )
 );
 
 export default transactionsRouter;

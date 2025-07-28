@@ -218,6 +218,18 @@ export default class BitcoinRPC extends RPC {
         return results;
     }
 
+    public async gettransaction(wallet: string, txid: string) {
+        const walletPath = `wallet/${wallet}`;
+
+        const result = await this.request<GettransactionResult>(
+            "gettransaction",
+            walletPath,
+            [txid]
+        );
+
+        return result;
+    }
+
     public async settxfee(wallet: string, amount: number) {
         const walletPath = `wallet/${wallet}`;
 
@@ -230,15 +242,9 @@ export default class BitcoinRPC extends RPC {
         }
     }
 
-    public async gettransaction(wallet: string, txid: string) {
+    public async abandontransaction(wallet: string, txid: string) {
         const walletPath = `wallet/${wallet}`;
 
-        const result = await this.request<GettransactionResult>(
-            "gettransaction",
-            walletPath,
-            [txid]
-        );
-
-        return result;
+        await this.request("abandontransaction", walletPath, [txid]);
     }
 }

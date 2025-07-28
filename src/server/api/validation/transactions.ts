@@ -32,7 +32,17 @@ export const retrieveWalletTransactionSchema = z.object({
 
 export const setTransactionFeeSchema = z.object({
     body: z.object({
-        fee: z.number().positive(),
+        fee: z.number().min(0),
+    }),
+
+    query: z.object({
+        walletId: objectIdSchema,
+    }),
+});
+
+export const abandonTransactionSchema = z.object({
+    params: z.object({
+        txid: z.string(),
     }),
 
     query: z.object({
