@@ -29,7 +29,6 @@ export const walletSchema = new mongoose.Schema<IWallet>({
     remoteName: {
         type: String,
         required: true,
-        unique: true,
     },
     balance: Number,
     untrustedBalance: Number,
