@@ -1,3 +1,4 @@
+import InternalServerError from "@server/errors/internalServerError.js";
 import RPC from "@server/external/rpc.js";
 
 type EstimateMode = "unset" | "economical" | "conservative";
@@ -181,5 +182,17 @@ export default class BitcoinRPC extends RPC {
         );
 
         return results;
+    }
+
+    public async settxfee(wallet: string, amount: number) {
+        const walletPath = `wallet/${wallet}`;
+
+        const result = await this.request<boolean>("settxfee", walletPath, [
+            amount,
+        ]);
+
+        if (!result) {
+            throw new InternalServerError("Setting the transaction fee failed");
+        }
     }
 }

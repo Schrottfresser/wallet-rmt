@@ -19,3 +19,13 @@ export const sendTransactionSchema = z.object({
         walletId: objectIdSchema,
     }),
 });
+
+export const setTransactionFeeSchema = z.object({
+    body: z.object({
+        fee: z.number().positive(),
+    }),
+
+    query: z.object({
+        walletId: objectIdSchema,
+    }),
+});

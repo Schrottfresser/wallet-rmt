@@ -40,6 +40,8 @@ export const sendTransaction = async (
 /**
  * Lists the transactions of the wallet with the given id
  * @param walletId id of the wallet to list transactions of
+ * @param count max amount of transactions listed
+ * @param skip amount of transactions to skip initially
  * @returns the list of wallet transactions
  * @throwsError {@link NotFoundError} if the specified wallet was not found
  */
@@ -79,4 +81,30 @@ export const listWalletTransactions = async (
     }));
 
     return transactions;
+};
+
+/**
+ * Sets the transaction fee of the wallet with the given id
+ * @param walletId id of the wallet to list transactions of
+ * @param fee amount to set the transaction fee to
+ * @throwsError {@link NotFoundError} if the specified wallet was not found
+ */
+export const setTransactionFee = async (
+    walletId: Types.ObjectId,
+    fee: number
+) => {
+    const wallet = await Wallet.findById(walletId).populate<{
+        remote: IRemote;
+    }>("remote");
+    if (!wallet) {
+        throw new NotFoundError("Wallet not found");
+    }
+
+    const bitcoinRpc = new BitcoinRPC(
+        wallet.remote.url,
+        wallet.remote.username,
+        wallet.remote.password
+    );
+
+    await bitcoinRpc.settxfee(wallet.remoteName, fee);
 };

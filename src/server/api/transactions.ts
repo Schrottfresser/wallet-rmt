@@ -2,10 +2,12 @@ import { createValidatedHandler } from "@server/api/validation/index.js";
 import {
     listTransactionsSchema,
     sendTransactionSchema,
+    setTransactionFeeSchema,
 } from "@server/api/validation/transactions.js";
 import {
     listWalletTransactions,
     sendTransaction,
+    setTransactionFee,
 } from "@server/lib/transaction.js";
 import { Router } from "express";
 
@@ -38,5 +40,14 @@ transactionsRouter.post(
 );
 
 transactionsRouter.get("/:txid", async (req, res) => {});
+
+transactionsRouter.post(
+    "/fee",
+    createValidatedHandler(setTransactionFeeSchema, async (data, _req, res) => {
+        await setTransactionFee(data.query.walletId, data.body.fee);
+
+        res.status(200).send();
+    })
+);
 
 export default transactionsRouter;
