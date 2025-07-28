@@ -1,6 +1,17 @@
 import RPC from "@server/external/rpc.js";
 
-interface ListwalletdirResponse {
+type EstimateMode = "unset" | "economical" | "conservative";
+
+type TransactionCategory =
+    | "send"
+    | "retrieve"
+    | "generate"
+    | "immature"
+    | "orphan";
+
+type ReplacableByFee = "yes" | "no" | "unknown";
+
+interface ListwalletdirResult {
     wallets: [
         {
             name: string;
@@ -8,7 +19,7 @@ interface ListwalletdirResponse {
     ];
 }
 
-interface GetbalancesResponse {
+interface GetbalancesResult {
     mine: {
         trusted: number;
         untrusted_pending: number;
@@ -28,6 +39,30 @@ interface GetbalancesResponse {
     };
 }
 
+interface ListtransactionsResult {
+    involvesWatchonly?: boolean;
+    address: string;
+    category: TransactionCategory;
+    amount: number;
+    label?: string;
+    vout: number;
+    fee: number;
+    confirmations: number;
+    generated?: boolean;
+    trusted?: boolean;
+    blockhash: string;
+    blockheight: number;
+    blockindex: number;
+    blocktime: number;
+    txid: string;
+    walletconflicts: [txid: string];
+    time: number;
+    timerecieved: number;
+    comment?: string;
+    "bip125-replacable": ReplacableByFee;
+    abandoned?: boolean;
+}
+
 export default class BitcoinRPC extends RPC {
     constructor(url: string, username?: string, password?: string) {
         super(url, "2.0", "bitcoin", username, password);
@@ -35,7 +70,7 @@ export default class BitcoinRPC extends RPC {
 
     public async listwalletdir() {
         const wallets = (
-            await this.request<ListwalletdirResponse>("listwalletdir")
+            await this.request<ListwalletdirResult>("listwalletdir")
         ).wallets;
 
         return wallets;
@@ -53,7 +88,7 @@ export default class BitcoinRPC extends RPC {
     public async getbalances(wallet: string) {
         const walletPath = `wallet/${wallet}`;
 
-        const result = await this.request<GetbalancesResponse>(
+        const result = await this.request<GetbalancesResult>(
             "getbalances",
             walletPath
         );
@@ -105,5 +140,46 @@ export default class BitcoinRPC extends RPC {
         const walletPath = `wallet/${wallet}`;
 
         await this.request("walletlock", walletPath);
+    }
+
+    public async sendtoaddress(
+        wallet: string,
+        address: string,
+        amount: number,
+        substractFee?: boolean,
+        replacable?: boolean,
+        confirmationTarget?: number,
+        estimateMode?: EstimateMode
+    ) {
+        const walletPath = `wallet/${wallet}`;
+
+        const result = await this.request<string>("sendtoaddress", walletPath, [
+            address,
+            amount,
+            undefined,
+            undefined,
+            substractFee,
+            replacable,
+            confirmationTarget,
+            estimateMode,
+        ]);
+
+        return result;
+    }
+
+    public async listtransactions(
+        wallet: string,
+        count?: number,
+        skip?: number
+    ) {
+        const walletPath = `wallet/${wallet}`;
+
+        const results = await this.request<[ListtransactionsResult]>(
+            "listtransactions",
+            walletPath,
+            [undefined, count, skip]
+        );
+
+        return results;
     }
 }
