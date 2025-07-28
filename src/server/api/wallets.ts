@@ -12,7 +12,6 @@ import {
     unlockWalletSchema,
     generateNewWalletAddressSchema,
 } from "@server/api/validation/wallets.js";
-import NotFoundError from "@server/errors/notFoundError.js";
 import {
     retrieveAllWallets,
     retrieveWallet,
@@ -28,7 +27,6 @@ import {
     generateNewWalletAddress,
 } from "@server/lib/wallet.js";
 import { Router } from "express";
-import mongoose from "mongoose";
 
 const walletsRouter = Router();
 
@@ -54,12 +52,7 @@ walletsRouter.post(
 walletsRouter.get(
     "/:walletId",
     createValidatedHandler(retrieveWalletSchema, async (data, _req, res) => {
-        if (!mongoose.Types.ObjectId.isValid(data.params.walletId)) {
-            throw new NotFoundError("Wallet ID not valid");
-        }
-
-        const walletId = new mongoose.Types.ObjectId(data.params.walletId);
-        const wallet = await retrieveWallet(walletId);
+        const wallet = await retrieveWallet(data.params.walletId);
 
         res.status(200).json(wallet);
     })
@@ -68,12 +61,7 @@ walletsRouter.get(
 walletsRouter.delete(
     "/:walletId",
     createValidatedHandler(deleteWalletSchema, async (data, _req, res) => {
-        if (!mongoose.Types.ObjectId.isValid(data.params.walletId)) {
-            throw new NotFoundError("Wallet ID not valid");
-        }
-
-        const walletId = new mongoose.Types.ObjectId(data.params.walletId);
-        await deleteWallet(walletId);
+        await deleteWallet(data.params.walletId);
 
         res.status(200).send();
     })
@@ -82,12 +70,7 @@ walletsRouter.delete(
 walletsRouter.get(
     "/:walletId/refresh",
     createValidatedHandler(refreshWalletSchema, async (data, _req, res) => {
-        if (!mongoose.Types.ObjectId.isValid(data.params.walletId)) {
-            throw new NotFoundError("Wallet ID not valid");
-        }
-
-        const walletId = new mongoose.Types.ObjectId(data.params.walletId);
-        const wallet = await refreshWallet(walletId);
+        const wallet = await refreshWallet(data.params.walletId);
 
         res.status(200).json(wallet);
     })
@@ -96,12 +79,7 @@ walletsRouter.get(
 walletsRouter.get(
     "/:walletId/load",
     createValidatedHandler(loadWalletSchema, async (data, _req, res) => {
-        if (!mongoose.Types.ObjectId.isValid(data.params.walletId)) {
-            throw new NotFoundError("Wallet ID not valid");
-        }
-
-        const walletId = new mongoose.Types.ObjectId(data.params.walletId);
-        const wallet = await loadWallet(walletId);
+        const wallet = await loadWallet(data.params.walletId);
 
         res.status(200).json(wallet);
     })
@@ -110,12 +88,7 @@ walletsRouter.get(
 walletsRouter.get(
     "/:walletId/unload",
     createValidatedHandler(unloadWalletSchema, async (data, _req, res) => {
-        if (!mongoose.Types.ObjectId.isValid(data.params.walletId)) {
-            throw new NotFoundError("Wallet ID not valid");
-        }
-
-        const walletId = new mongoose.Types.ObjectId(data.params.walletId);
-        const wallet = await unloadWallet(walletId);
+        const wallet = await unloadWallet(data.params.walletId);
 
         res.status(200).json(wallet);
     })
@@ -124,12 +97,10 @@ walletsRouter.get(
 walletsRouter.post(
     "/:walletId/encrypt",
     createValidatedHandler(encryptWalletSchema, async (data, _req, res) => {
-        if (!mongoose.Types.ObjectId.isValid(data.params.walletId)) {
-            throw new NotFoundError("Wallet ID not valid");
-        }
-
-        const walletId = new mongoose.Types.ObjectId(data.params.walletId);
-        const wallet = await encryptWallet(walletId, data.body.passphrase);
+        const wallet = await encryptWallet(
+            data.params.walletId,
+            data.body.passphrase
+        );
 
         res.status(200).json(wallet);
     })
@@ -140,13 +111,8 @@ walletsRouter.post(
     createValidatedHandler(
         changeWalletPassphraseSchema,
         async (data, _req, res) => {
-            if (!mongoose.Types.ObjectId.isValid(data.params.walletId)) {
-                throw new NotFoundError("Wallet ID not valid");
-            }
-
-            const walletId = new mongoose.Types.ObjectId(data.params.walletId);
             await changeWalletPassphrase(
-                walletId,
+                data.params.walletId,
                 data.body.oldPassphrase,
                 data.body.newPassphrase
             );
@@ -159,12 +125,7 @@ walletsRouter.post(
 walletsRouter.get(
     "/:walletId/lock",
     createValidatedHandler(lockWalletSchema, async (data, _req, res) => {
-        if (!mongoose.Types.ObjectId.isValid(data.params.walletId)) {
-            throw new NotFoundError("Wallet ID not valid");
-        }
-
-        const walletId = new mongoose.Types.ObjectId(data.params.walletId);
-        const wallet = await lockWallet(walletId);
+        const wallet = await lockWallet(data.params.walletId);
 
         res.status(200).json(wallet);
     })
@@ -173,13 +134,8 @@ walletsRouter.get(
 walletsRouter.post(
     "/:walletId/unlock",
     createValidatedHandler(unlockWalletSchema, async (data, _req, res) => {
-        if (!mongoose.Types.ObjectId.isValid(data.params.walletId)) {
-            throw new NotFoundError("Wallet ID not valid");
-        }
-
-        const walletId = new mongoose.Types.ObjectId(data.params.walletId);
         const wallet = await unlockWallet(
-            walletId,
+            data.params.walletId,
             data.body.passphrase,
             data.body.timeout
         );
