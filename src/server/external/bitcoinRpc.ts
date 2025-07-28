@@ -5,7 +5,7 @@ type EstimateMode = "unset" | "economical" | "conservative";
 
 type TransactionCategory =
     | "send"
-    | "retrieve"
+    | "receive"
     | "generate"
     | "immature"
     | "orphan";
@@ -56,12 +56,43 @@ interface ListtransactionsResult {
     blockindex: number;
     blocktime: number;
     txid: string;
-    walletconflicts: [txid: string];
+    walletconflicts: [string];
     time: number;
     timerecieved: number;
     comment?: string;
     "bip125-replacable": ReplacableByFee;
     abandoned?: boolean;
+}
+
+interface GettransactionResult {
+    amount: number;
+    fee: number;
+    confirmations: number;
+    generated?: boolean;
+    trusted?: boolean;
+    blockhash: string;
+    blockheight: number;
+    blockindex: number;
+    blocktime: number;
+    txid: string;
+    walletconflicts: [string];
+    time: number;
+    timerecieved: number;
+    comment?: string;
+    "bip125-replacable": ReplacableByFee;
+    details: [
+        {
+            involvesWatchonly: boolean;
+            address: string;
+            category: TransactionCategory;
+            amount: number;
+            label?: string;
+            vout: number;
+            fee: number;
+            abandoned: boolean;
+        }
+    ];
+    hex: string;
 }
 
 export default class BitcoinRPC extends RPC {
@@ -194,5 +225,17 @@ export default class BitcoinRPC extends RPC {
         if (!result) {
             throw new InternalServerError("Setting the transaction fee failed");
         }
+    }
+
+    public async gettransaction(wallet: string, txid: string) {
+        const walletPath = `wallet/${wallet}`;
+
+        const result = await this.request<GettransactionResult>(
+            "gettransaction",
+            walletPath,
+            [txid]
+        );
+
+        return result;
     }
 }

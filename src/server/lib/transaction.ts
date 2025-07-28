@@ -72,6 +72,7 @@ export const listWalletTransactions = async (
     const transactions = result.map((resultItem) => ({
         txid: resultItem.txid,
         address: resultItem.address,
+        category: resultItem.category,
         amount: resultItem.amount,
         fee: resultItem.fee,
         confirmations: resultItem.confirmations,
@@ -81,6 +82,51 @@ export const listWalletTransactions = async (
     }));
 
     return transactions;
+};
+
+/**
+ * Retrieves the transaction by the given txid inside the specified wallet
+ * @param walletId id of the wallet to retieve the transaction of
+ * @param txid id of the transaction to retrieve
+ * @returns the wallet transaction
+ * @throwsError {@link NotFoundError} if the specified wallet was not found
+ */
+export const retrieveWalletTransaction = async (
+    walletId: Types.ObjectId,
+    txid: string
+) => {
+    const wallet = await Wallet.findById(walletId).populate<{
+        remote: IRemote;
+    }>("remote");
+    if (!wallet) {
+        throw new NotFoundError("Wallet not found");
+    }
+
+    const bitcoinRpc = new BitcoinRPC(
+        wallet.remote.url,
+        wallet.remote.username,
+        wallet.remote.password
+    );
+
+    const result = await bitcoinRpc.gettransaction(wallet.remoteName, txid);
+
+    const transaction = {
+        txid: result.txid,
+        amount: result.amount,
+        fee: result.fee,
+        confirmations: result.confirmations,
+        blockHeight: result.blockheight,
+        blockIndex: result.blockindex,
+        details: result.details.map((detailsItem) => ({
+            address: detailsItem.address,
+            category: detailsItem.category,
+            amount: detailsItem.amount,
+            fee: detailsItem.fee,
+            abandoned: detailsItem.abandoned,
+        })),
+    };
+
+    return transaction;
 };
 
 /**

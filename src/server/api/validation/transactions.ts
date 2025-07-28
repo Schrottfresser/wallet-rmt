@@ -20,6 +20,16 @@ export const sendTransactionSchema = z.object({
     }),
 });
 
+export const retrieveWalletTransactionSchema = z.object({
+    params: z.object({
+        txid: z.string(),
+    }),
+
+    query: z.object({
+        walletId: objectIdSchema,
+    }),
+});
+
 export const setTransactionFeeSchema = z.object({
     body: z.object({
         fee: z.number().positive(),

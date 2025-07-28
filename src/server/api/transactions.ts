@@ -2,11 +2,13 @@ import { createValidatedHandler } from "@server/api/validation/index.js";
 import {
     listTransactionsSchema,
     sendTransactionSchema,
+    retrieveWalletTransactionSchema,
     setTransactionFeeSchema,
 } from "@server/api/validation/transactions.js";
 import {
     listWalletTransactions,
     sendTransaction,
+    retrieveWalletTransaction,
     setTransactionFee,
 } from "@server/lib/transaction.js";
 import { Router } from "express";
@@ -39,7 +41,20 @@ transactionsRouter.post(
     })
 );
 
-transactionsRouter.get("/:txid", async (req, res) => {});
+transactionsRouter.get(
+    "/:txid",
+    createValidatedHandler(
+        retrieveWalletTransactionSchema,
+        async (data, _req, res) => {
+            const transaction = await retrieveWalletTransaction(
+                data.query.walletId,
+                data.params.txid
+            );
+
+            res.status(200).json(transaction);
+        }
+    )
+);
 
 transactionsRouter.post(
     "/fee",
