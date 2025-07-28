@@ -95,9 +95,12 @@ interface GettransactionResult {
     hex: string;
 }
 
+const RPC_VERSION = "2.0";
+const RPC_ID = "wallet-rmt";
+
 export default class BitcoinRPC extends RPC {
     constructor(url: string, username?: string, password?: string) {
-        super(url, "2.0", "bitcoin", username, password);
+        super(url, RPC_VERSION, RPC_ID, username, password);
     }
 
     public async listwalletdir() {
