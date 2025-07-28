@@ -14,6 +14,17 @@ export const retrieveAllRemotes = async () => {
 };
 
 /**
+ * Creates a new remote with the given name
+ * @param name name of the new remote
+ * @returns the created remote
+ */
+export const createRemote = async (newRemote: IRemote) => {
+    const remote = await Remote.create(newRemote);
+
+    return remote;
+};
+
+/**
  * Takes a remote id and returns the corresponding remote
  * @param remoteId id of the remote to search for
  * @returns the found remote
@@ -33,9 +44,20 @@ export const retrieveRemote = async (remoteId: mongoose.Types.ObjectId) => {
  * @param name name of the new remote
  * @returns the created remote
  */
-export const createRemote = async (newRemote: IRemote) => {
-    const remote = await Remote.create(newRemote);
+export const editRemote = async (
+    remoteId: mongoose.Types.ObjectId,
+    newRemote: IRemote
+) => {
+    const remote = await Remote.findById(remoteId);
+    if (!remote) {
+        throw new NotFoundError("Remote not found");
+    }
 
+    remote.url = newRemote.url;
+    remote.username = newRemote.username;
+    remote.password = newRemote.password;
+
+    await remote.save();
     return remote;
 };
 

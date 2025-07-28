@@ -17,6 +17,19 @@ export const retrieveRemoteSchema = z.object({
     }),
 });
 
+export const editRemoteSchema = z.object({
+    body: z.object({
+        url: z.url({
+            protocol: /^https?$/,
+        }),
+        username: z.string().optional(),
+        password: z.string().optional(),
+    }),
+    params: z.object({
+        remoteId: objectIdSchema,
+    }),
+});
+
 export const deleteRemoteSchema = z.object({
     params: z.object({
         remoteId: objectIdSchema,
