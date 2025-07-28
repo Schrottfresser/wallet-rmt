@@ -10,6 +10,7 @@ import {
     changeWalletPassphraseSchema,
     lockWalletSchema,
     unlockWalletSchema,
+    generateNewWalletAddressSchema,
 } from "@server/api/validation/wallets.js";
 import NotFoundError from "@server/errors/notFoundError.js";
 import {
@@ -24,6 +25,7 @@ import {
     changeWalletPassphrase,
     lockWallet,
     unlockWallet,
+    generateNewWalletAddress,
 } from "@server/lib/wallet.js";
 import { Router } from "express";
 import mongoose from "mongoose";
@@ -39,7 +41,11 @@ walletsRouter.get("/", async (_req, res) => {
 walletsRouter.post(
     "/",
     createValidatedHandler(createWalletSchema, async (data, _req, res) => {
-        const wallet = await createWallet(data.body);
+        const wallet = await createWallet(
+            data.body.remote,
+            data.body.name,
+            data.body.remoteName
+        );
 
         res.status(201).json(wallet);
     })
@@ -180,6 +186,20 @@ walletsRouter.post(
 
         res.status(200).json(wallet);
     })
+);
+
+walletsRouter.get(
+    "/:walletId/address",
+    createValidatedHandler(
+        generateNewWalletAddressSchema,
+        async (data, _req, res) => {
+            const newAddress = await generateNewWalletAddress(
+                data.params.walletId
+            );
+
+            res.status(200).send(newAddress);
+        }
+    )
 );
 
 export default walletsRouter;

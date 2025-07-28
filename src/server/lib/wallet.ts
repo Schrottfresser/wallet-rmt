@@ -4,7 +4,7 @@ import NotFoundError from "@server/errors/notFoundError.js";
 import BitcoinRPC from "@server/external/bitcoinRpc.js";
 import Remote, { IRemote } from "@server/model/remote.js";
 import Wallet, { IWallet } from "@server/model/wallet.js";
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 
 /**
  * Returns all existing wallets
@@ -35,24 +35,30 @@ export const retrieveWallet = async (walletId: mongoose.Types.ObjectId) => {
 
 /**
  * Creates or adds a new wallet with the given name
- * @param newWallet the new wallet
+ * @param remoteId id of the remote to add the wallet to
+ * @param name name of the new wallet
+ * @param remoteName remoteName of the new wallet
  * @returns the created/added wallet
  * @throwsError {@link BadRequestError} if the specified remote was not found
  * @throwsError {@link BadRequestError} if a wallet with this remoteName already exists at the specified remote
  */
-export const createWallet = async (newWallet: IWallet) => {
-    const remote = await Remote.findById(newWallet.remote);
+export const createWallet = async (
+    remoteId: Types.ObjectId,
+    name: string,
+    remoteName: string
+) => {
+    const remote = await Remote.findById(remoteId);
     if (!remote) {
         throw new NotFoundError("Remote not found");
     }
 
     const existingWallet = await Wallet.findOne({
-        remote: newWallet.remote,
-        remoteName: newWallet.remoteName,
+        remote: remoteId,
+        remoteName: remoteName,
     });
     if (existingWallet) {
         throw new BadRequestError(
-            `The wallet ${newWallet.remoteName} already exists at remote ${newWallet.remote}`
+            `The wallet ${remoteName} already exists at remote ${remoteId}`
         );
     }
 
@@ -63,14 +69,17 @@ export const createWallet = async (newWallet: IWallet) => {
     );
 
     const allWallets = await bitcoinRpc.listwalletdir();
-    if (allWallets.find((wallet) => wallet.name === newWallet.remoteName)) {
-        await bitcoinRpc.loadwallet(newWallet.remoteName);
+    if (allWallets.find((wallet) => wallet.name === remoteName)) {
+        await bitcoinRpc.loadwallet(remoteName);
     } else {
-        await bitcoinRpc.createwallet(newWallet.remoteName);
+        await bitcoinRpc.createwallet(remoteName);
     }
 
-    newWallet.isLoaded = true;
-    const wallet = await Wallet.create(newWallet);
+    const wallet = await Wallet.create({
+        name,
+        remote: remoteId,
+        remoteName,
+    });
 
     return wallet;
 };
@@ -318,4 +327,34 @@ export const lockWallet = async (walletId: mongoose.Types.ObjectId) => {
     await wallet.save();
 
     return wallet;
+};
+
+/**
+ * Generates a new recieving address for the wallet with the given id
+ * @param walletId id of the wallet to generate a address for
+ * @returns the new recieving address
+ * @throwsError {@link NotFoundError} if the specified wallet was not found
+ */
+export const generateNewWalletAddress = async (
+    walletId: mongoose.Types.ObjectId
+) => {
+    const wallet = await Wallet.findById(walletId).populate<{
+        remote: IRemote;
+    }>("remote");
+    if (!wallet) {
+        throw new NotFoundError("Wallet not found");
+    }
+
+    const bitcoinRpc = new BitcoinRPC(
+        wallet.remote.url,
+        wallet.remote.username,
+        wallet.remote.password
+    );
+
+    const newAddress = await bitcoinRpc.getnewaddress(wallet.remoteName);
+
+    wallet.addresses.push(newAddress);
+    await wallet.save();
+
+    return newAddress;
 };

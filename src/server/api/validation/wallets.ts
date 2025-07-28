@@ -76,3 +76,9 @@ export const unlockWalletSchema = z.object({
         walletId: objectIdSchema,
     }),
 });
+
+export const generateNewWalletAddressSchema = z.object({
+    params: z.object({
+        walletId: objectIdSchema,
+    }),
+});

@@ -80,18 +80,16 @@ interface GettransactionResult {
     timerecieved: number;
     comment?: string;
     "bip125-replacable": ReplacableByFee;
-    details: [
-        {
-            involvesWatchonly: boolean;
-            address: string;
-            category: TransactionCategory;
-            amount: number;
-            label?: string;
-            vout: number;
-            fee: number;
-            abandoned: boolean;
-        }
-    ];
+    details: {
+        involvesWatchonly: boolean;
+        address: string;
+        category: TransactionCategory;
+        amount: number;
+        label?: string;
+        vout: number;
+        fee: number;
+        abandoned: boolean;
+    }[];
     hex: string;
 }
 
@@ -175,6 +173,14 @@ export default class BitcoinRPC extends RPC {
         const walletPath = `wallet/${wallet}`;
 
         await this.request("walletlock", walletPath);
+    }
+
+    public async getnewaddress(wallet: string) {
+        const walletPath = `wallet/${wallet}`;
+
+        const result = await this.request<string>("getnewaddress", walletPath);
+
+        return result;
     }
 
     public async sendtoaddress(

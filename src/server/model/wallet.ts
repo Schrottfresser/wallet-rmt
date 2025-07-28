@@ -4,16 +4,12 @@ export interface IWallet {
     name: string;
     remote: Types.ObjectId;
     remoteName: string;
+    addresses: string[];
     balance?: number;
     untrustedBalance?: number;
     blockHeight?: number;
     isLoaded?: boolean;
     isLocked?: boolean;
-}
-
-export interface IWalletWithMeta extends IWallet {
-    _id: Types.ObjectId;
-    __v: number;
 }
 
 export const walletSchema = new mongoose.Schema<IWallet>({
@@ -28,6 +24,11 @@ export const walletSchema = new mongoose.Schema<IWallet>({
     },
     remoteName: {
         type: String,
+        required: true,
+    },
+    addresses: {
+        type: [String],
+        default: [],
         required: true,
     },
     balance: Number,
