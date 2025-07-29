@@ -1,8 +1,6 @@
 import BadRequestError from "@server/errors/badRequestError.js";
 import NotFoundError from "@server/errors/notFoundError.js";
 import bitcoinRepository from "@server/external/bitcoinRepository.js";
-import BitcoinRPC from "@server/external/bitcoinRpc.js";
-import { IRemote } from "@server/model/remote.js";
 import Wallet from "@server/model/wallet.js";
 import { Types } from "mongoose";
 
