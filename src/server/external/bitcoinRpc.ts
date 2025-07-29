@@ -1,16 +1,16 @@
 import InternalServerError from "@server/errors/internalServerError.js";
 import RPC from "@server/external/rpc.js";
 
-type EstimateMode = "unset" | "economical" | "conservative";
+export type EstimateMode = "unset" | "economical" | "conservative";
 
-type TransactionCategory =
+export type TransactionCategory =
     | "send"
     | "receive"
     | "generate"
     | "immature"
     | "orphan";
 
-type ReplacableByFee = "yes" | "no" | "unknown";
+export type ReplacableByFee = "yes" | "no" | "unknown";
 
 interface ListwalletdirResult {
     wallets: [
@@ -189,7 +189,6 @@ export default class BitcoinRPC extends RPC {
         amount: number,
         substractFee?: boolean,
         replacable?: boolean,
-        confirmationTarget?: number,
         estimateMode?: EstimateMode
     ) {
         const walletPath = `wallet/${wallet}`;
@@ -201,7 +200,7 @@ export default class BitcoinRPC extends RPC {
             undefined,
             substractFee,
             replacable,
-            confirmationTarget,
+            undefined,
             estimateMode,
         ]);
 

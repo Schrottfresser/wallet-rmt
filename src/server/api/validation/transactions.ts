@@ -1,4 +1,5 @@
 import { objectIdSchema } from "@server/api/validation/index.js";
+import { EstimateMode } from "@server/external/bitcoinRpc.js";
 import z from "zod";
 
 export const listTransactionsSchema = z.object({
@@ -13,6 +14,11 @@ export const sendTransactionSchema = z.object({
     body: z.object({
         address: z.string(),
         amount: z.number().positive(),
+        substractFee: z.boolean().optional(),
+        replacable: z.boolean().optional(),
+        estimateMode: z
+            .enum(["unset", "economical", "conservative"])
+            .optional(),
     }),
 
     query: z.object({

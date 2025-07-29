@@ -36,7 +36,10 @@ transactionsRouter.post(
         const txid = await sendTransaction(
             data.query.walletId,
             data.body.address,
-            data.body.amount
+            data.body.amount,
+            data.body.substractFee,
+            data.body.replacable,
+            data.body.estimateMode
         );
 
         res.status(201).send(txid);

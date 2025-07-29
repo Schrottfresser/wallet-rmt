@@ -1,6 +1,7 @@
 import BadRequestError from "@server/errors/badRequestError.js";
 import NotFoundError from "@server/errors/notFoundError.js";
 import bitcoinRepository from "@server/external/bitcoinRepository.js";
+import { EstimateMode } from "@server/external/bitcoinRpc.js";
 import Wallet from "@server/model/wallet.js";
 import { Types } from "mongoose";
 
@@ -15,7 +16,10 @@ import { Types } from "mongoose";
 export const sendTransaction = async (
     walletId: Types.ObjectId,
     address: string,
-    amount: number
+    amount: number,
+    substractFee?: boolean,
+    replacable?: boolean,
+    estimateMode?: EstimateMode
 ) => {
     const wallet = await Wallet.findById(walletId);
     if (!wallet) {
@@ -30,7 +34,10 @@ export const sendTransaction = async (
     const txid = await bitcoinRpc.sendtoaddress(
         wallet.remoteName,
         address,
-        amount
+        amount,
+        substractFee,
+        replacable,
+        estimateMode
     );
 
     return txid;
