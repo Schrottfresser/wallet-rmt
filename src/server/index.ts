@@ -7,16 +7,7 @@ import api from "@server/api/index.js";
 import { createServer } from "http";
 import mongoose from "mongoose";
 import { errorHandler, prodErrorHandler } from "@server/errorHandler.js";
-
-const isProd = process.env.NODE_ENV === "production";
-
-const serverIp = process.env.SERVER_IP || "0.0.0.0";
-const serverPort = Number(process.env.SERVER_PORT) || 8080;
-const serverBase = process.env.SERVER_BASE || "";
-
-const dbIp = process.env.DB_IP || "127.0.0.1";
-const dbPort = process.env.DB_PORT || "27017";
-const dbName = process.env.DB_NAME || "wallet-rmt";
+import env from "@server/env.js";
 
 const app = express();
 const server = createServer(app);
@@ -24,14 +15,14 @@ const server = createServer(app);
 app.use(express.json());
 
 let vite: ViteDevServer;
-if (isProd) {
+if (env.isProd) {
     app.use(compression());
-    app.use(serverBase, sirv("dist/client", { extensions: [] }));
+    app.use(env.serverBase, sirv("dist/client", { extensions: [] }));
 } else {
     vite = await createViteServer({
         server: { middlewareMode: true },
         appType: "custom",
-        base: serverBase,
+        base: env.serverBase,
     });
 
     app.use(vite.middlewares);
@@ -41,11 +32,11 @@ app.use("/api", api);
 
 app.use("*all", async (req, res, next) => {
     try {
-        const url = req.originalUrl.replace(serverBase, "");
+        const url = req.originalUrl.replace(env.serverBase, "");
         let template: string;
 
         let render: (url: string) => { head?: string; html: string };
-        if (isProd) {
+        if (env.isProd) {
             template = await fs.readFile("dist/client/index.html", "utf-8");
 
             // @ts-expect-error vite server entry import
@@ -74,12 +65,12 @@ app.use("*all", async (req, res, next) => {
     }
 });
 
-app.use(isProd ? prodErrorHandler : errorHandler);
+app.use(env.isProd ? prodErrorHandler : errorHandler);
 
-await mongoose.connect(`mongodb://${dbIp}:${dbPort}/${dbName}`);
+await mongoose.connect(`mongodb://${env.dbIp}:${env.dbPort}/${env.dbName}`);
 
-server.listen(serverPort, serverIp, () => {
+server.listen(env.serverPort, env.serverIp, () => {
     console.log(
-        `App is listening on http://${serverIp}:${serverPort}${serverBase}`
+        `App is listening on http://${env.serverIp}:${env.serverPort}${env.serverBase}`
     );
 });
