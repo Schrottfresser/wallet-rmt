@@ -1,6 +1,9 @@
 import mongoose, { Types } from "mongoose";
 
+export type RemoteType = "bitcoin" | "monero";
+
 export interface IRemote {
+    type: RemoteType;
     url: string;
     username?: string;
     password?: string;
@@ -12,6 +15,11 @@ export interface IRemoteWithMeta extends IRemote {
 }
 
 export const remoteSchema = new mongoose.Schema<IRemote>({
+    type: {
+        type: String,
+        required: true,
+        enum: ["bitcoin", "monero"],
+    },
     url: {
         type: String,
         required: true,

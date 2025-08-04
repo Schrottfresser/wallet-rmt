@@ -3,6 +3,7 @@ import z from "zod";
 
 export const createRemoteSchema = z.object({
     body: z.object({
+        type: z.enum(["bitcoin", "monero"]),
         url: z.url({
             protocol: /^https?$/,
         }),
@@ -19,6 +20,7 @@ export const retrieveRemoteSchema = z.object({
 
 export const editRemoteSchema = z.object({
     body: z.object({
+        type: z.enum(["bitcoin", "monero"]),
         url: z.url({
             protocol: /^https?$/,
         }),

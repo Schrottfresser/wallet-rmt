@@ -1,8 +1,8 @@
-import mongoose, { Types } from "mongoose";
+import mongoose from "mongoose";
 
 export interface IWallet {
     name: string;
-    remote: Types.ObjectId;
+    remote: mongoose.Types.ObjectId;
     remoteName: string;
     addresses: string[];
     balance?: number;

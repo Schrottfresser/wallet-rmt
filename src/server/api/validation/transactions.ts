@@ -1,5 +1,4 @@
 import { objectIdSchema } from "@server/api/validation/index.js";
-import { EstimateMode } from "@server/external/bitcoinRpc.js";
 import z from "zod";
 
 export const listTransactionsSchema = z.object({
