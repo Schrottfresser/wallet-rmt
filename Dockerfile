@@ -28,7 +28,7 @@ WORKDIR /home/node/app
 COPY --from=deps --chown=node:node /home/node/app/node_modules /home/node/app/node_modules
 COPY --from=build --chown=node:node /home/node/app/dist /home/node/app/dist
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 CMD ["node", "./dist/server/index.js"]
 
 EXPOSE 8080
