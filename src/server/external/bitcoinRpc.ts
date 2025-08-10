@@ -56,7 +56,7 @@ interface ListtransactionsResult {
     blockindex: number;
     blocktime: number;
     txid: string;
-    walletconflicts: [string];
+    walletconflicts: string[];
     time: number;
     timerecieved: number;
     comment?: string;
@@ -75,7 +75,7 @@ interface GettransactionResult {
     blockindex: number;
     blocktime: number;
     txid: string;
-    walletconflicts: [string];
+    walletconflicts: string[];
     time: number;
     timerecieved: number;
     comment?: string;
