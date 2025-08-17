@@ -30,7 +30,7 @@ if (env.isProd) {
 
 app.use("/api", api);
 
-app.use("*all", async (req, res, next) => {
+app.get("*all", async (req, res, next) => {
     try {
         const url = req.originalUrl.replace(env.serverBase, "");
         let template: string;

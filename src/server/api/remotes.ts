@@ -5,7 +5,6 @@ import {
     editRemoteSchema,
     deleteRemoteSchema,
 } from "@server/api/validation/remotes.js";
-import NotFoundError from "@server/errors/notFoundError.js";
 import {
     retrieveAllRemotes,
     createRemote,
@@ -14,7 +13,6 @@ import {
     editRemote,
 } from "@server/lib/remote.js";
 import { Router } from "express";
-import mongoose from "mongoose";
 
 const remotesRouter = Router();
 

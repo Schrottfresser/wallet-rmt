@@ -15,7 +15,7 @@ export const retrieveAllRemotes = async () => {
 
 /**
  * Creates a new remote with the given name
- * @param name name of the new remote
+ * @param newRemote the new remote to create
  * @returns the created remote
  */
 export const createRemote = async (newRemote: IRemote) => {
