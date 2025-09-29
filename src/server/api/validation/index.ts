@@ -33,3 +33,5 @@ export const objectIdSchema = z
         message: "Invalid ObjectId",
     })
     .transform((val) => new mongoose.Types.ObjectId(val));
+
+export type ObjectId = z.infer<typeof objectIdSchema>;

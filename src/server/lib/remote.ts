@@ -1,7 +1,7 @@
+import { ObjectId } from "@server/api/validation/index.js";
 import InternalServerError from "@server/errors/internalServerError.js";
 import NotFoundError from "@server/errors/notFoundError.js";
 import Remote, { IRemote } from "@server/model/remote.js";
-import mongoose from "mongoose";
 
 /**
  * Returns all existing remotes
@@ -30,7 +30,7 @@ export const createRemote = async (newRemote: IRemote) => {
  * @returns the found remote
  * @throwsError {@link NotFoundError} if the specified remote was not found
  */
-export const retrieveRemote = async (remoteId: mongoose.Types.ObjectId) => {
+export const retrieveRemote = async (remoteId: ObjectId) => {
     const remote = await Remote.findById(remoteId);
     if (!remote) {
         throw new NotFoundError("Remote not found");
@@ -44,10 +44,7 @@ export const retrieveRemote = async (remoteId: mongoose.Types.ObjectId) => {
  * @param name name of the new remote
  * @returns the created remote
  */
-export const editRemote = async (
-    remoteId: mongoose.Types.ObjectId,
-    newRemote: IRemote
-) => {
+export const editRemote = async (remoteId: ObjectId, newRemote: IRemote) => {
     const remote = await Remote.findById(remoteId);
     if (!remote) {
         throw new NotFoundError("Remote not found");
@@ -67,7 +64,7 @@ export const editRemote = async (
  * @throwsError {@link NotFoundError} if the specified remote was not found
  * @throwsError {@link InternalServerError} if the deletion failed
  */
-export const deleteRemote = async (remoteId: mongoose.Types.ObjectId) => {
+export const deleteRemote = async (remoteId: ObjectId) => {
     const remote = await Remote.findById(remoteId);
     if (!remote) {
         throw new NotFoundError("Remote not found");

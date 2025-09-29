@@ -1,9 +1,9 @@
+import { ObjectId } from "@server/api/validation/index.js";
 import BadRequestError from "@server/errors/badRequestError.js";
 import NotFoundError from "@server/errors/notFoundError.js";
 import bitcoinRepository from "@server/external/bitcoinRepository.js";
 import { EstimateMode } from "@server/external/bitcoinRpc.js";
 import Wallet from "@server/model/wallet.js";
-import { Types } from "mongoose";
 
 /**
  * Sends the specified transaction from the given wallet
@@ -14,7 +14,7 @@ import { Types } from "mongoose";
  * @throwsError {@link NotFoundError} if the specified wallet was not found
  */
 export const sendTransaction = async (
-    walletId: Types.ObjectId,
+    walletId: ObjectId,
     address: string,
     amount: number,
     substractFee?: boolean,
@@ -53,7 +53,7 @@ export const sendTransaction = async (
  * @throwsError {@link BadRequestError} if the referenced remote was not found
  */
 export const listWalletTransactions = async (
-    walletId: Types.ObjectId,
+    walletId: ObjectId,
     count?: number,
     skip?: number
 ) => {
@@ -97,7 +97,7 @@ export const listWalletTransactions = async (
  * @throwsError {@link BadRequestError} if the referenced remote was not found
  */
 export const retrieveWalletTransaction = async (
-    walletId: Types.ObjectId,
+    walletId: ObjectId,
     txid: string
 ) => {
     const wallet = await Wallet.findById(walletId);
@@ -138,10 +138,7 @@ export const retrieveWalletTransaction = async (
  * @throwsError {@link NotFoundError} if the specified wallet was not found
  * @throwsError {@link BadRequestError} if the referenced remote was not found
  */
-export const setTransactionFee = async (
-    walletId: Types.ObjectId,
-    fee: number
-) => {
+export const setTransactionFee = async (walletId: ObjectId, fee: number) => {
     const wallet = await Wallet.findById(walletId);
     if (!wallet) {
         throw new NotFoundError("Wallet not found");
@@ -162,10 +159,7 @@ export const setTransactionFee = async (
  * @throwsError {@link NotFoundError} if the specified wallet was not found
  * @throwsError {@link BadRequestError} if the referenced remote was not found
  */
-export const abandonTransaction = async (
-    walletId: Types.ObjectId,
-    txid: string
-) => {
+export const abandonTransaction = async (walletId: ObjectId, txid: string) => {
     const wallet = await Wallet.findById(walletId);
     if (!wallet) {
         throw new NotFoundError("Wallet not found");

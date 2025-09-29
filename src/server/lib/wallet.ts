@@ -1,10 +1,10 @@
+import { ObjectId } from "@server/api/validation/index.js";
 import BadRequestError from "@server/errors/badRequestError.js";
 import InternalServerError from "@server/errors/internalServerError.js";
 import NotFoundError from "@server/errors/notFoundError.js";
 import bitcoinRepository from "@server/external/bitcoinRepository.js";
 import Remote from "@server/model/remote.js";
 import Wallet from "@server/model/wallet.js";
-import mongoose, { Types } from "mongoose";
 
 /**
  * Returns all existing wallets
@@ -22,7 +22,7 @@ export const retrieveAllWallets = async () => {
  * @returns the found wallet
  * @throwsError {@link NotFoundError} if the specified wallet was not found
  */
-export const retrieveWallet = async (walletId: mongoose.Types.ObjectId) => {
+export const retrieveWallet = async (walletId: ObjectId) => {
     const wallet = await Wallet.findById(walletId);
 
     return wallet;
@@ -38,7 +38,7 @@ export const retrieveWallet = async (walletId: mongoose.Types.ObjectId) => {
  * @throwsError {@link BadRequestError} if a wallet with this remoteName already exists at the specified remote
  */
 export const createWallet = async (
-    remoteId: Types.ObjectId,
+    remoteId: ObjectId,
     name: string,
     remoteName: string
 ) => {
@@ -85,7 +85,7 @@ export const createWallet = async (
  * @throwsError {@link InternalServerError} if the deletion failed
  * @throwsError {@link BadRequestError} if the referenced remote was not found
  */
-export const deleteWallet = async (walletId: mongoose.Types.ObjectId) => {
+export const deleteWallet = async (walletId: ObjectId) => {
     const wallet = await Wallet.findById(walletId);
     if (!wallet) {
         throw new NotFoundError("Wallet not found");
@@ -113,7 +113,7 @@ export const deleteWallet = async (walletId: mongoose.Types.ObjectId) => {
  * @throwsError {@link NotFoundError} if the specified wallet was not found
  * @throwsError {@link BadRequestError} if the referenced remote was not found
  */
-export const refreshWallet = async (walletId: mongoose.Types.ObjectId) => {
+export const refreshWallet = async (walletId: ObjectId) => {
     const wallet = await Wallet.findById(walletId);
     if (!wallet) {
         throw new NotFoundError("Wallet not found");
@@ -140,7 +140,7 @@ export const refreshWallet = async (walletId: mongoose.Types.ObjectId) => {
  * @throwsError {@link NotFoundError} if the specified wallet was not found
  * @throwsError {@link BadRequestError} if the referenced remote was not found
  */
-export const loadWallet = async (walletId: mongoose.Types.ObjectId) => {
+export const loadWallet = async (walletId: ObjectId) => {
     const wallet = await Wallet.findById(walletId);
     if (!wallet) {
         throw new NotFoundError("Wallet not found");
@@ -168,7 +168,7 @@ export const loadWallet = async (walletId: mongoose.Types.ObjectId) => {
  * @throwsError {@link NotFoundError} if the specified wallet was not found
  * @throwsError {@link BadRequestError} if the referenced remote was not found
  */
-export const unloadWallet = async (walletId: mongoose.Types.ObjectId) => {
+export const unloadWallet = async (walletId: ObjectId) => {
     const wallet = await Wallet.findById(walletId);
     if (!wallet) {
         throw new NotFoundError("Wallet not found");
@@ -197,10 +197,7 @@ export const unloadWallet = async (walletId: mongoose.Types.ObjectId) => {
  * @throwsError {@link NotFoundError} if the specified wallet was not found
  * @throwsError {@link BadRequestError} if the referenced remote was not found
  */
-export const encryptWallet = async (
-    walletId: mongoose.Types.ObjectId,
-    passphrase: string
-) => {
+export const encryptWallet = async (walletId: ObjectId, passphrase: string) => {
     const wallet = await Wallet.findById(walletId);
     if (!wallet) {
         throw new NotFoundError("Wallet not found");
@@ -228,7 +225,7 @@ export const encryptWallet = async (
  * @throwsError {@link BadRequestError} if the referenced remote was not found
  */
 export const changeWalletPassphrase = async (
-    walletId: mongoose.Types.ObjectId,
+    walletId: ObjectId,
     oldPassphrase: string,
     newPassphrase: string
 ) => {
@@ -259,7 +256,7 @@ export const changeWalletPassphrase = async (
  * @throwsError {@link BadRequestError} if the referenced remote was not found
  */
 export const unlockWallet = async (
-    walletId: mongoose.Types.ObjectId,
+    walletId: ObjectId,
     passphrase: string,
     timeout: number
 ) => {
@@ -288,7 +285,7 @@ export const unlockWallet = async (
  * @throwsError {@link NotFoundError} if the specified wallet was not found
  * @throwsError {@link BadRequestError} if the referenced remote was not found
  */
-export const lockWallet = async (walletId: mongoose.Types.ObjectId) => {
+export const lockWallet = async (walletId: ObjectId) => {
     const wallet = await Wallet.findById(walletId);
     if (!wallet) {
         throw new NotFoundError("Wallet not found");
@@ -314,9 +311,7 @@ export const lockWallet = async (walletId: mongoose.Types.ObjectId) => {
  * @throwsError {@link NotFoundError} if the specified wallet was not found
  * @throwsError {@link BadRequestError} if the referenced remote was not found
  */
-export const generateNewWalletAddress = async (
-    walletId: mongoose.Types.ObjectId
-) => {
+export const generateNewWalletAddress = async (walletId: ObjectId) => {
     const wallet = await Wallet.findById(walletId);
     if (!wallet) {
         throw new NotFoundError("Wallet not found");

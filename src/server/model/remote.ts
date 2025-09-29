@@ -1,4 +1,4 @@
-import mongoose, { Types } from "mongoose";
+import mongoose from "mongoose";
 
 export type RemoteType = "bitcoin" | "monero";
 
@@ -10,7 +10,7 @@ export interface IRemote {
 }
 
 export interface IRemoteWithMeta extends IRemote {
-    _id: Types.ObjectId;
+    _id: mongoose.Types.ObjectId;
     __v: number;
 }
 

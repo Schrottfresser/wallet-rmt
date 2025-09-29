@@ -1,11 +1,11 @@
+import { ObjectId } from "@server/api/validation/index.js";
 import BitcoinRPC from "@server/external/bitcoinRpc.js";
 import Remote, { IRemote } from "@server/model/remote.js";
-import { Types } from "mongoose";
 
 class BitcoinRepository {
-    private cache = new Map<Types.ObjectId, BitcoinRPC>();
+    private cache = new Map<ObjectId, BitcoinRPC>();
 
-    public async findById(id: Types.ObjectId) {
+    public async findById(id: ObjectId) {
         if (this.cache.has(id)) {
             return this.cache.get(id)!;
         }
@@ -23,7 +23,7 @@ class BitcoinRepository {
         return entity;
     }
 
-    public async findByIdAndEntity(id: Types.ObjectId, remote: IRemote) {
+    public async findByIdAndEntity(id: ObjectId, remote: IRemote) {
         if (this.cache.has(id)) {
             return this.cache.get(id)!;
         }
@@ -38,7 +38,7 @@ class BitcoinRepository {
         return entity;
     }
 
-    public clearCache(id: Types.ObjectId) {
+    public clearCache(id: ObjectId) {
         this.cache.delete(id);
     }
 }
