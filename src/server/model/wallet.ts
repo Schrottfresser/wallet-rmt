@@ -38,6 +38,8 @@ export const walletSchema = new mongoose.Schema<IWallet>({
     isLocked: Boolean,
 });
 
+export type WalletDoc = InstanceType<typeof Wallet>;
+
 const Wallet = mongoose.model("Wallet", walletSchema);
 
 export default Wallet;
