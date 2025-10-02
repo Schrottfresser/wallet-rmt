@@ -169,8 +169,8 @@ export default class MoneroWalletRPC extends RPC {
 
     public async get_balance(
         accountIndex: number,
-        addressIndices: number[],
-        allAccounts: boolean
+        addressIndices?: number[],
+        allAccounts?: boolean
     ) {
         const result = await this.request<GetBalanceResult>(
             "get_balance",
