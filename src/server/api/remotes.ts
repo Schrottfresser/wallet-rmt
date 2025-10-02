@@ -11,7 +11,7 @@ import {
     retrieveRemote,
     deleteRemote,
     editRemote,
-} from "@server/lib/remote.js";
+} from "@server/lib/controller/remote.js";
 import { Router } from "express";
 
 const remotesRouter = Router();
