@@ -54,7 +54,7 @@ export default class MoneroWalletController extends CryptoWalletController {
         amount: number,
         address: string,
         priority?: TransferPriority,
-        substractFee?: boolean
+        subtractFee?: boolean
     ) {
         const priorityNumber = toPriorityNumber(priority);
         const result = await this.rpc.transfer(
@@ -63,7 +63,7 @@ export default class MoneroWalletController extends CryptoWalletController {
             priorityNumber,
             undefined,
             undefined,
-            substractFee
+            subtractFee
         );
 
         return result.tx_hash;

@@ -66,7 +66,7 @@ export default class BitcoinWalletController extends CryptoWalletController {
         amount: number,
         address: string,
         priority?: TransferPriority,
-        substractFee?: boolean
+        subtractFee?: boolean
     ) {
         const estimateMode = toEstimateMode(priority);
 
@@ -74,7 +74,7 @@ export default class BitcoinWalletController extends CryptoWalletController {
             this.wallet.remoteName,
             address,
             amount,
-            substractFee,
+            subtractFee,
             true,
             estimateMode
         );
