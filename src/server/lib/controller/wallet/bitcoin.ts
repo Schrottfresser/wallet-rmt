@@ -63,8 +63,8 @@ export default class BitcoinWalletController extends CryptoWalletController {
     }
 
     public async transfer(
-        amount: number,
         address: string,
+        amount: number,
         priority?: TransferPriority,
         subtractFee?: boolean
     ) {

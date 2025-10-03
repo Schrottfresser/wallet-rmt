@@ -1,3 +1,4 @@
+import { ObjectId } from "@server/api/validation/index.js";
 import GetBalanceResult from "@server/model/currency/getBalanceResult.js";
 import GetTransferResult from "@server/model/currency/getTransferResult.js";
 import TransferPriority from "@server/model/currency/transferPriority.js";
@@ -14,10 +15,18 @@ export default abstract class CryptoWalletController {
     }
 
     /**
+     * Gets the wallet id
+     * @returns the wallet id
+     */
+    public getWalletId(): ObjectId {
+        return this.wallet._id;
+    }
+
+    /**
      * Sets the wallet model to work with
      * @param wallet the model to set to
      */
-    public setWallet(wallet: WalletDoc) {
+    public setWallet(wallet: WalletDoc): void {
         this.wallet = wallet;
     }
 
@@ -59,8 +68,8 @@ export default abstract class CryptoWalletController {
      * @returns the transaction id
      */
     public abstract transfer(
-        amount: number,
         address: string,
+        amount: number,
         priority?: TransferPriority,
         subtractFee?: boolean
     ): Promise<string>;
