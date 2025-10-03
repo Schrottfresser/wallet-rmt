@@ -66,7 +66,7 @@ walletsRouter.get(
     })
 );*/
 
-walletsRouter.get(
+walletsRouter.post(
     "/:walletId/open",
     createValidatedHandler(openWalletSchema, async (data, _req, res) => {
         const walletController = await walletRepository.findById(
@@ -76,7 +76,7 @@ walletsRouter.get(
             throw new BadRequestError("Wallet does not exist");
         }
 
-        await walletController.open(data.body.password);
+        await walletController.open(data.body?.password);
 
         res.status(200).send();
     })
