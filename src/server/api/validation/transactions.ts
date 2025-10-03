@@ -1,7 +1,7 @@
 import { objectIdSchema } from "@server/api/validation/index.js";
 import z from "zod";
 
-export const listTransactionsSchema = z.object({
+export const listTransferSchema = z.object({
     query: z.object({
         walletId: objectIdSchema,
         count: z.coerce.number().int().positive().optional(),
@@ -9,15 +9,13 @@ export const listTransactionsSchema = z.object({
     }),
 });
 
-export const sendTransactionSchema = z.object({
+export const sendTransferSchema = z.object({
     body: z.object({
         address: z.string(),
         amount: z.number().positive(),
         substractFee: z.boolean().optional(),
         replacable: z.boolean().optional(),
-        estimateMode: z
-            .enum(["unset", "economical", "conservative"])
-            .optional(),
+        estimateMode: z.enum(["unimportant", "normal", "important"]).optional(),
     }),
 
     query: z.object({
@@ -25,9 +23,9 @@ export const sendTransactionSchema = z.object({
     }),
 });
 
-export const retrieveWalletTransactionSchema = z.object({
+export const retrieveWalletTransferSchema = z.object({
     params: z.object({
-        txid: z.string(),
+        transferId: z.string(),
     }),
 
     query: z.object({
