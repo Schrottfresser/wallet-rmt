@@ -3,7 +3,7 @@ import BitcoinWalletController from "@server/lib/controller/wallet/bitcoin.js";
 import CryptoWalletController from "@server/lib/controller/wallet/crypto.js";
 import MoneroWalletController from "@server/lib/controller/wallet/monero.js";
 import Remote, { IRemoteWithMeta } from "@server/model/remote.js";
-import Wallet, { WalletDoc } from "@server/model/wallet.js";
+import Wallet, { IWallet, WalletDoc } from "@server/model/wallet.js";
 import { LRUCache } from "lru-cache";
 
 class WalletRepository {
@@ -39,23 +39,21 @@ class WalletRepository {
         return cryptoWalletController;
     }
 
-    public async findByEntity(
-        wallet: WalletDoc
+    public async create(
+        wallet: IWallet
     ): Promise<CryptoWalletController | undefined> {
-        if (this.cache.has(wallet._id)) {
-            return this.cache.get(wallet._id)!;
-        }
-
         const remote = await Remote.findById(wallet.remote);
         if (!remote) return undefined;
 
+        const walletModel = await Wallet.create(wallet);
+
         const cryptoWalletController = this.buildCyptoWalletController(
             remote,
-            wallet
+            walletModel
         );
-        cryptoWalletController?.setWallet(wallet);
+        cryptoWalletController?.setWallet(walletModel);
 
-        this.cache.set(wallet._id, cryptoWalletController);
+        this.cache.set(walletModel._id, cryptoWalletController);
         return cryptoWalletController;
     }
 
@@ -91,6 +89,6 @@ class WalletRepository {
     }
 }
 
-const remoteRepository = new WalletRepository();
+const walletRepository = new WalletRepository();
 
-export default remoteRepository;
+export default walletRepository;
