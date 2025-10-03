@@ -27,21 +27,9 @@ export const refreshWalletSchema = z.object({
     }),
 });
 
-export const loadWalletSchema = z.object({
-    params: z.object({
-        walletId: objectIdSchema,
-    }),
-});
-
-export const unloadWalletSchema = z.object({
-    params: z.object({
-        walletId: objectIdSchema,
-    }),
-});
-
-export const encryptWalletSchema = z.object({
+export const openWalletSchema = z.object({
     body: z.object({
-        passphrase: z.string(),
+        password: z.string(),
     }),
 
     params: z.object({
@@ -49,10 +37,16 @@ export const encryptWalletSchema = z.object({
     }),
 });
 
-export const changeWalletPassphraseSchema = z.object({
+export const closeWalletSchema = z.object({
+    params: z.object({
+        walletId: objectIdSchema,
+    }),
+});
+
+export const changeWalletPasswordSchema = z.object({
     body: z.object({
-        oldPassphrase: z.string(),
-        newPassphrase: z.string(),
+        newPassword: z.string(),
+        oldPassword: z.string().optional(),
     }),
 
     params: z.object({
@@ -60,24 +54,7 @@ export const changeWalletPassphraseSchema = z.object({
     }),
 });
 
-export const lockWalletSchema = z.object({
-    params: z.object({
-        walletId: objectIdSchema,
-    }),
-});
-
-export const unlockWalletSchema = z.object({
-    body: z.object({
-        passphrase: z.string(),
-        timeout: z.number().positive(),
-    }),
-
-    params: z.object({
-        walletId: objectIdSchema,
-    }),
-});
-
-export const generateNewWalletAddressSchema = z.object({
+export const createWalletAddressSchema = z.object({
     params: z.object({
         walletId: objectIdSchema,
     }),
