@@ -1,4 +1,4 @@
-import HttpError from "@server/errors/httpError.js";
+import HttpError from "@server/error/httpError.js";
 
 class InternalServerError extends HttpError {
     constructor(message: string) {

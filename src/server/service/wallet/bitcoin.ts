@@ -1,14 +1,13 @@
-import BadRequestError from "@server/errors/badRequestError.js";
-import BitcoinRPC, { EstimateMode } from "@server/external/bitcoinRpc.js";
-import CryptoWalletController from "@server/lib/controller/wallet/crypto.js";
-import { toEstimateMode } from "@server/lib/helper/currencies.js";
+import BitcoinRPC from "@server/external/bitcoinRpc.js";
+import CryptoWalletService from "@server/service/wallet/crypto.js";
+import { toEstimateMode } from "@server/util/currencies.js";
 import GetBalanceResult from "@server/model/currency/getBalanceResult.js";
 import GetTransferResult from "@server/model/currency/getTransferResult.js";
 import TransferPriority from "@server/model/currency/transferPriority.js";
 import { RemoteType } from "@server/model/remote.js";
 import { WalletDoc } from "@server/model/wallet.js";
 
-export default class BitcoinWalletController extends CryptoWalletController {
+export default class BitcoinWalletService extends CryptoWalletService {
     private rpc: BitcoinRPC;
 
     constructor(

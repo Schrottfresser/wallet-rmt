@@ -1,4 +1,4 @@
-import InternalServerError from "@server/errors/internalServerError.js";
+import InternalServerError from "@server/error/internalServerError.js";
 
 export default class RPC {
     private url: string;

@@ -1,6 +1,6 @@
-import { ObjectId } from "@server/api/validation/index.js";
-import InternalServerError from "@server/errors/internalServerError.js";
-import NotFoundError from "@server/errors/notFoundError.js";
+import { ObjectId } from "@server/route/validation/index.js";
+import InternalServerError from "@server/error/internalServerError.js";
+import NotFoundError from "@server/error/notFoundError.js";
 import Remote, { IRemote } from "@server/model/remote.js";
 
 /**

@@ -1,6 +1,6 @@
-import remotesRouter from "@server/api/remotes.js";
-import walletsRouter from "@server/api/wallets.js";
-import transactionsRouter from "@server/api/transactions.js";
+import remotesRouter from "@server/route/remotes.js";
+import walletsRouter from "@server/route/wallets.js";
+import transactionsRouter from "@server/route/transactions.js";
 import { Router } from "express";
 
 const router = Router();

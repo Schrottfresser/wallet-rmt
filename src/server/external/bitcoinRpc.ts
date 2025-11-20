@@ -1,4 +1,4 @@
-import InternalServerError from "@server/errors/internalServerError.js";
+import InternalServerError from "@server/error/internalServerError.js";
 import RPC from "@server/external/rpc.js";
 
 export type EstimateMode = "unset" | "economical" | "conservative";

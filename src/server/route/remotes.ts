@@ -1,17 +1,17 @@
-import { createValidatedHandler } from "@server/api/validation/index.js";
+import { createValidatedHandler } from "@server/route/validation/index.js";
 import {
     createRemoteSchema,
     retrieveRemoteSchema,
     editRemoteSchema,
     deleteRemoteSchema,
-} from "@server/api/validation/remotes.js";
+} from "@server/route/validation/remotes.js";
 import {
     retrieveAllRemotes,
     createRemote,
     retrieveRemote,
     deleteRemote,
     editRemote,
-} from "@server/lib/controller/remote.js";
+} from "@server/service/remote.js";
 import { Router } from "express";
 
 const remotesRouter = Router();

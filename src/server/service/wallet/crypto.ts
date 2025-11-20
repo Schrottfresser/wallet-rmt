@@ -1,11 +1,11 @@
-import { ObjectId } from "@server/api/validation/index.js";
+import { ObjectId } from "@server/route/validation/index.js";
 import GetBalanceResult from "@server/model/currency/getBalanceResult.js";
 import GetTransferResult from "@server/model/currency/getTransferResult.js";
 import TransferPriority from "@server/model/currency/transferPriority.js";
 import { RemoteType } from "@server/model/remote.js";
 import { WalletDoc } from "@server/model/wallet.js";
 
-export default abstract class CryptoWalletController {
+export default abstract class CryptoWalletService {
     protected wallet: WalletDoc;
 
     constructor(wallet: WalletDoc) {

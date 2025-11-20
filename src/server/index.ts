@@ -3,7 +3,7 @@ import express from "express";
 import { createServer as createViteServer, ViteDevServer } from "vite";
 import compression from "compression";
 import sirv from "sirv";
-import api from "@server/api/index.js";
+import api from "@server/route/index.js";
 import { createServer } from "http";
 import mongoose from "mongoose";
 import { errorHandler, prodErrorHandler } from "@server/errorHandler.js";

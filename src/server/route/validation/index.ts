@@ -1,4 +1,4 @@
-import BadRequestError from "@server/errors/badRequestError.js";
+import BadRequestError from "@server/error/badRequestError.js";
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import mongoose from "mongoose";
 import z from "zod";

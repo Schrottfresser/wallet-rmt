@@ -1,13 +1,13 @@
-import { createValidatedHandler } from "@server/api/validation/index.js";
+import { createValidatedHandler } from "@server/route/validation/index.js";
 import {
     listTransferSchema,
     sendTransferSchema,
     retrieveWalletTransferSchema,
     setTransactionFeeSchema,
     abandonTransactionSchema,
-} from "@server/api/validation/transactions.js";
-import BadRequestError from "@server/errors/badRequestError.js";
-import walletRepository from "@server/lib/repository/wallet.js";
+} from "@server/route/validation/transactions.js";
+import BadRequestError from "@server/error/badRequestError.js";
+import walletRepository from "@server/repository/wallet.js";
 import { Router } from "express";
 
 const transactionsRouter = Router();

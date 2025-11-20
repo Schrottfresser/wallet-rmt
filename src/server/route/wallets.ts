@@ -1,4 +1,4 @@
-import { createValidatedHandler } from "@server/api/validation/index.js";
+import { createValidatedHandler } from "@server/route/validation/index.js";
 import {
     createWalletSchema,
     retrieveWalletSchema,
@@ -6,9 +6,9 @@ import {
     closeWalletSchema,
     changeWalletPasswordSchema,
     createWalletAddressSchema,
-} from "@server/api/validation/wallets.js";
-import BadRequestError from "@server/errors/badRequestError.js";
-import walletRepository from "@server/lib/repository/wallet.js";
+} from "@server/route/validation/wallets.js";
+import BadRequestError from "@server/error/badRequestError.js";
+import walletRepository from "@server/repository/wallet.js";
 import Wallet from "@server/model/wallet.js";
 import { Router } from "express";
 

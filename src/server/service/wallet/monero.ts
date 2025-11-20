@@ -1,13 +1,13 @@
 import MoneroWalletRPC from "@server/external/moneroWalletRpc.js";
-import CryptoWalletController from "@server/lib/controller/wallet/crypto.js";
-import { toPriorityNumber } from "@server/lib/helper/currencies.js";
+import CryptoWalletService from "@server/service/wallet/crypto.js";
+import { toPriorityNumber } from "@server/util/currencies.js";
 import GetBalanceResult from "@server/model/currency/getBalanceResult.js";
 import GetTransferResult from "@server/model/currency/getTransferResult.js";
 import TransferPriority from "@server/model/currency/transferPriority.js";
 import { RemoteType } from "@server/model/remote.js";
 import { WalletDoc } from "@server/model/wallet.js";
 
-export default class MoneroWalletController extends CryptoWalletController {
+export default class MoneroWalletService extends CryptoWalletService {
     private rpc: MoneroWalletRPC;
 
     constructor(

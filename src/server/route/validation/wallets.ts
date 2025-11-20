@@ -1,4 +1,4 @@
-import { objectIdSchema } from "@server/api/validation/index.js";
+import { objectIdSchema } from "@server/route/validation/index.js";
 import z from "zod";
 
 export const createWalletSchema = z.object({
