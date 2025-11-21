@@ -29,14 +29,14 @@ class WalletRepository {
         const remote = await Remote.findById(wallet.remote);
         if (!remote) return undefined;
 
-        const cryptoWalletController = this.buildCyptoWalletController(
+        const cryptoWalletService = this.buildCyptoWalletService(
             remote,
             wallet
         );
-        cryptoWalletController?.setWallet(wallet);
+        cryptoWalletService?.setWallet(wallet);
 
-        this.cache.set(id, cryptoWalletController);
-        return cryptoWalletController;
+        this.cache.set(id, cryptoWalletService);
+        return cryptoWalletService;
     }
 
     public async create(
@@ -47,28 +47,28 @@ class WalletRepository {
 
         const walletModel = await Wallet.create(wallet);
 
-        const cryptoWalletController = this.buildCyptoWalletController(
+        const cryptoWalletService = this.buildCyptoWalletService(
             remote,
             walletModel
         );
-        cryptoWalletController?.setWallet(walletModel);
+        cryptoWalletService?.setWallet(walletModel);
 
-        this.cache.set(walletModel._id, cryptoWalletController);
-        return cryptoWalletController;
+        this.cache.set(walletModel._id, cryptoWalletService);
+        return cryptoWalletService;
     }
 
     public invalidate(id: ObjectId) {
         this.cache.delete(id);
     }
 
-    private buildCyptoWalletController(
+    private buildCyptoWalletService(
         remote: IRemoteWithMeta,
         wallet: WalletDoc
     ): CryptoWalletService | undefined {
-        let walletController: CryptoWalletService;
+        let walletService: CryptoWalletService;
         switch (remote.type) {
             case "bitcoin":
-                walletController = new BitcoinWalletService(
+                walletService = new BitcoinWalletService(
                     wallet,
                     remote.url,
                     remote.username,
@@ -76,7 +76,7 @@ class WalletRepository {
                 );
                 break;
             case "monero":
-                walletController = new MoneroWalletService(
+                walletService = new MoneroWalletService(
                     wallet,
                     remote.url,
                     remote.username,

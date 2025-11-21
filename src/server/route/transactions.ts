@@ -15,14 +15,14 @@ const transactionsRouter = Router();
 transactionsRouter.get(
     "/",
     createValidatedHandler(listTransferSchema, async (data, _req, res) => {
-        const walletController = await walletRepository.findById(
+        const walletService = await walletRepository.findById(
             data.query.walletId
         );
-        if (!walletController) {
+        if (!walletService) {
             throw new BadRequestError("Wallet does not exist");
         }
 
-        const transactions = await walletController.getAllTransfers();
+        const transactions = await walletService.getAllTransfers();
 
         res.status(200).json(transactions);
     })
@@ -31,14 +31,14 @@ transactionsRouter.get(
 transactionsRouter.post(
     "/",
     createValidatedHandler(sendTransferSchema, async (data, _req, res) => {
-        const walletController = await walletRepository.findById(
+        const walletService = await walletRepository.findById(
             data.query.walletId
         );
-        if (!walletController) {
+        if (!walletService) {
             throw new BadRequestError("Wallet does not exist");
         }
 
-        const txid = await walletController.transfer(
+        const txid = await walletService.transfer(
             data.body.address,
             data.body.amount,
             data.body.estimateMode,
@@ -54,14 +54,14 @@ transactionsRouter.get(
     createValidatedHandler(
         retrieveWalletTransferSchema,
         async (data, _req, res) => {
-            const walletController = await walletRepository.findById(
+            const walletService = await walletRepository.findById(
                 data.query.walletId
             );
-            if (!walletController) {
+            if (!walletService) {
                 throw new BadRequestError("Wallet does not exist");
             }
 
-            const transfer = await walletController.getTransfer(
+            const transfer = await walletService.getTransfer(
                 data.params.transferId
             );
 

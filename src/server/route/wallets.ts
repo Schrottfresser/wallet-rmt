@@ -23,17 +23,17 @@ walletsRouter.get("/", async (_req, res) => {
 walletsRouter.post(
     "/",
     createValidatedHandler(createWalletSchema, async (data, _req, res) => {
-        const walletController = await walletRepository.create({
+        const walletService = await walletRepository.create({
             name: data.body.name,
             remote: data.body.remote,
             remoteName: data.body.remoteName,
             addresses: [],
         });
-        if (!walletController) {
+        if (!walletService) {
             throw new BadRequestError("Remote does not exist");
         }
 
-        const wallet = Wallet.findById(walletController.getWalletId());
+        const wallet = Wallet.findById(walletService.getWalletId());
 
         res.status(201).json(wallet);
     })
@@ -69,14 +69,14 @@ walletsRouter.get(
 walletsRouter.post(
     "/:walletId/open",
     createValidatedHandler(openWalletSchema, async (data, _req, res) => {
-        const walletController = await walletRepository.findById(
+        const walletService = await walletRepository.findById(
             data.params.walletId
         );
-        if (!walletController) {
+        if (!walletService) {
             throw new BadRequestError("Wallet does not exist");
         }
 
-        await walletController.open(data.body?.password);
+        await walletService.open(data.body?.password);
 
         res.status(200).send();
     })
@@ -85,14 +85,14 @@ walletsRouter.post(
 walletsRouter.get(
     "/:walletId/close",
     createValidatedHandler(closeWalletSchema, async (data, _req, res) => {
-        const walletController = await walletRepository.findById(
+        const walletService = await walletRepository.findById(
             data.params.walletId
         );
-        if (!walletController) {
+        if (!walletService) {
             throw new BadRequestError("Wallet does not exist");
         }
 
-        await walletController.close();
+        await walletService.close();
 
         res.status(200).send();
     })
@@ -103,14 +103,14 @@ walletsRouter.post(
     createValidatedHandler(
         changeWalletPasswordSchema,
         async (data, _req, res) => {
-            const walletController = await walletRepository.findById(
+            const walletService = await walletRepository.findById(
                 data.params.walletId
             );
-            if (!walletController) {
+            if (!walletService) {
                 throw new BadRequestError("Wallet does not exist");
             }
 
-            await walletController.changePassword(
+            await walletService.changePassword(
                 data.body.newPassword,
                 data.body.oldPassword
             );
@@ -125,14 +125,14 @@ walletsRouter.get(
     createValidatedHandler(
         createWalletAddressSchema,
         async (data, _req, res) => {
-            const walletController = await walletRepository.findById(
+            const walletService = await walletRepository.findById(
                 data.params.walletId
             );
-            if (!walletController) {
+            if (!walletService) {
                 throw new BadRequestError("Wallet does not exist");
             }
 
-            const newAddress = await walletController.createAddress();
+            const newAddress = await walletService.createAddress();
 
             res.status(200).send(newAddress);
         }
