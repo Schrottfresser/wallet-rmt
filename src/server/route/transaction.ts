@@ -3,16 +3,14 @@ import {
     listTransferSchema,
     sendTransferSchema,
     retrieveWalletTransferSchema,
-    setTransactionFeeSchema,
-    abandonTransactionSchema,
-} from "@server/route/validation/transactions.js";
+} from "@server/route/validation/transaction.js";
 import BadRequestError from "@server/error/badRequestError.js";
 import walletRepository from "@server/repository/wallet.js";
 import { Router } from "express";
 
-const transactionsRouter = Router();
+const transactionRouter = Router();
 
-transactionsRouter.get(
+transactionRouter.get(
     "/",
     createValidatedHandler(listTransferSchema, async (data, _req, res) => {
         const walletService = await walletRepository.findById(
@@ -28,7 +26,7 @@ transactionsRouter.get(
     })
 );
 
-transactionsRouter.post(
+transactionRouter.post(
     "/",
     createValidatedHandler(sendTransferSchema, async (data, _req, res) => {
         const walletService = await walletRepository.findById(
@@ -49,7 +47,7 @@ transactionsRouter.post(
     })
 );
 
-transactionsRouter.get(
+transactionRouter.get(
     "/:transferId",
     createValidatedHandler(
         retrieveWalletTransferSchema,
@@ -91,4 +89,4 @@ transactionsRouter.get(
     )
 );*/
 
-export default transactionsRouter;
+export default transactionRouter;

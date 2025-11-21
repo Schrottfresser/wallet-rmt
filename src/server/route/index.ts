@@ -1,12 +1,12 @@
-import remotesRouter from "@server/route/remotes.js";
-import walletsRouter from "@server/route/wallets.js";
-import transactionsRouter from "@server/route/transactions.js";
+import remoteRouter from "@server/route/remote.js";
+import walletRouter from "@server/route/wallet.js";
+import transactionRouter from "@server/route/transaction.js";
 import { Router } from "express";
 
 const router = Router();
 
-router.use("/remotes", remotesRouter);
-router.use("/wallets", walletsRouter);
-router.use("/transactions", transactionsRouter);
+router.use("/remote", remoteRouter);
+router.use("/wallet", walletRouter);
+router.use("/transaction", transactionRouter);
 
 export default router;

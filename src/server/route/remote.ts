@@ -4,7 +4,7 @@ import {
     retrieveRemoteSchema,
     editRemoteSchema,
     deleteRemoteSchema,
-} from "@server/route/validation/remotes.js";
+} from "@server/route/validation/remote.js";
 import {
     retrieveAllRemotes,
     createRemote,
@@ -14,15 +14,15 @@ import {
 } from "@server/service/remote.js";
 import { Router } from "express";
 
-const remotesRouter = Router();
+const remoteRouter = Router();
 
-remotesRouter.get("/", async (_req, res) => {
+remoteRouter.get("/", async (_req, res) => {
     const allRemotes = await retrieveAllRemotes();
 
     res.status(200).json(allRemotes);
 });
 
-remotesRouter.post(
+remoteRouter.post(
     "/",
     createValidatedHandler(createRemoteSchema, async (data, _req, res) => {
         const remote = await createRemote(data.body);
@@ -31,7 +31,7 @@ remotesRouter.post(
     })
 );
 
-remotesRouter.get(
+remoteRouter.get(
     "/:remoteId",
     createValidatedHandler(retrieveRemoteSchema, async (data, _req, res) => {
         const remote = await retrieveRemote(data.params.remoteId);
@@ -40,7 +40,7 @@ remotesRouter.get(
     })
 );
 
-remotesRouter.post(
+remoteRouter.post(
     "/:remoteId",
     createValidatedHandler(editRemoteSchema, async (data, _req, res) => {
         const remote = await editRemote(data.params.remoteId, data.body);
@@ -49,7 +49,7 @@ remotesRouter.post(
     })
 );
 
-remotesRouter.delete(
+remoteRouter.delete(
     "/:remoteId",
     createValidatedHandler(deleteRemoteSchema, async (data, _req, res) => {
         deleteRemote(data.params.remoteId);
@@ -58,4 +58,4 @@ remotesRouter.delete(
     })
 );
 
-export default remotesRouter;
+export default remoteRouter;

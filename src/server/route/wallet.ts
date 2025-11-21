@@ -6,21 +6,21 @@ import {
     closeWalletSchema,
     changeWalletPasswordSchema,
     createWalletAddressSchema,
-} from "@server/route/validation/wallets.js";
+} from "@server/route/validation/wallet.js";
 import BadRequestError from "@server/error/badRequestError.js";
 import walletRepository from "@server/repository/wallet.js";
 import Wallet from "@server/model/wallet.js";
 import { Router } from "express";
 
-const walletsRouter = Router();
+const walletRouter = Router();
 
-walletsRouter.get("/", async (_req, res) => {
+walletRouter.get("/", async (_req, res) => {
     const allWallets = await Wallet.find();
 
     res.status(200).json(allWallets);
 });
 
-walletsRouter.post(
+walletRouter.post(
     "/",
     createValidatedHandler(createWalletSchema, async (data, _req, res) => {
         const walletService = await walletRepository.create({
@@ -39,7 +39,7 @@ walletsRouter.post(
     })
 );
 
-walletsRouter.get(
+walletRouter.get(
     "/:walletId",
     createValidatedHandler(retrieveWalletSchema, async (data, _req, res) => {
         const wallet = await Wallet.findById(data.params.walletId);
@@ -66,7 +66,7 @@ walletsRouter.get(
     })
 );*/
 
-walletsRouter.post(
+walletRouter.post(
     "/:walletId/open",
     createValidatedHandler(openWalletSchema, async (data, _req, res) => {
         const walletService = await walletRepository.findById(
@@ -82,7 +82,7 @@ walletsRouter.post(
     })
 );
 
-walletsRouter.get(
+walletRouter.get(
     "/:walletId/close",
     createValidatedHandler(closeWalletSchema, async (data, _req, res) => {
         const walletService = await walletRepository.findById(
@@ -98,7 +98,7 @@ walletsRouter.get(
     })
 );
 
-walletsRouter.post(
+walletRouter.post(
     "/:walletId/password",
     createValidatedHandler(
         changeWalletPasswordSchema,
@@ -120,7 +120,7 @@ walletsRouter.post(
     )
 );
 
-walletsRouter.get(
+walletRouter.get(
     "/:walletId/address",
     createValidatedHandler(
         createWalletAddressSchema,
@@ -139,4 +139,4 @@ walletsRouter.get(
     )
 );
 
-export default walletsRouter;
+export default walletRouter;
