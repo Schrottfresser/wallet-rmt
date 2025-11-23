@@ -1,37 +1,28 @@
-import BitcoinRPC from "@server/external/bitcoinRpc.js";
-import CryptoWalletService from "@server/service/wallet/crypto.js";
-import { toEstimateMode } from "@server/util/currencies.js";
-import GetBalanceResult from "@server/model/currency/getBalanceResult.js";
-import GetTransferResult from "@server/model/currency/getTransferResult.js";
-import TransferPriority from "@server/model/currency/transferPriority.js";
-import { RemoteType } from "@server/model/remote.js";
-import { WalletDoc } from "@server/model/wallet.js";
+import BitcoinRPC from '@server/external/bitcoinRpc.js';
+import CryptoWalletService from '@server/service/wallet/crypto.js';
+import { toEstimateMode } from '@server/util/currencies.js';
+import GetBalanceResult from '@server/model/currency/getBalanceResult.js';
+import GetTransferResult from '@server/model/currency/getTransferResult.js';
+import TransferPriority from '@server/model/currency/transferPriority.js';
+import { RemoteType } from '@server/model/remote.js';
+import { WalletDoc } from '@server/model/wallet.js';
 
 export default class BitcoinWalletService extends CryptoWalletService {
     private rpc: BitcoinRPC;
 
-    constructor(
-        wallet: WalletDoc,
-        url: string,
-        username?: string,
-        password?: string
-    ) {
+    constructor(wallet: WalletDoc, url: string, username?: string, password?: string) {
         super(wallet);
 
         this.rpc = new BitcoinRPC(url, username, password);
     }
 
     public getType(): RemoteType {
-        return "bitcoin";
+        return 'bitcoin';
     }
 
     public async changePassword(newPassword: string, oldPassword?: string) {
         if (oldPassword) {
-            await this.rpc.walletpassphrasechange(
-                this.wallet.remoteName,
-                oldPassword,
-                newPassword
-            );
+            await this.rpc.walletpassphrasechange(this.wallet.remoteName, oldPassword, newPassword);
         } else {
             await this.rpc.encryptwallet(this.wallet.remoteName, newPassword);
         }
@@ -65,7 +56,7 @@ export default class BitcoinWalletService extends CryptoWalletService {
         address: string,
         amount: number,
         priority?: TransferPriority,
-        subtractFee?: boolean
+        subtractFee?: boolean,
     ) {
         const estimateMode = toEstimateMode(priority);
 
@@ -75,17 +66,14 @@ export default class BitcoinWalletService extends CryptoWalletService {
             amount,
             subtractFee,
             true,
-            estimateMode
+            estimateMode,
         );
 
         return result;
     }
 
     public async getTransfer(transferId: string) {
-        const result = await this.rpc.gettransaction(
-            this.wallet.remoteName,
-            transferId
-        );
+        const result = await this.rpc.gettransaction(this.wallet.remoteName, transferId);
         const primaryDetail = result.details.sort((a, b) => a.vout - b.vout)[0];
         const response: GetTransferResult = {
             transactionId: result.txid,
@@ -122,7 +110,7 @@ export default class BitcoinWalletService extends CryptoWalletService {
             await this.rpc.walletpassphrase(
                 this.wallet.remoteName,
                 password,
-                60 * 5 // 5 minutes
+                60 * 5, // 5 minutes
             );
         }
 

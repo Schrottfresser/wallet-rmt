@@ -1,9 +1,9 @@
-import { ObjectId } from "@server/route/validation/index.js";
-import GetBalanceResult from "@server/model/currency/getBalanceResult.js";
-import GetTransferResult from "@server/model/currency/getTransferResult.js";
-import TransferPriority from "@server/model/currency/transferPriority.js";
-import { RemoteType } from "@server/model/remote.js";
-import { WalletDoc } from "@server/model/wallet.js";
+import { ObjectId } from '@server/route/validation/index.js';
+import GetBalanceResult from '@server/model/currency/getBalanceResult.js';
+import GetTransferResult from '@server/model/currency/getTransferResult.js';
+import TransferPriority from '@server/model/currency/transferPriority.js';
+import { RemoteType } from '@server/model/remote.js';
+import { WalletDoc } from '@server/model/wallet.js';
 
 export default abstract class CryptoWalletService {
     protected wallet: WalletDoc;
@@ -42,10 +42,7 @@ export default abstract class CryptoWalletService {
      * @param oldPassword the old password if the wallet was already encrypted
      * @returns the wallet
      */
-    public abstract changePassword(
-        newPassword: string,
-        oldPassword?: string
-    ): Promise<WalletDoc>;
+    public abstract changePassword(newPassword: string, oldPassword?: string): Promise<WalletDoc>;
 
     /**
      * Creates a new recieving address for the wallet
@@ -71,7 +68,7 @@ export default abstract class CryptoWalletService {
         address: string,
         amount: number,
         priority?: TransferPriority,
-        subtractFee?: boolean
+        subtractFee?: boolean,
     ): Promise<string>;
 
     /**

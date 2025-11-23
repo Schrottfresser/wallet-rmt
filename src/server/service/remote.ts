@@ -1,7 +1,7 @@
-import { ObjectId } from "@server/route/validation/index.js";
-import InternalServerError from "@server/error/internalServerError.js";
-import NotFoundError from "@server/error/notFoundError.js";
-import Remote, { IRemote } from "@server/model/remote.js";
+import { ObjectId } from '@server/route/validation/index.js';
+import InternalServerError from '@server/error/internalServerError.js';
+import NotFoundError from '@server/error/notFoundError.js';
+import Remote, { IRemote } from '@server/model/remote.js';
 
 /**
  * Returns all existing remotes
@@ -33,7 +33,7 @@ export const createRemote = async (newRemote: IRemote) => {
 export const retrieveRemote = async (remoteId: ObjectId) => {
     const remote = await Remote.findById(remoteId);
     if (!remote) {
-        throw new NotFoundError("Remote not found");
+        throw new NotFoundError('Remote not found');
     }
 
     return remote;
@@ -47,7 +47,7 @@ export const retrieveRemote = async (remoteId: ObjectId) => {
 export const editRemote = async (remoteId: ObjectId, newRemote: IRemote) => {
     const remote = await Remote.findById(remoteId);
     if (!remote) {
-        throw new NotFoundError("Remote not found");
+        throw new NotFoundError('Remote not found');
     }
 
     remote.url = newRemote.url;
@@ -67,7 +67,7 @@ export const editRemote = async (remoteId: ObjectId, newRemote: IRemote) => {
 export const deleteRemote = async (remoteId: ObjectId) => {
     const remote = await Remote.findById(remoteId);
     if (!remote) {
-        throw new NotFoundError("Remote not found");
+        throw new NotFoundError('Remote not found');
     }
 
     const deleteResult = await remote.deleteOne();

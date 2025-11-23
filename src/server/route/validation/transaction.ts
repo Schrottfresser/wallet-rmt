@@ -1,5 +1,5 @@
-import { objectIdSchema } from "@server/route/validation/index.js";
-import z from "zod";
+import { objectIdSchema } from '@server/route/validation/index.js';
+import z from 'zod';
 
 export const listTransferSchema = z.object({
     query: z.object({
@@ -15,7 +15,7 @@ export const sendTransferSchema = z.object({
         amount: z.number().positive(),
         substractFee: z.boolean().optional(),
         replacable: z.boolean().optional(),
-        estimateMode: z.enum(["unimportant", "normal", "important"]).optional(),
+        estimateMode: z.enum(['unimportant', 'normal', 'important']).optional(),
     }),
 
     query: z.object({

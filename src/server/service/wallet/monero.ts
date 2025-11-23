@@ -1,28 +1,23 @@
-import MoneroWalletRPC from "@server/external/moneroWalletRpc.js";
-import CryptoWalletService from "@server/service/wallet/crypto.js";
-import { toPriorityNumber } from "@server/util/currencies.js";
-import GetBalanceResult from "@server/model/currency/getBalanceResult.js";
-import GetTransferResult from "@server/model/currency/getTransferResult.js";
-import TransferPriority from "@server/model/currency/transferPriority.js";
-import { RemoteType } from "@server/model/remote.js";
-import { WalletDoc } from "@server/model/wallet.js";
+import MoneroWalletRPC from '@server/external/moneroWalletRpc.js';
+import CryptoWalletService from '@server/service/wallet/crypto.js';
+import { toPriorityNumber } from '@server/util/currencies.js';
+import GetBalanceResult from '@server/model/currency/getBalanceResult.js';
+import GetTransferResult from '@server/model/currency/getTransferResult.js';
+import TransferPriority from '@server/model/currency/transferPriority.js';
+import { RemoteType } from '@server/model/remote.js';
+import { WalletDoc } from '@server/model/wallet.js';
 
 export default class MoneroWalletService extends CryptoWalletService {
     private rpc: MoneroWalletRPC;
 
-    constructor(
-        wallet: WalletDoc,
-        url: string,
-        username?: string,
-        password?: string
-    ) {
+    constructor(wallet: WalletDoc, url: string, username?: string, password?: string) {
         super(wallet);
 
         this.rpc = new MoneroWalletRPC(url, username, password);
     }
 
     public getType(): RemoteType {
-        return "monero";
+        return 'monero';
     }
 
     public async changePassword(newPassword: string, oldPassword?: string) {
@@ -54,7 +49,7 @@ export default class MoneroWalletService extends CryptoWalletService {
         address: string,
         amount: number,
         priority?: TransferPriority,
-        subtractFee?: boolean
+        subtractFee?: boolean,
     ) {
         const priorityNumber = toPriorityNumber(priority);
         const result = await this.rpc.transfer(
@@ -63,7 +58,7 @@ export default class MoneroWalletService extends CryptoWalletService {
             priorityNumber,
             undefined,
             undefined,
-            subtractFee
+            subtractFee,
         );
 
         return result.tx_hash;

@@ -4,7 +4,7 @@ class HttpError extends TypeError {
     constructor(message: string, status: number) {
         super(message);
         this.status = status;
-        this.name = "HttpError";
+        this.name = 'HttpError';
     }
 }
 

@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 export interface IWallet {
     name: string;
@@ -19,7 +19,7 @@ export const walletSchema = new mongoose.Schema<IWallet>({
     },
     remote: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Remote",
+        ref: 'Remote',
         required: true,
     },
     remoteName: {
@@ -40,6 +40,6 @@ export const walletSchema = new mongoose.Schema<IWallet>({
 
 export type WalletDoc = InstanceType<typeof Wallet>;
 
-const Wallet = mongoose.model("Wallet", walletSchema);
+const Wallet = mongoose.model('Wallet', walletSchema);
 
 export default Wallet;

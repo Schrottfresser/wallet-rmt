@@ -1,22 +1,17 @@
-import InternalServerError from "@server/error/internalServerError.js";
-import RPC from "@server/external/rpc.js";
+import InternalServerError from '@server/error/internalServerError.js';
+import RPC from '@server/external/rpc.js';
 
-export type EstimateMode = "unset" | "economical" | "conservative";
+export type EstimateMode = 'unset' | 'economical' | 'conservative';
 
-export type TransactionCategory =
-    | "send"
-    | "receive"
-    | "generate"
-    | "immature"
-    | "orphan";
+export type TransactionCategory = 'send' | 'receive' | 'generate' | 'immature' | 'orphan';
 
-export type ReplacableByFee = "yes" | "no" | "unknown";
+export type ReplacableByFee = 'yes' | 'no' | 'unknown';
 
 interface ListwalletdirResult {
     wallets: [
         {
             name: string;
-        }
+        },
     ];
 }
 
@@ -60,7 +55,7 @@ interface ListtransactionsResult {
     time: number;
     timerecieved: number;
     comment?: string;
-    "bip125-replacable": ReplacableByFee;
+    'bip125-replacable': ReplacableByFee;
     abandoned?: boolean;
 }
 
@@ -79,7 +74,7 @@ interface GettransactionResult {
     time: number;
     timerecieved: number;
     comment?: string;
-    "bip125-replacable": ReplacableByFee;
+    'bip125-replacable': ReplacableByFee;
     details: {
         involvesWatchonly: boolean;
         address: string;
@@ -93,8 +88,8 @@ interface GettransactionResult {
     hex: string;
 }
 
-const RPC_VERSION = "2.0";
-const RPC_ID = "wallet-rmt";
+const RPC_VERSION = '2.0';
+const RPC_ID = 'wallet-rmt';
 
 export default class BitcoinRPC extends RPC {
     constructor(url: string, username?: string, password?: string) {
@@ -102,83 +97,63 @@ export default class BitcoinRPC extends RPC {
     }
 
     public async listwalletdir() {
-        const wallets = (
-            await this.request<ListwalletdirResult>("listwalletdir")
-        ).wallets;
+        const wallets = (await this.request<ListwalletdirResult>('listwalletdir')).wallets;
 
         return wallets;
     }
 
     public async createwallet(wallet: string, passphrase?: string) {
-        await this.request("createwallet", undefined, [
-            wallet,
-            false,
-            false,
-            passphrase,
-        ]);
+        await this.request('createwallet', undefined, [wallet, false, false, passphrase]);
     }
 
     public async getbalances(wallet: string) {
         const walletPath = `wallet/${wallet}`;
 
-        const result = await this.request<GetbalancesResult>(
-            "getbalances",
-            walletPath
-        );
+        const result = await this.request<GetbalancesResult>('getbalances', walletPath);
 
         return result;
     }
 
     public async loadwallet(wallet: string) {
-        await this.request("loadwallet", undefined, [wallet]);
+        await this.request('loadwallet', undefined, [wallet]);
     }
 
     public async unloadwallet(wallet: string) {
-        await this.request("unloadwallet", undefined, [wallet]);
+        await this.request('unloadwallet', undefined, [wallet]);
     }
 
     public async encryptwallet(wallet: string, passphrase: string) {
         const walletPath = `wallet/${wallet}`;
 
-        await this.request("encryptwallet", walletPath, [passphrase]);
+        await this.request('encryptwallet', walletPath, [passphrase]);
     }
 
     public async walletpassphrasechange(
         wallet: string,
         oldpassphrase: string,
-        newpassphrase: string
+        newpassphrase: string,
     ) {
         const walletPath = `wallet/${wallet}`;
 
-        await this.request("walletpassphrasechange", walletPath, [
-            oldpassphrase,
-            newpassphrase,
-        ]);
+        await this.request('walletpassphrasechange', walletPath, [oldpassphrase, newpassphrase]);
     }
 
-    public async walletpassphrase(
-        wallet: string,
-        passphrase: string,
-        timeout: number
-    ) {
+    public async walletpassphrase(wallet: string, passphrase: string, timeout: number) {
         const walletPath = `wallet/${wallet}`;
 
-        await this.request("walletpassphrase", walletPath, [
-            passphrase,
-            timeout,
-        ]);
+        await this.request('walletpassphrase', walletPath, [passphrase, timeout]);
     }
 
     public async walletlock(wallet: string) {
         const walletPath = `wallet/${wallet}`;
 
-        await this.request("walletlock", walletPath);
+        await this.request('walletlock', walletPath);
     }
 
     public async getnewaddress(wallet: string) {
         const walletPath = `wallet/${wallet}`;
 
-        const result = await this.request<string>("getnewaddress", walletPath);
+        const result = await this.request<string>('getnewaddress', walletPath);
 
         return result;
     }
@@ -189,11 +164,11 @@ export default class BitcoinRPC extends RPC {
         amount: number,
         substractFee?: boolean,
         replacable?: boolean,
-        estimateMode?: EstimateMode
+        estimateMode?: EstimateMode,
     ) {
         const walletPath = `wallet/${wallet}`;
 
-        const result = await this.request<string>("sendtoaddress", walletPath, [
+        const result = await this.request<string>('sendtoaddress', walletPath, [
             address,
             amount,
             undefined,
@@ -207,17 +182,13 @@ export default class BitcoinRPC extends RPC {
         return result;
     }
 
-    public async listtransactions(
-        wallet: string,
-        count?: number,
-        skip?: number
-    ) {
+    public async listtransactions(wallet: string, count?: number, skip?: number) {
         const walletPath = `wallet/${wallet}`;
 
         const results = await this.request<[ListtransactionsResult]>(
-            "listtransactions",
+            'listtransactions',
             walletPath,
-            [undefined, count, skip]
+            [undefined, count, skip],
         );
 
         return results;
@@ -226,11 +197,9 @@ export default class BitcoinRPC extends RPC {
     public async gettransaction(wallet: string, txid: string) {
         const walletPath = `wallet/${wallet}`;
 
-        const result = await this.request<GettransactionResult>(
-            "gettransaction",
-            walletPath,
-            [txid]
-        );
+        const result = await this.request<GettransactionResult>('gettransaction', walletPath, [
+            txid,
+        ]);
 
         return result;
     }
@@ -238,18 +207,16 @@ export default class BitcoinRPC extends RPC {
     public async settxfee(wallet: string, amount: number) {
         const walletPath = `wallet/${wallet}`;
 
-        const result = await this.request<boolean>("settxfee", walletPath, [
-            amount,
-        ]);
+        const result = await this.request<boolean>('settxfee', walletPath, [amount]);
 
         if (!result) {
-            throw new InternalServerError("Setting the transaction fee failed");
+            throw new InternalServerError('Setting the transaction fee failed');
         }
     }
 
     public async abandontransaction(wallet: string, txid: string) {
         const walletPath = `wallet/${wallet}`;
 
-        await this.request("abandontransaction", walletPath, [txid]);
+        await this.request('abandontransaction', walletPath, [txid]);
     }
 }

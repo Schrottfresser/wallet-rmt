@@ -1,16 +1,11 @@
-import BadRequestError from "@server/error/badRequestError.js";
-import { Request, Response, NextFunction, RequestHandler } from "express";
-import mongoose from "mongoose";
-import z from "zod";
+import BadRequestError from '@server/error/badRequestError.js';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
+import mongoose from 'mongoose';
+import z from 'zod';
 
 export const createValidatedHandler = <T extends z.ZodType>(
     schema: T,
-    handler: (
-        data: z.infer<T>,
-        req: Request,
-        res: Response,
-        next: NextFunction
-    ) => any
+    handler: (data: z.infer<T>, req: Request, res: Response, next: NextFunction) => any,
 ): RequestHandler => {
     return (req, res, next) => {
         const parsed = schema.safeParse({
@@ -30,7 +25,7 @@ export const createValidatedHandler = <T extends z.ZodType>(
 export const objectIdSchema = z
     .string()
     .refine((val) => mongoose.Types.ObjectId.isValid(val), {
-        message: "Invalid ObjectId",
+        message: 'Invalid ObjectId',
     })
     .transform((val) => new mongoose.Types.ObjectId(val));
 

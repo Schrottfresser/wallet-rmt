@@ -1,4 +1,4 @@
-import InternalServerError from "@server/error/internalServerError.js";
+import InternalServerError from '@server/error/internalServerError.js';
 
 export default class RPC {
     private url: string;
@@ -6,36 +6,23 @@ export default class RPC {
     private id: string;
     private authHeader?: string;
 
-    constructor(
-        url: string,
-        version: string,
-        id: string,
-        username?: string,
-        password?: string
-    ) {
+    constructor(url: string, version: string, id: string, username?: string, password?: string) {
         this.url = url;
         this.version = version;
         this.id = id;
 
         if (username && password) {
-            this.authHeader = this.generateAuthHeaderUsernamePassword(
-                username,
-                password
-            );
+            this.authHeader = this.generateAuthHeaderUsernamePassword(username, password);
         }
     }
 
-    protected async request<T>(
-        method: string,
-        path?: string,
-        params?: unknown[]
-    ): Promise<T> {
-        const requestUrl = `${this.url}/${path ? path : ""}`;
+    protected async request<T>(method: string, path?: string, params?: unknown[]): Promise<T> {
+        const requestUrl = `${this.url}/${path ? path : ''}`;
         const response = await fetch(requestUrl, {
-            method: "POST",
+            method: 'POST',
             headers: {
-                "Content-Type": "application/json",
-                Authorization: this.authHeader ? this.authHeader : "",
+                'Content-Type': 'application/json',
+                Authorization: this.authHeader ? this.authHeader : '',
             },
 
             body: JSON.stringify({
@@ -47,30 +34,23 @@ export default class RPC {
         });
 
         if (!response.ok) {
-            throw new InternalServerError(
-                `JSON RPC request error: ${response.status}`
-            );
+            throw new InternalServerError(`JSON RPC request error: ${response.status}`);
         }
 
         const responseJson = await response.json();
 
         if (responseJson.error) {
             throw new InternalServerError(
-                `JSON RPC error: ${responseJson.error.code}: ${responseJson.error.message}`
+                `JSON RPC error: ${responseJson.error.code}: ${responseJson.error.message}`,
             );
         }
 
         return responseJson.result;
     }
 
-    private generateAuthHeaderUsernamePassword(
-        username: string,
-        password: string
-    ) {
+    private generateAuthHeaderUsernamePassword(username: string, password: string) {
         const combined = `${username}:${password}`;
-        const combinedEncoded = Buffer.from(combined, "utf-8").toString(
-            "base64"
-        );
+        const combinedEncoded = Buffer.from(combined, 'utf-8').toString('base64');
 
         const authHeader = `Basic ${combinedEncoded}`;
         return authHeader;

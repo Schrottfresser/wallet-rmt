@@ -1,3 +1,3 @@
-type TransferPriority = "unimportant" | "normal" | "important";
+type TransferPriority = 'unimportant' | 'normal' | 'important';
 
 export default TransferPriority;

@@ -1,9 +1,9 @@
-import HttpError from "@server/error/httpError.js";
+import HttpError from '@server/error/httpError.js';
 
 class NotFoundError extends HttpError {
     constructor(message: string) {
         super(message, 404);
-        this.name = "NotFoundError";
+        this.name = 'NotFoundError';
     }
 }
 

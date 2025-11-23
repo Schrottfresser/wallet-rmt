@@ -1,4 +1,4 @@
-import RPC from "@server/external/rpc.js";
+import RPC from '@server/external/rpc.js';
 
 interface CreateAccountResult {
     account_index: number;
@@ -60,7 +60,7 @@ interface TransferResult {
     unsigned_txset: string;
 }
 
-type TransferType = "in" | "out" | "pending" | "failed" | "pool";
+type TransferType = 'in' | 'out' | 'pending' | 'failed' | 'pool';
 
 interface Transfer {
     address: string;
@@ -99,8 +99,8 @@ interface GetTransfersResult {
     pool: Transfer[];
 }
 
-const RPC_VERSION = "2.0";
-const RPC_ID = "wallet-rmt";
+const RPC_VERSION = '2.0';
+const RPC_ID = 'wallet-rmt';
 
 export default class MoneroWalletRPC extends RPC {
     constructor(url: string, username?: string, password?: string) {
@@ -108,61 +108,48 @@ export default class MoneroWalletRPC extends RPC {
     }
 
     public async create_wallet(wallet: string, password?: string) {
-        await this.request("create_wallet", undefined, [
-            wallet,
-            password,
-            "English",
-        ]);
+        await this.request('create_wallet', undefined, [wallet, password, 'English']);
     }
 
     public async open_wallet(filename: string, password?: string) {
-        await this.request("open_wallet", undefined, [filename, password]);
+        await this.request('open_wallet', undefined, [filename, password]);
     }
 
     public async close_wallet() {
-        await this.request("close_wallet");
+        await this.request('close_wallet');
     }
 
-    public async change_wallet_password(
-        old_password?: string,
-        new_password?: string
-    ) {
-        await this.request("change_wallet_password", undefined, [
-            old_password,
-            new_password,
-        ]);
+    public async change_wallet_password(old_password?: string, new_password?: string) {
+        await this.request('change_wallet_password', undefined, [old_password, new_password]);
     }
 
     public async create_account() {
-        const result = await this.request<CreateAccountResult>(
-            "create_account"
-        );
+        const result = await this.request<CreateAccountResult>('create_account');
 
         return result;
     }
 
     public async get_accounts() {
-        const result = await this.request<GetAccountResult>("get_accounts");
+        const result = await this.request<GetAccountResult>('get_accounts');
 
         return result;
     }
 
     public async create_address(accountIndex: number, count?: number) {
-        const result = await this.request<CreateAddressResult>(
-            "create_address",
+        const result = await this.request<CreateAddressResult>('create_address', undefined, [
+            accountIndex,
             undefined,
-            [accountIndex, undefined, count]
-        );
+            count,
+        ]);
 
         return result;
     }
 
     public async get_address(accountIndex: number, address_index: number[]) {
-        const result = await this.request<GetAddressResult>(
-            "get_address",
-            undefined,
-            [accountIndex, address_index]
-        );
+        const result = await this.request<GetAddressResult>('get_address', undefined, [
+            accountIndex,
+            address_index,
+        ]);
 
         return result;
     }
@@ -170,13 +157,13 @@ export default class MoneroWalletRPC extends RPC {
     public async get_balance(
         accountIndex: number,
         addressIndices?: number[],
-        allAccounts?: boolean
+        allAccounts?: boolean,
     ) {
-        const result = await this.request<GetBalanceResult>(
-            "get_balance",
-            undefined,
-            [accountIndex, addressIndices, allAccounts]
-        );
+        const result = await this.request<GetBalanceResult>('get_balance', undefined, [
+            accountIndex,
+            addressIndices,
+            allAccounts,
+        ]);
 
         return result;
     }
@@ -187,19 +174,15 @@ export default class MoneroWalletRPC extends RPC {
         priority: number,
         accountIndex?: number,
         subaddrIndices?: number,
-        substractFee?: boolean
+        substractFee?: boolean,
     ) {
-        const result = await this.request<TransferResult>(
-            "transfer",
-            undefined,
-            [
-                [amount, address],
-                accountIndex,
-                subaddrIndices,
-                substractFee && [0],
-                priority,
-            ]
-        );
+        const result = await this.request<TransferResult>('transfer', undefined, [
+            [amount, address],
+            accountIndex,
+            subaddrIndices,
+            substractFee && [0],
+            priority,
+        ]);
 
         return result;
     }
@@ -214,37 +197,32 @@ export default class MoneroWalletRPC extends RPC {
         maxHeight?: boolean,
         accountIndex?: number,
         subaddrIndices?: number[],
-        allAccounts?: boolean
+        allAccounts?: boolean,
     ) {
         const filterByHeight = Boolean(minHeight || maxHeight);
 
-        const result = await this.request<GetTransfersResult>(
-            "get_transfers",
-            undefined,
-            [
-                incoming,
-                outgoing,
-                pending,
-                failed,
-                pool,
-                filterByHeight,
-                minHeight,
-                maxHeight,
-                accountIndex,
-                subaddrIndices,
-                allAccounts,
-            ]
-        );
+        const result = await this.request<GetTransfersResult>('get_transfers', undefined, [
+            incoming,
+            outgoing,
+            pending,
+            failed,
+            pool,
+            filterByHeight,
+            minHeight,
+            maxHeight,
+            accountIndex,
+            subaddrIndices,
+            allAccounts,
+        ]);
 
         return result;
     }
 
     public async get_transfer_by_txid(txid: string, accountIndex?: number) {
-        const result = await this.request<Transfer>(
-            "get_transfer_by_txid",
-            undefined,
-            [txid, accountIndex]
-        );
+        const result = await this.request<Transfer>('get_transfer_by_txid', undefined, [
+            txid,
+            accountIndex,
+        ]);
 
         return result;
     }

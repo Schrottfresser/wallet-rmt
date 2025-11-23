@@ -1,71 +1,60 @@
-import { createValidatedHandler } from "@server/route/validation/index.js";
+import { createValidatedHandler } from '@server/route/validation/index.js';
 import {
     listTransferSchema,
     sendTransferSchema,
     retrieveWalletTransferSchema,
-} from "@server/route/validation/transaction.js";
-import BadRequestError from "@server/error/badRequestError.js";
-import walletRepository from "@server/repository/wallet.js";
-import { Router } from "express";
+} from '@server/route/validation/transaction.js';
+import BadRequestError from '@server/error/badRequestError.js';
+import walletRepository from '@server/repository/wallet.js';
+import { Router } from 'express';
 
 const transactionRouter = Router();
 
 transactionRouter.get(
-    "/",
+    '/',
     createValidatedHandler(listTransferSchema, async (data, _req, res) => {
-        const walletService = await walletRepository.findById(
-            data.query.walletId
-        );
+        const walletService = await walletRepository.findById(data.query.walletId);
         if (!walletService) {
-            throw new BadRequestError("Wallet does not exist");
+            throw new BadRequestError('Wallet does not exist');
         }
 
         const transactions = await walletService.getAllTransfers();
 
         res.status(200).json(transactions);
-    })
+    }),
 );
 
 transactionRouter.post(
-    "/",
+    '/',
     createValidatedHandler(sendTransferSchema, async (data, _req, res) => {
-        const walletService = await walletRepository.findById(
-            data.query.walletId
-        );
+        const walletService = await walletRepository.findById(data.query.walletId);
         if (!walletService) {
-            throw new BadRequestError("Wallet does not exist");
+            throw new BadRequestError('Wallet does not exist');
         }
 
         const txid = await walletService.transfer(
             data.body.address,
             data.body.amount,
             data.body.estimateMode,
-            data.body.substractFee
+            data.body.substractFee,
         );
 
         res.status(201).send(txid);
-    })
+    }),
 );
 
 transactionRouter.get(
-    "/:transferId",
-    createValidatedHandler(
-        retrieveWalletTransferSchema,
-        async (data, _req, res) => {
-            const walletService = await walletRepository.findById(
-                data.query.walletId
-            );
-            if (!walletService) {
-                throw new BadRequestError("Wallet does not exist");
-            }
-
-            const transfer = await walletService.getTransfer(
-                data.params.transferId
-            );
-
-            res.status(200).json(transfer);
+    '/:transferId',
+    createValidatedHandler(retrieveWalletTransferSchema, async (data, _req, res) => {
+        const walletService = await walletRepository.findById(data.query.walletId);
+        if (!walletService) {
+            throw new BadRequestError('Wallet does not exist');
         }
-    )
+
+        const transfer = await walletService.getTransfer(data.params.transferId);
+
+        res.status(200).json(transfer);
+    }),
 );
 
 /*transactionsRouter.post(
