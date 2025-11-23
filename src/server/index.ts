@@ -8,11 +8,13 @@ import { createServer } from 'http';
 import mongoose from 'mongoose';
 import { errorHandler, prodErrorHandler } from '@server/errorHandler.js';
 import env from '@server/env.js';
+import cookieParser from 'cookie-parser';
 
 const app = express();
 const server = createServer(app);
 
 app.use(express.json());
+app.use(cookieParser());
 
 let vite: ViteDevServer;
 if (env.isProd) {
