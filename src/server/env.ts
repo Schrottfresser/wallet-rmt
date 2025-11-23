@@ -8,6 +8,8 @@ const env = {
     dbIp: process.env.DB_IP || '127.0.0.1',
     dbPort: process.env.DB_PORT || '27017',
     dbName: process.env.DB_NAME || 'wallet-rmt',
+
+    walletAuthExpirationMins: process.env.WALLET_AUTH_EXPIRATION_MINS || '5',
 };
 
 export default env;

@@ -12,6 +12,9 @@ import BadRequestError from '@server/error/badRequestError.js';
 import walletRepository from '@server/repository/wallet.js';
 import Wallet from '@server/model/wallet.js';
 import { Router } from 'express';
+import { createWalletAuthToken, decryptWalletAuthToken } from '@server/util/crypto.js';
+import { WALLET_AUTH_COOKIE } from '@server/constant/cookie.js';
+import env from '@server/env.js';
 
 const walletRouter = Router();
 
@@ -66,6 +69,38 @@ walletRouter.get(
         res.status(200).json(wallet);
     })
 );*/
+
+walletRouter.post(
+    '/:walletId/unlock',
+    createValidatedHandler(unlockWalletSchema, async (data, req, res) => {
+        let passwords: {
+            [walletId: string]: string;
+        };
+
+        try {
+            const oldToken = req.cookies[WALLET_AUTH_COOKIE];
+            passwords = (await decryptWalletAuthToken(oldToken)).passwords;
+        } catch {
+            passwords = {};
+        }
+
+        const walletId = data.params.walletId.toString();
+        passwords[walletId] = data.body.password;
+
+        const token = await createWalletAuthToken({
+            passwords,
+        });
+
+        res.cookie(WALLET_AUTH_COOKIE, token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'strict',
+            maxAge: Number(env.walletAuthExpirationMins) * 60 * 1000, // minutes to millis
+        });
+
+        res.status(200).send();
+    }),
+);
 
 walletRouter.post(
     '/:walletId/open',

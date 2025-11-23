@@ -1,5 +1,5 @@
-import { objectIdSchema } from "@server/route/validation/index.js";
-import z from "zod";
+import { objectIdSchema } from '@server/route/validation/index.js';
+import z from 'zod';
 
 export const createWalletSchema = z.object({
     body: z.object({
@@ -28,11 +28,9 @@ export const refreshWalletSchema = z.object({
 });
 
 export const unlockWalletSchema = z.object({
-    body: z
-        .object({
-            password: z.string().optional(),
-        })
-        .optional(),
+    body: z.object({
+        password: z.string(),
+    }),
 
     params: z.object({
         walletId: objectIdSchema,
