@@ -3,7 +3,7 @@ import { Request, Response, NextFunction, RequestHandler } from 'express';
 import mongoose from 'mongoose';
 import z from 'zod';
 
-export const createValidatedHandler = <T extends z.ZodType>(
+export const validatedHandler = <T extends z.ZodType>(
     schema: T,
     handler: (data: z.infer<T>, req: Request, res: Response, next: NextFunction) => any,
 ): RequestHandler => {

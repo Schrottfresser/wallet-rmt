@@ -1,9 +1,7 @@
-import { createValidatedHandler } from '@server/route/validation/index.js';
+import { validatedHandler } from '@server/route/validation/index.js';
 import {
     createWalletSchema,
     retrieveWalletSchema,
-    openWalletSchema,
-    closeWalletSchema,
     changeWalletPasswordSchema,
     createWalletAddressSchema,
     unlockWalletSchema,
@@ -15,6 +13,7 @@ import { Router } from 'express';
 import { createWalletAuthToken, decryptWalletAuthToken } from '@server/util/crypto.js';
 import { WALLET_AUTH_COOKIE } from '@server/constant/cookie.js';
 import env from '@server/env.js';
+import { assertAndGetWalletAuth } from './assert/auth.js';
 
 const walletRouter = Router();
 
@@ -26,7 +25,7 @@ walletRouter.get('/', async (_req, res) => {
 
 walletRouter.post(
     '/',
-    createValidatedHandler(createWalletSchema, async (data, _req, res) => {
+    validatedHandler(createWalletSchema, async (data, _req, res) => {
         const walletService = await walletRepository.create({
             name: data.body.name,
             remote: data.body.remote,
@@ -45,7 +44,7 @@ walletRouter.post(
 
 walletRouter.get(
     '/:walletId',
-    createValidatedHandler(retrieveWalletSchema, async (data, _req, res) => {
+    validatedHandler(retrieveWalletSchema, async (data, _req, res) => {
         const wallet = await Wallet.findById(data.params.walletId);
 
         res.status(200).json(wallet);
@@ -72,7 +71,7 @@ walletRouter.get(
 
 walletRouter.post(
     '/:walletId/unlock',
-    createValidatedHandler(unlockWalletSchema, async (data, req, res) => {
+    validatedHandler(unlockWalletSchema, async (data, req, res) => {
         let passwords: {
             [walletId: string]: string;
         };
@@ -104,7 +103,7 @@ walletRouter.post(
 
 walletRouter.post(
     '/:walletId/open',
-    createValidatedHandler(openWalletSchema, async (data, _req, res) => {
+    validatedHandler(openWalletSchema, async (data, _req, res) => {
         const walletService = await walletRepository.findById(data.params.walletId);
         if (!walletService) {
             throw new BadRequestError('Wallet does not exist');
@@ -118,7 +117,7 @@ walletRouter.post(
 
 walletRouter.get(
     '/:walletId/close',
-    createValidatedHandler(closeWalletSchema, async (data, _req, res) => {
+    validatedHandler(closeWalletSchema, async (data, _req, res) => {
         const walletService = await walletRepository.findById(data.params.walletId);
         if (!walletService) {
             throw new BadRequestError('Wallet does not exist');
@@ -132,7 +131,7 @@ walletRouter.get(
 
 walletRouter.post(
     '/:walletId/password',
-    createValidatedHandler(changeWalletPasswordSchema, async (data, _req, res) => {
+    validatedHandler(changeWalletPasswordSchema, async (data, _req, res) => {
         const walletService = await walletRepository.findById(data.params.walletId);
         if (!walletService) {
             throw new BadRequestError('Wallet does not exist');
@@ -146,7 +145,7 @@ walletRouter.post(
 
 walletRouter.get(
     '/:walletId/address',
-    createValidatedHandler(createWalletAddressSchema, async (data, _req, res) => {
+    validatedHandler(createWalletAddressSchema, async (data, req, res) => {
         const walletService = await walletRepository.findById(data.params.walletId);
         if (!walletService) {
             throw new BadRequestError('Wallet does not exist');

@@ -1,4 +1,4 @@
-import { createValidatedHandler } from '@server/route/validation/index.js';
+import { validatedHandler } from '@server/route/validation/index.js';
 import {
     listTransferSchema,
     sendTransferSchema,
@@ -12,7 +12,7 @@ const transactionRouter = Router();
 
 transactionRouter.get(
     '/',
-    createValidatedHandler(listTransferSchema, async (data, _req, res) => {
+    validatedHandler(listTransferSchema, async (data, _req, res) => {
         const walletService = await walletRepository.findById(data.query.walletId);
         if (!walletService) {
             throw new BadRequestError('Wallet does not exist');
@@ -26,7 +26,7 @@ transactionRouter.get(
 
 transactionRouter.post(
     '/',
-    createValidatedHandler(sendTransferSchema, async (data, _req, res) => {
+    validatedHandler(sendTransferSchema, async (data, _req, res) => {
         const walletService = await walletRepository.findById(data.query.walletId);
         if (!walletService) {
             throw new BadRequestError('Wallet does not exist');
@@ -45,7 +45,7 @@ transactionRouter.post(
 
 transactionRouter.get(
     '/:transferId',
-    createValidatedHandler(retrieveWalletTransferSchema, async (data, _req, res) => {
+    validatedHandler(retrieveWalletTransferSchema, async (data, _req, res) => {
         const walletService = await walletRepository.findById(data.query.walletId);
         if (!walletService) {
             throw new BadRequestError('Wallet does not exist');
