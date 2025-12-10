@@ -1,18 +1,17 @@
 import { WALLET_AUTH_COOKIE } from '@server/constant/cookie.js';
-import UnauthorizedError from '@server/error/unauthorizedError.js';
 import { decryptWalletAuthToken } from '@server/util/crypto.js';
 import { Request } from 'express';
+import { ObjectId } from '../validation/index.js';
 
-export async function assertAndGetWalletAuth(req: Request) {
+export async function useWalletPassword(req: Request, walletId: ObjectId) {
     const token = req.cookies[WALLET_AUTH_COOKIE];
-    if (!token) {
-        throw new UnauthorizedError('Unauthorized');
-    }
 
     try {
         const payload = await decryptWalletAuthToken(token);
-        return payload;
+        const password = payload.passwords[walletId.toString()];
+
+        return password;
     } catch {
-        throw new UnauthorizedError('Unauthorized');
+        return;
     }
 }

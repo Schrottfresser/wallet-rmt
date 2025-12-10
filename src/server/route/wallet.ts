@@ -13,7 +13,7 @@ import { Router } from 'express';
 import { createWalletAuthToken, decryptWalletAuthToken } from '@server/util/crypto.js';
 import { WALLET_AUTH_COOKIE } from '@server/constant/cookie.js';
 import env from '@server/env.js';
-import { assertAndGetWalletAuth } from './assert/auth.js';
+import { useWalletPassword } from './hook/auth.js';
 
 const walletRouter = Router();
 
@@ -102,34 +102,6 @@ walletRouter.post(
 );
 
 walletRouter.post(
-    '/:walletId/open',
-    validatedHandler(openWalletSchema, async (data, _req, res) => {
-        const walletService = await walletRepository.findById(data.params.walletId);
-        if (!walletService) {
-            throw new BadRequestError('Wallet does not exist');
-        }
-
-        await walletService.open(data.body?.password);
-
-        res.status(200).send();
-    }),
-);
-
-walletRouter.get(
-    '/:walletId/close',
-    validatedHandler(closeWalletSchema, async (data, _req, res) => {
-        const walletService = await walletRepository.findById(data.params.walletId);
-        if (!walletService) {
-            throw new BadRequestError('Wallet does not exist');
-        }
-
-        await walletService.close();
-
-        res.status(200).send();
-    }),
-);
-
-walletRouter.post(
     '/:walletId/password',
     validatedHandler(changeWalletPasswordSchema, async (data, _req, res) => {
         const walletService = await walletRepository.findById(data.params.walletId);
@@ -146,12 +118,14 @@ walletRouter.post(
 walletRouter.get(
     '/:walletId/address',
     validatedHandler(createWalletAddressSchema, async (data, req, res) => {
+        const walletPassword = await useWalletPassword(req, data.params.walletId);
+
         const walletService = await walletRepository.findById(data.params.walletId);
         if (!walletService) {
             throw new BadRequestError('Wallet does not exist');
         }
 
-        const newAddress = await walletService.createAddress();
+        const newAddress = await walletService.createAddress(walletPassword);
 
         res.status(200).send(newAddress);
     }),

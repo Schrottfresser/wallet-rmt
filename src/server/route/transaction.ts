@@ -7,18 +7,21 @@ import {
 import BadRequestError from '@server/error/badRequestError.js';
 import walletRepository from '@server/repository/wallet.js';
 import { Router } from 'express';
+import { useWalletPassword } from './hook/auth.js';
 
 const transactionRouter = Router();
 
 transactionRouter.get(
     '/',
-    validatedHandler(listTransferSchema, async (data, _req, res) => {
+    validatedHandler(listTransferSchema, async (data, req, res) => {
+        const walletPassword = await useWalletPassword(req, data.query.walletId);
+
         const walletService = await walletRepository.findById(data.query.walletId);
         if (!walletService) {
             throw new BadRequestError('Wallet does not exist');
         }
 
-        const transactions = await walletService.getAllTransfers();
+        const transactions = await walletService.getAllTransfers(walletPassword);
 
         res.status(200).json(transactions);
     }),
@@ -26,7 +29,9 @@ transactionRouter.get(
 
 transactionRouter.post(
     '/',
-    validatedHandler(sendTransferSchema, async (data, _req, res) => {
+    validatedHandler(sendTransferSchema, async (data, req, res) => {
+        const walletPassword = await useWalletPassword(req, data.query.walletId);
+
         const walletService = await walletRepository.findById(data.query.walletId);
         if (!walletService) {
             throw new BadRequestError('Wallet does not exist');
@@ -35,6 +40,7 @@ transactionRouter.post(
         const txid = await walletService.transfer(
             data.body.address,
             data.body.amount,
+            walletPassword,
             data.body.estimateMode,
             data.body.substractFee,
         );
@@ -45,13 +51,15 @@ transactionRouter.post(
 
 transactionRouter.get(
     '/:transferId',
-    validatedHandler(retrieveWalletTransferSchema, async (data, _req, res) => {
+    validatedHandler(retrieveWalletTransferSchema, async (data, req, res) => {
+        const walletPassword = await useWalletPassword(req, data.query.walletId);
+
         const walletService = await walletRepository.findById(data.query.walletId);
         if (!walletService) {
             throw new BadRequestError('Wallet does not exist');
         }
 
-        const transfer = await walletService.getTransfer(data.params.transferId);
+        const transfer = await walletService.getTransfer(data.params.transferId, walletPassword);
 
         res.status(200).json(transfer);
     }),

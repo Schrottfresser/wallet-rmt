@@ -27,7 +27,7 @@ export default class BitcoinWalletService extends CryptoWalletService {
             await this.rpc.encryptwallet(this.wallet.remoteName, newPassword);
         }
 
-        this.wallet.isLocked = true;
+        this.wallet.isLocked = !!newPassword;
         await this.wallet.save();
 
         return this.wallet;
@@ -55,9 +55,12 @@ export default class BitcoinWalletService extends CryptoWalletService {
     public async transfer(
         address: string,
         amount: number,
+        password?: string,
         priority?: TransferPriority,
         subtractFee?: boolean,
     ) {
+        await this.open(password);
+
         const estimateMode = toEstimateMode(priority);
 
         const result = await this.rpc.sendtoaddress(
@@ -69,6 +72,7 @@ export default class BitcoinWalletService extends CryptoWalletService {
             estimateMode,
         );
 
+        await this.close();
         return result;
     }
 

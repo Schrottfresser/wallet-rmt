@@ -21,50 +21,58 @@ export default class MoneroWalletService extends CryptoWalletService {
     }
 
     public async changePassword(newPassword: string, oldPassword?: string) {
+        await this.open(oldPassword);
+
         await this.rpc.change_wallet_password(oldPassword, newPassword);
 
         this.wallet.isLocked = !!newPassword;
         await this.wallet.save();
 
+        await this.close();
         return this.wallet;
     }
 
-    public async createAddress() {
+    public async createAddress(password?: string) {
+        await this.open(password);
+
         const result = await this.rpc.create_address(0);
 
+        await this.close();
         return result.address;
     }
 
-    public async getBalance() {
+    public async getBalance(password?: string) {
+        await this.open(password);
+
         const result = await this.rpc.get_balance(0);
         const response: GetBalanceResult = {
             balance: result.balance,
             unlockedBalance: result.unlocked_balance,
         };
 
+        await this.close();
         return response;
     }
 
     public async transfer(
         address: string,
         amount: number,
+        password?: string,
         priority?: TransferPriority,
         subtractFee?: boolean,
     ) {
-        const priorityNumber = toPriorityNumber(priority);
-        const result = await this.rpc.transfer(
-            amount,
-            address,
-            priorityNumber,
-            undefined,
-            undefined,
-            subtractFee,
-        );
+        await this.open(password);
 
+        const priorityNumber = toPriorityNumber(priority);
+        const result = await this.rpc.transfer(amount, address, priorityNumber, undefined, undefined, subtractFee);
+
+        await this.close();
         return result.tx_hash;
     }
 
-    public async getTransfer(transferId: string) {
+    public async getTransfer(transferId: string, password?: string) {
+        await this.open(password);
+
         const result = await this.rpc.get_transfer_by_txid(transferId);
         const response: GetTransferResult = {
             transactionId: result.txid,
@@ -76,18 +84,15 @@ export default class MoneroWalletService extends CryptoWalletService {
             timestamp: result.timestamp,
         };
 
+        await this.close();
         return response;
     }
 
-    public async getAllTransfers() {
+    public async getAllTransfers(password?: string) {
+        await this.open(password);
+
         const result = await this.rpc.get_transfers();
-        const allTransfers = [
-            ...result.failed,
-            ...result.in,
-            ...result.out,
-            ...result.pending,
-            ...result.pool,
-        ];
+        const allTransfers = [...result.failed, ...result.in, ...result.out, ...result.pending, ...result.pool];
         const response: GetTransferResult[] = allTransfers.map((transfer) => ({
             transactionId: transfer.txid,
             address: transfer.address,
@@ -98,24 +103,25 @@ export default class MoneroWalletService extends CryptoWalletService {
             timestamp: transfer.timestamp,
         }));
 
+        await this.close();
         return response;
     }
 
-    public async open(password?: string) {
+    protected async createWallet(password?: string) {
+        await this.rpc.create_wallet(this.wallet.remoteName, password);
+    }
+
+    private async open(password?: string) {
         await this.rpc.open_wallet(this.wallet.remoteName, password);
 
         this.wallet.isLoaded = true;
         await this.wallet.save();
     }
 
-    public async close() {
+    private async close() {
         await this.rpc.close_wallet();
 
         this.wallet.isLoaded = false;
         await this.wallet.save();
-    }
-
-    protected async createWallet(password?: string) {
-        await this.rpc.create_wallet(this.wallet.remoteName, password);
     }
 }
