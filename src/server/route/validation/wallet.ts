@@ -4,7 +4,7 @@ import z from 'zod';
 export const createWalletSchema = z.object({
     body: z.object({
         name: z.string(),
-        remote: objectIdSchema,
+        type: z.enum(['bitcoin', 'monero']),
         remoteName: z.string(),
     }),
 });

@@ -2,8 +2,7 @@ import { ObjectId } from '@server/route/validation/index.js';
 import GetBalanceResult from '@server/model/currency/getBalanceResult.js';
 import GetTransferResult from '@server/model/currency/getTransferResult.js';
 import TransferPriority from '@server/model/currency/transferPriority.js';
-import { RemoteType } from '@server/model/remote.js';
-import { WalletDoc } from '@server/model/wallet.js';
+import { WalletDoc, WalletType } from '@server/model/wallet.js';
 
 export default abstract class CryptoWalletService {
     protected wallet: WalletDoc;
@@ -34,7 +33,7 @@ export default abstract class CryptoWalletService {
      * Gets the type of the wallet
      * @returns the wallet type
      */
-    public abstract getType(): RemoteType;
+    public abstract getType(): WalletType;
 
     /**
      * Either adds, removes or changes the password of the wallet

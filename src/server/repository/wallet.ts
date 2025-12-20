@@ -2,9 +2,9 @@ import { ObjectId } from '@server/route/validation/index.js';
 import BitcoinWalletService from '@server/service/wallet/bitcoin.js';
 import CryptoWalletService from '@server/service/wallet/crypto.js';
 import MoneroWalletService from '@server/service/wallet/monero.js';
-import Remote, { IRemoteWithMeta } from '@server/model/remote.js';
 import Wallet, { IWallet, WalletDoc } from '@server/model/wallet.js';
 import { LRUCache } from 'lru-cache';
+import env from '@server/env.js';
 
 class WalletRepository {
     private cache: LRUCache<ObjectId, CryptoWalletService>;
@@ -24,10 +24,7 @@ class WalletRepository {
         const wallet = await Wallet.findById(id);
         if (!wallet) return undefined;
 
-        const remote = await Remote.findById(wallet.remote);
-        if (!remote) return undefined;
-
-        const cryptoWalletService = this.buildCyptoWalletService(remote, wallet);
+        const cryptoWalletService = this.buildCyptoWalletService(wallet);
         cryptoWalletService?.setWallet(wallet);
 
         this.cache.set(id, cryptoWalletService);
@@ -35,12 +32,9 @@ class WalletRepository {
     }
 
     public async create(wallet: IWallet): Promise<CryptoWalletService | undefined> {
-        const remote = await Remote.findById(wallet.remote);
-        if (!remote) return undefined;
-
         const walletModel = await Wallet.create(wallet);
 
-        const cryptoWalletService = this.buildCyptoWalletService(remote, walletModel);
+        const cryptoWalletService = this.buildCyptoWalletService(walletModel);
         cryptoWalletService?.setWallet(walletModel);
 
         this.cache.set(walletModel._id, cryptoWalletService);
@@ -51,26 +45,23 @@ class WalletRepository {
         this.cache.delete(id);
     }
 
-    private buildCyptoWalletService(
-        remote: IRemoteWithMeta,
-        wallet: WalletDoc,
-    ): CryptoWalletService | undefined {
+    private buildCyptoWalletService(wallet: WalletDoc): CryptoWalletService | undefined {
         let walletService: CryptoWalletService;
-        switch (remote.type) {
+        switch (wallet.type) {
             case 'bitcoin':
                 walletService = new BitcoinWalletService(
                     wallet,
-                    remote.url,
-                    remote.username,
-                    remote.password,
+                    env.bitcoinRpcUrl,
+                    env.bitcoinRpcUser,
+                    env.bitcoinRpcPassword,
                 );
                 break;
             case 'monero':
                 walletService = new MoneroWalletService(
                     wallet,
-                    remote.url,
-                    remote.username,
-                    remote.password,
+                    env.moneroWalletRpcUrl,
+                    env.moneroWalletRpcUser,
+                    env.moneroWalletRpcPassword,
                 );
                 break;
             default:

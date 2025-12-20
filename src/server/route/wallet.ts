@@ -28,7 +28,7 @@ walletRouter.post(
     validatedHandler(createWalletSchema, async (data, _req, res) => {
         const walletService = await walletRepository.create({
             name: data.body.name,
-            remote: data.body.remote,
+            type: data.body.type,
             remoteName: data.body.remoteName,
             addresses: [],
         });

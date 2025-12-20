@@ -1,8 +1,10 @@
 import mongoose from 'mongoose';
 
+export type WalletType = 'bitcoin' | 'monero';
+
 export interface IWallet {
     name: string;
-    remote: mongoose.Types.ObjectId;
+    type: WalletType;
     remoteName: string;
     addresses: string[];
     balance?: number;
@@ -17,10 +19,10 @@ export const walletSchema = new mongoose.Schema<IWallet>({
         type: String,
         required: true,
     },
-    remote: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Remote',
+    type: {
+        type: String,
         required: true,
+        enum: ['bitcoin', 'monero'],
     },
     remoteName: {
         type: String,

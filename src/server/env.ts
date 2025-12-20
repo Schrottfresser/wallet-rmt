@@ -9,6 +9,14 @@ const env = {
     dbPort: process.env.DB_PORT || '27017',
     dbName: process.env.DB_NAME || 'wallet-rmt',
 
+    bitcoinRpcUrl: process.env.BITCOIN_RPC_URL || '',
+    bitcoinRpcUser: process.env.BITCOIN_RPC_USER || '',
+    bitcoinRpcPassword: process.env.BITCOIN_RPC_PASSWORD || '',
+
+    moneroWalletRpcUrl: process.env.MONERO_WALLET_RPC_URL || '',
+    moneroWalletRpcUser: process.env.MONERO_WALLET_RPC_USER || '',
+    moneroWalletRpcPassword: process.env.MONERO_WALLET_RPC_PASSWORD || '',
+
     walletAuthExpirationMins: process.env.WALLET_AUTH_EXPIRATION_MINS || '5',
 };
 
