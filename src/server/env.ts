@@ -9,13 +9,13 @@ const env = {
     dbPort: process.env.DB_PORT || '27017',
     dbName: process.env.DB_NAME || 'wallet-rmt',
 
-    bitcoinRpcUrl: process.env.BITCOIN_RPC_URL || '',
-    bitcoinRpcUser: process.env.BITCOIN_RPC_USER || '',
-    bitcoinRpcPassword: process.env.BITCOIN_RPC_PASSWORD || '',
+    bitcoinRpcUrl: process.env.BITCOIN_RPC_URL || 'http://localhost:18332',
+    bitcoinRpcUser: process.env.BITCOIN_RPC_USER || 'bitcoin',
+    bitcoinRpcPassword: process.env.BITCOIN_RPC_PASSWORD || 'pass1234',
 
-    moneroWalletRpcUrl: process.env.MONERO_WALLET_RPC_URL || '',
-    moneroWalletRpcUser: process.env.MONERO_WALLET_RPC_USER || '',
-    moneroWalletRpcPassword: process.env.MONERO_WALLET_RPC_PASSWORD || '',
+    moneroWalletRpcUrl: process.env.MONERO_WALLET_RPC_URL || 'http://localhost:18088',
+    moneroWalletRpcUser: process.env.MONERO_WALLET_RPC_USER || 'monero',
+    moneroWalletRpcPassword: process.env.MONERO_WALLET_RPC_PASSWORD || 'pass1234',
 
     walletAuthExpirationMins: process.env.WALLET_AUTH_EXPIRATION_MINS || '5',
 };
