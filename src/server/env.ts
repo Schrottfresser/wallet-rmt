@@ -5,6 +5,11 @@ const env = {
     serverPort: Number(process.env.SERVER_PORT) || 8080,
     serverBase: process.env.SERVER_BASE || '',
 
+    appName: process.env.APP_NAME || 'Wallet RMT',
+    protocol: process.env.PROTOCOL || 'http',
+    host: process.env.HOST || '127.0.0.1:7456',
+    trustProxy: process.env.TRUST_PROXY || false,
+
     dbIp: process.env.DB_IP || '127.0.0.1',
     dbPort: process.env.DB_PORT || '27017',
     dbName: process.env.DB_NAME || 'wallet-rmt',
@@ -19,5 +24,7 @@ const env = {
 
     walletAuthExpirationMins: process.env.WALLET_AUTH_EXPIRATION_MINS || '5',
 };
+
+export const appUrl = env.host.split(':')[0];
 
 export default env;
