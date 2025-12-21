@@ -5,14 +5,17 @@ import GetBalanceResult from '@server/model/currency/getBalanceResult.js';
 import GetTransferResult from '@server/model/currency/getTransferResult.js';
 import TransferPriority from '@server/model/currency/transferPriority.js';
 import { WalletDoc, WalletType } from '@server/model/wallet.js';
+import PQueue from 'p-queue';
 
 export default class MoneroWalletService extends CryptoWalletService {
     private rpc: MoneroWalletRPC;
+    private queue: PQueue;
 
     constructor(wallet: WalletDoc, url: string, username?: string, password?: string) {
         super(wallet);
 
         this.rpc = new MoneroWalletRPC(url, username, password);
+        this.queue = new PQueue({ concurrency: 1 });
     }
 
     public getType(): WalletType {
@@ -20,37 +23,43 @@ export default class MoneroWalletService extends CryptoWalletService {
     }
 
     public async changePassword(newPassword: string, oldPassword?: string) {
-        await this.open(oldPassword);
+        return this.queue.add(async () => {
+            await this.open(oldPassword);
 
-        await this.rpc.change_wallet_password(oldPassword, newPassword);
+            await this.rpc.change_wallet_password(oldPassword, newPassword);
 
-        this.wallet.isLocked = !!newPassword;
-        await this.wallet.save();
+            this.wallet.isLocked = !!newPassword;
+            await this.wallet.save();
 
-        await this.close();
-        return this.wallet;
+            await this.close();
+            return this.wallet;
+        });
     }
 
     public async createAddress(password?: string) {
-        await this.open(password);
+        return this.queue.add(async () => {
+            await this.open(password);
 
-        const result = await this.rpc.create_address(0);
+            const result = await this.rpc.create_address(0);
 
-        await this.close();
-        return result.address;
+            await this.close();
+            return result.address;
+        });
     }
 
     public async getBalance(password?: string) {
-        await this.open(password);
+        return this.queue.add(async () => {
+            await this.open(password);
 
-        const result = await this.rpc.get_balance(0);
-        const response: GetBalanceResult = {
-            balance: result.balance,
-            unlockedBalance: result.unlocked_balance,
-        };
+            const result = await this.rpc.get_balance(0);
+            const response: GetBalanceResult = {
+                balance: result.balance,
+                unlockedBalance: result.unlocked_balance,
+            };
 
-        await this.close();
-        return response;
+            await this.close();
+            return response;
+        });
     }
 
     public async transfer(
@@ -60,54 +69,62 @@ export default class MoneroWalletService extends CryptoWalletService {
         priority?: TransferPriority,
         subtractFee?: boolean,
     ) {
-        await this.open(password);
+        return this.queue.add(async () => {
+            await this.open(password);
 
-        const priorityNumber = toPriorityNumber(priority);
-        const result = await this.rpc.transfer(amount, address, priorityNumber, undefined, undefined, subtractFee);
+            const priorityNumber = toPriorityNumber(priority);
+            const result = await this.rpc.transfer(amount, address, priorityNumber, undefined, undefined, subtractFee);
 
-        await this.close();
-        return result.tx_hash;
+            await this.close();
+            return result.tx_hash;
+        });
     }
 
     public async getTransfer(transferId: string, password?: string) {
-        await this.open(password);
+        return this.queue.add(async () => {
+            await this.open(password);
 
-        const result = await this.rpc.get_transfer_by_txid(transferId);
-        const response: GetTransferResult = {
-            transactionId: result.txid,
-            address: result.address,
-            amount: result.amount,
-            fee: result.fee,
-            confirmations: result.confirmations,
-            blockHeight: result.height,
-            timestamp: result.timestamp,
-        };
+            const result = await this.rpc.get_transfer_by_txid(transferId);
+            const response: GetTransferResult = {
+                transactionId: result.txid,
+                address: result.address,
+                amount: result.amount,
+                fee: result.fee,
+                confirmations: result.confirmations,
+                blockHeight: result.height,
+                timestamp: result.timestamp,
+            };
 
-        await this.close();
-        return response;
+            await this.close();
+            return response;
+        });
     }
 
     public async getAllTransfers(password?: string) {
-        await this.open(password);
+        return this.queue.add(async () => {
+            await this.open(password);
 
-        const result = await this.rpc.get_transfers();
-        const allTransfers = [...result.failed, ...result.in, ...result.out, ...result.pending, ...result.pool];
-        const response: GetTransferResult[] = allTransfers.map((transfer) => ({
-            transactionId: transfer.txid,
-            address: transfer.address,
-            amount: transfer.amount,
-            fee: transfer.fee,
-            confirmations: transfer.confirmations,
-            blockHeight: transfer.height,
-            timestamp: transfer.timestamp,
-        }));
+            const result = await this.rpc.get_transfers();
+            const allTransfers = [...result.failed, ...result.in, ...result.out, ...result.pending, ...result.pool];
+            const response: GetTransferResult[] = allTransfers.map((transfer) => ({
+                transactionId: transfer.txid,
+                address: transfer.address,
+                amount: transfer.amount,
+                fee: transfer.fee,
+                confirmations: transfer.confirmations,
+                blockHeight: transfer.height,
+                timestamp: transfer.timestamp,
+            }));
 
-        await this.close();
-        return response;
+            await this.close();
+            return response;
+        });
     }
 
     protected async createWallet(password?: string) {
-        await this.rpc.create_wallet(this.wallet.remoteName, password);
+        return this.queue.add(async () => {
+            await this.rpc.create_wallet(this.wallet.remoteName, password);
+        });
     }
 
     private async open(password?: string) {
