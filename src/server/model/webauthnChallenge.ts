@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
 
-interface IWebauthnChallenge {
+interface IWebAuthnChallenge {
     username: string;
     challenge: string;
 }
 
-const webauthnChallengeSchema = new mongoose.Schema<IWebauthnChallenge>({
+const webAuthnChallengeSchema = new mongoose.Schema<IWebAuthnChallenge>({
     username: {
         type: String,
         required: true,
@@ -17,7 +17,7 @@ const webauthnChallengeSchema = new mongoose.Schema<IWebauthnChallenge>({
     },
 });
 
-const WebauthnChallenge = mongoose.model('WebauthnChallenge', webauthnChallengeSchema);
-export type WebauthnChallengeDoc = InstanceType<typeof WebauthnChallenge>;
+const WebAuthnChallenge = mongoose.model('WebAuthnChallenge', webAuthnChallengeSchema);
+export type WebAuthnChallengeDoc = InstanceType<typeof WebAuthnChallenge>;
 
-export default WebauthnChallenge;
+export default WebAuthnChallenge;

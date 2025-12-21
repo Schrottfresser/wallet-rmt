@@ -1,7 +1,7 @@
 import { JWTPayload } from 'jose';
 
 interface SessionPayload extends JWTPayload {
-    userId: string;
+    username: string;
 }
 
 export default SessionPayload;

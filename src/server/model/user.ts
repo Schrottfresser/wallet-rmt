@@ -1,8 +1,10 @@
+import { ObjectId } from '@server/route/validation/index.js';
 import mongoose from 'mongoose';
+import { IWebAuthnCredential, webAuthnCredentialSchema } from './webAuthnCredential.js';
 
 export interface IUser {
     username: string;
-    credentialId?: string;
+    passkeys: IWebAuthnCredential[];
 }
 
 export const userSchema = new mongoose.Schema<IUser>({
@@ -11,7 +13,7 @@ export const userSchema = new mongoose.Schema<IUser>({
         required: true,
         unique: true,
     },
-    credentialId: String,
+    passkeys: [webAuthnCredentialSchema],
 });
 
 const User = mongoose.model('User', userSchema);
