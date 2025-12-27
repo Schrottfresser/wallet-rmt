@@ -1,4 +1,4 @@
-import env, { appUrl } from '@server/env.js';
+import env, { APP_URL } from '@server/env.js';
 import BadRequestError from '@server/error/badRequestError.js';
 import InternalServerError from '@server/error/internalServerError.js';
 import User from '@server/model/user.js';
@@ -22,7 +22,7 @@ export async function isUsernameAvailable(username: string) {
 export async function generateRegistrationOptions(username: string) {
     const options = await generateRegistrationOptionsWebauthn({
         rpName: env.appName,
-        rpID: appUrl,
+        rpID: APP_URL,
         userName: username,
         attestationType: 'none',
         authenticatorSelection: {
@@ -46,7 +46,7 @@ export async function verifyRegistrationResponse(username: string, response: Reg
         response,
         expectedChallenge: challenge.challenge,
         expectedOrigin: `${env.protocol}://${env.host}`,
-        expectedRPID: appUrl,
+        expectedRPID: APP_URL,
     });
 
     if (!verified) {
@@ -80,7 +80,7 @@ export async function generateAuthenticationOptions(username: string) {
     }
 
     const options = await generateAuthenticationOptionsWebauthn({
-        rpID: appUrl,
+        rpID: APP_URL,
         allowCredentials: user.passkeys.map((passkey) => ({
             id: passkey.id,
         })),
@@ -114,7 +114,7 @@ export async function verifyAuthenticationResponse(username: string, response: A
         response,
         expectedChallenge: challenge.challenge,
         expectedOrigin: `${env.protocol}://${env.host}`,
-        expectedRPID: appUrl,
+        expectedRPID: APP_URL,
         credential: {
             id: passkey.id,
             publicKey: new Uint8Array(passkey.publicKey),

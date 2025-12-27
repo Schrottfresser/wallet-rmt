@@ -25,6 +25,6 @@ const env = {
     walletAuthExpirationMins: process.env.WALLET_AUTH_EXPIRATION_MINS || '5',
 };
 
-export const appUrl = env.host.split(':')[0];
+export const APP_URL = env.host.split(':')[0];
 
 export default env;

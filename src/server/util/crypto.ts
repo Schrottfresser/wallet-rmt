@@ -1,4 +1,4 @@
-import env, { appUrl } from '@server/env.js';
+import env, { APP_URL } from '@server/env.js';
 import SessionPayload from '@server/model/sessionPayload.js';
 import WalletAuthPayload from '@server/model/walletAuthPayload.js';
 import crypto from 'crypto';
@@ -13,7 +13,7 @@ export function createSessionToken(payload: SessionPayload) {
     return new SignJWT(payload)
         .setProtectedHeader({ alg: 'EdDSA' })
         .setIssuedAt()
-        .setIssuer(appUrl)
+        .setIssuer(APP_URL)
         .setAudience('login')
 
         .setExpirationTime('8h')
@@ -22,7 +22,7 @@ export function createSessionToken(payload: SessionPayload) {
 
 export async function verifySessionToken(token: string) {
     const { payload } = await jwtVerify(token, publicKey, {
-        issuer: appUrl,
+        issuer: APP_URL,
         audience: 'login',
     });
 

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { validatedHandler } from './validation/index.js';
 import { webAuthnOptionsSchema, webAuthnVerifySchema } from './validation/user.js';
-import env, { appUrl } from '@server/env.js';
+import env, { APP_URL } from '@server/env.js';
 import WebAuthnChallenge from '@server/model/webauthnChallenge.js';
 import User from '@server/model/user.js';
 import InternalServerError from '@server/error/internalServerError.js';
