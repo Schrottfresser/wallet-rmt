@@ -1,12 +1,6 @@
 import { Router } from 'express';
 import { validatedHandler } from './validation/index.js';
 import { webAuthnOptionsSchema, webAuthnVerifySchema } from './validation/user.js';
-import {
-    generateAuthenticationOptions,
-    generateRegistrationOptions,
-    verifyAuthenticationResponse,
-    verifyRegistrationResponse,
-} from '@simplewebauthn/server';
 import env, { appUrl } from '@server/env.js';
 import WebAuthnChallenge from '@server/model/webauthnChallenge.js';
 import User from '@server/model/user.js';
@@ -15,28 +9,25 @@ import BadRequestError from '@server/error/badRequestError.js';
 import WebAuthnCredential from '@server/model/webAuthnCredential.js';
 import { createSessionToken } from '@server/util/crypto.js';
 import { SESSION_COOKIE } from '@server/constant/cookie.js';
+import {
+    generateAuthenticationOptions,
+    generateRegistrationOptions,
+    isUsernameAvailable,
+    register,
+    verifyAuthenticationResponse,
+    verifyRegistrationResponse,
+} from '@server/service/user.js';
 
 const userRouter = Router();
 
 userRouter.post(
     '/webauthn/register/options',
     validatedHandler(webAuthnOptionsSchema, async (data, _req, res) => {
-        const options = await generateRegistrationOptions({
-            rpName: env.appName,
-            rpID: appUrl,
-            userName: data.body.username,
-            attestationType: 'none',
-            authenticatorSelection: {
-                residentKey: 'preferred',
-                userVerification: 'preferred',
-            },
-        });
+        if (!isUsernameAvailable(data.body.username)) {
+            throw new BadRequestError('Username not available');
+        }
 
-        await WebAuthnChallenge.findOneAndUpdate(
-            { username: data.body.username },
-            { challenge: options.challenge },
-            { upsert: true },
-        );
+        const options = await generateRegistrationOptions(data.body.username);
 
         res.status(200).json(options);
     }),
@@ -45,32 +36,12 @@ userRouter.post(
 userRouter.post(
     '/webauthn/register/verify',
     validatedHandler(webAuthnVerifySchema, async (data, _req, res) => {
-        const challenge = await WebAuthnChallenge.findOne({ username: data.body.username });
-        if (!challenge) {
-            throw new InternalServerError('No challenge found');
-        }
+        const { credential } = await verifyRegistrationResponse(data.body.username, data.body.attestationResponse);
 
-        const { verified, registrationInfo } = await verifyRegistrationResponse({
-            response: data.body.attestationResponse,
-            expectedChallenge: challenge.challenge,
-            expectedOrigin: `${env.protocol}://${env.host}`,
-            expectedRPID: appUrl,
-        });
-
-        if (!verified) {
-            throw new BadRequestError('Verification failed');
-        }
-
-        await WebAuthnChallenge.deleteOne({ username: data.body.username });
-
-        const passkey = await WebAuthnCredential.create({
-            id: registrationInfo.credential.id,
-            publicKey: Buffer.from(registrationInfo.credential.publicKey),
-            counter: registrationInfo.credential.counter,
-        });
-        const user = await User.create({
-            username: data.body.username,
-            passkeys: [passkey],
+        const user = await register(data.body.username, {
+            id: credential.id,
+            publicKey: Buffer.from(credential.publicKey),
+            counter: credential.counter,
         });
 
         res.status(200).json({
@@ -82,24 +53,7 @@ userRouter.post(
 userRouter.post(
     '/webauthn/login/options',
     validatedHandler(webAuthnOptionsSchema, async (data, _req, res) => {
-        const user = await User.findOne({ username: data.body.username });
-        if (!user) {
-            throw new BadRequestError('User not found');
-        }
-
-        const options = await generateAuthenticationOptions({
-            rpID: appUrl,
-            allowCredentials: user.passkeys.map((passkey) => ({
-                id: passkey.id,
-            })),
-            userVerification: 'preferred',
-        });
-
-        await WebAuthnChallenge.findOneAndUpdate(
-            { username: data.body.username },
-            { challenge: options.challenge },
-            { upsert: true },
-        );
+        const options = await generateAuthenticationOptions(data.body.username);
 
         res.status(200).json(options);
     }),
@@ -108,43 +62,7 @@ userRouter.post(
 userRouter.post(
     '/webauthn/login/verify',
     validatedHandler(webAuthnVerifySchema, async (data, _req, res) => {
-        const user = await User.findOne({ username: data.body.username });
-        if (!user) {
-            throw new BadRequestError('User not found');
-        }
-
-        const challenge = await WebAuthnChallenge.findOne({ username: data.body.username });
-        if (!challenge) {
-            throw new InternalServerError('No challenge found');
-        }
-
-        const passkey = await WebAuthnCredential.findOne({
-            id: data.body.attestationResponse.id,
-        });
-        if (!passkey) {
-            throw new InternalServerError('No credential found');
-        }
-
-        const { verified, authenticationInfo } = await verifyAuthenticationResponse({
-            response: data.body.attestationResponse,
-            expectedChallenge: challenge.challenge,
-            expectedOrigin: `${env.protocol}://${env.host}`,
-            expectedRPID: appUrl,
-            credential: {
-                id: passkey.id,
-                publicKey: new Uint8Array(passkey.publicKey),
-                counter: passkey.counter,
-            },
-        });
-
-        passkey.counter = authenticationInfo.newCounter;
-        await passkey.save();
-
-        if (!verified) {
-            throw new BadRequestError('Verification failed');
-        }
-
-        await WebAuthnChallenge.deleteOne({ username: data.body.username });
+        const user = await verifyAuthenticationResponse(data.body.username, data.body.attestationResponse);
 
         const token = await createSessionToken({
             username: data.body.username,
