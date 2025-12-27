@@ -1,9 +1,8 @@
-import { Uint8Array_ } from '@simplewebauthn/server';
 import mongoose from 'mongoose';
 
 export interface IWebAuthnCredential {
     id: string;
-    publicKey: Uint8Array_;
+    publicKey: Buffer<ArrayBuffer>;
     counter: number;
 }
 

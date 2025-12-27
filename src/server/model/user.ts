@@ -1,4 +1,3 @@
-import { ObjectId } from '@server/route/validation/index.js';
 import mongoose from 'mongoose';
 import { IWebAuthnCredential, webAuthnCredentialSchema } from './webAuthnCredential.js';
 

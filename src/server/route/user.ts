@@ -43,7 +43,7 @@ userRouter.post(
 );
 
 userRouter.post(
-    'webauthn/register/verify',
+    '/webauthn/register/verify',
     validatedHandler(webAuthnVerifySchema, async (data, _req, res) => {
         const challenge = await WebAuthnChallenge.findOne({ username: data.body.username });
         if (!challenge) {
@@ -63,18 +63,24 @@ userRouter.post(
 
         await WebAuthnChallenge.deleteOne({ username: data.body.username });
 
-        const passkey = await WebAuthnChallenge.create(registrationInfo.credential);
+        const passkey = await WebAuthnCredential.create({
+            id: registrationInfo.credential.id,
+            publicKey: Buffer.from(registrationInfo.credential.publicKey),
+            counter: registrationInfo.credential.counter,
+        });
         const user = await User.create({
             username: data.body.username,
             passkeys: [passkey],
         });
 
-        res.status(200).json(user);
+        res.status(200).json({
+            username: user.username,
+        });
     }),
 );
 
 userRouter.post(
-    'webauthn/login/options',
+    '/webauthn/login/options',
     validatedHandler(webAuthnOptionsSchema, async (data, _req, res) => {
         const user = await User.findOne({ username: data.body.username });
         if (!user) {
@@ -83,7 +89,9 @@ userRouter.post(
 
         const options = await generateAuthenticationOptions({
             rpID: appUrl,
-            allowCredentials: user.passkeys,
+            allowCredentials: user.passkeys.map((passkey) => ({
+                id: passkey.id,
+            })),
             userVerification: 'preferred',
         });
 
@@ -98,7 +106,7 @@ userRouter.post(
 );
 
 userRouter.post(
-    'webauthn/login/verify',
+    '/webauthn/login/verify',
     validatedHandler(webAuthnVerifySchema, async (data, _req, res) => {
         const user = await User.findOne({ username: data.body.username });
         if (!user) {
@@ -111,7 +119,7 @@ userRouter.post(
         }
 
         const passkey = await WebAuthnCredential.findOne({
-            credentialID: Buffer.from(data.body.attestationResponse.id, 'base64url'),
+            id: data.body.attestationResponse.id,
         });
         if (!passkey) {
             throw new InternalServerError('No credential found');
@@ -124,7 +132,7 @@ userRouter.post(
             expectedRPID: appUrl,
             credential: {
                 id: passkey.id,
-                publicKey: passkey.publicKey,
+                publicKey: new Uint8Array(passkey.publicKey),
                 counter: passkey.counter,
             },
         });
@@ -149,7 +157,9 @@ userRouter.post(
             maxAge: 8 * 60 * 60 * 1000,
         });
 
-        res.status(200).json(user);
+        res.status(200).json({
+            username: user.username,
+        });
     }),
 );
 

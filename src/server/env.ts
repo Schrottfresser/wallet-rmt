@@ -7,7 +7,7 @@ const env = {
 
     appName: process.env.APP_NAME || 'Wallet RMT',
     protocol: process.env.PROTOCOL || 'http',
-    host: process.env.HOST || '127.0.0.1:7456',
+    host: process.env.HOST || 'localhost:8080',
     trustProxy: process.env.TRUST_PROXY || false,
 
     dbIp: process.env.DB_IP || '127.0.0.1',
