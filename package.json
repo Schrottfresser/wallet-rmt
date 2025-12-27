@@ -20,6 +20,7 @@
     "author": "Schrottfresser",
     "license": "MIT",
     "dependencies": {
+        "@simplewebauthn/browser": "^13.2.2",
         "@simplewebauthn/server": "^13.2.2",
         "compression": "^1.8.1",
         "cookie-parser": "^1.4.7",
