@@ -1,17 +1,19 @@
+import crypto from 'crypto';
 import env, { APP_URL } from '@server/env.js';
 import BadRequestError from '@server/error/badRequestError.js';
 import InternalServerError from '@server/error/internalServerError.js';
 import User from '@server/model/user.js';
-import WebAuthnChallenge from '@server/model/webauthnChallenge.js';
+import WebAuthnChallenge from '@server/model/webAuthnChallenge.js';
 import WebAuthnCredential, { IWebAuthnCredential } from '@server/model/webAuthnCredential.js';
 import {
     RegistrationResponseJSON,
     AuthenticationResponseJSON,
-    generateRegistrationOptions as generateRegistrationOptionsWebauthn,
-    verifyRegistrationResponse as verifyRegistrationResponseWebauthn,
-    generateAuthenticationOptions as generateAuthenticationOptionsWebauthn,
-    verifyAuthenticationResponse as verifyAuthenticationResponseWebauthn,
+    generateRegistrationOptions as generateRegistrationOptionsWebAuthn,
+    verifyRegistrationResponse as verifyRegistrationResponseWebAuthn,
+    generateAuthenticationOptions as generateAuthenticationOptionsWebAuthn,
+    verifyAuthenticationResponse as verifyAuthenticationResponseWebAuthn,
 } from '@simplewebauthn/server';
+import { isoBase64URL } from '@simplewebauthn/server/helpers';
 
 export async function isUsernameAvailable(username: string) {
     const user = await User.find({ username });
@@ -20,7 +22,7 @@ export async function isUsernameAvailable(username: string) {
 }
 
 export async function generateRegistrationOptions(username: string) {
-    const options = await generateRegistrationOptionsWebauthn({
+    const optionsWebAuthn = await generateRegistrationOptionsWebAuthn({
         rpName: env.appName,
         rpID: APP_URL,
         userName: username,
@@ -30,6 +32,13 @@ export async function generateRegistrationOptions(username: string) {
             userVerification: 'preferred',
         },
     });
+
+    const options = {
+        ...optionsWebAuthn,
+        extensions: {
+            prf: {},
+        },
+    };
 
     updateUserChallenge(username, options.challenge);
 
@@ -42,7 +51,7 @@ export async function verifyRegistrationResponse(username: string, response: Reg
         throw new InternalServerError('No challenge found');
     }
 
-    const { verified, registrationInfo } = await verifyRegistrationResponseWebauthn({
+    const { verified, registrationInfo } = await verifyRegistrationResponseWebAuthn({
         response,
         expectedChallenge: challenge.challenge,
         expectedOrigin: `${env.protocol}://${env.host}`,
@@ -58,15 +67,15 @@ export async function verifyRegistrationResponse(username: string, response: Reg
     return registrationInfo;
 }
 
-export async function register(username: string, webauthnCredential: IWebAuthnCredential) {
+export async function register(username: string, webAuthnCredential: IWebAuthnCredential) {
     const passkey = await WebAuthnCredential.create({
-        id: webauthnCredential.id,
-        publicKey: Buffer.from(webauthnCredential.publicKey),
-        counter: webauthnCredential.counter,
+        id: webAuthnCredential.id,
+        publicKey: Buffer.from(webAuthnCredential.publicKey),
+        counter: webAuthnCredential.counter,
     });
 
     const user = await User.create({
-        username: username,
+        username,
         passkeys: [passkey],
     });
 
@@ -74,12 +83,12 @@ export async function register(username: string, webauthnCredential: IWebAuthnCr
 }
 
 export async function generateAuthenticationOptions(username: string) {
-    const user = await User.findOne({ username: username });
+    const user = await User.findOne({ username });
     if (!user) {
         throw new BadRequestError('User not found');
     }
 
-    const options = await generateAuthenticationOptionsWebauthn({
+    const optionsWebAuthn = await generateAuthenticationOptionsWebAuthn({
         rpID: APP_URL,
         allowCredentials: user.passkeys.map((passkey) => ({
             id: passkey.id,
@@ -87,18 +96,35 @@ export async function generateAuthenticationOptions(username: string) {
         userVerification: 'preferred',
     });
 
+    if (!user.prfSalt) {
+        user.prfSalt = Buffer.from(crypto.randomBytes(32));
+        await user.save();
+    }
+
+    const prfSaltBase64URL = isoBase64URL.fromBuffer(user.prfSalt);
+    const options = {
+        ...optionsWebAuthn,
+        extensions: {
+            prf: {
+                eval: {
+                    first: prfSaltBase64URL,
+                },
+            },
+        },
+    };
+
     updateUserChallenge(username, options.challenge);
 
     return options;
 }
 
 export async function verifyAuthenticationResponse(username: string, response: AuthenticationResponseJSON) {
-    const user = await User.findOne({ username: username });
+    const user = await User.findOne({ username });
     if (!user) {
         throw new BadRequestError('User not found');
     }
 
-    const challenge = await WebAuthnChallenge.findOne({ username: username });
+    const challenge = await WebAuthnChallenge.findOne({ username });
     if (!challenge) {
         throw new InternalServerError('No challenge found');
     }
@@ -110,7 +136,7 @@ export async function verifyAuthenticationResponse(username: string, response: A
         throw new InternalServerError('No credential found');
     }
 
-    const { verified, authenticationInfo } = await verifyAuthenticationResponseWebauthn({
+    const { verified, authenticationInfo } = await verifyAuthenticationResponseWebAuthn({
         response,
         expectedChallenge: challenge.challenge,
         expectedOrigin: `${env.protocol}://${env.host}`,
@@ -130,6 +156,17 @@ export async function verifyAuthenticationResponse(username: string, response: A
     }
 
     deleteUserChallenge(username);
+
+    return authenticationInfo;
+}
+
+export async function login(username: string, prf?: ArrayBuffer) {
+    const user = await User.findOne({ username });
+    if (!user) {
+        throw new BadRequestError('User not found');
+    }
+
+    console.log(prf);
 
     return user;
 }

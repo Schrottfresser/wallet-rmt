@@ -4,6 +4,7 @@ import { IWebAuthnCredential, webAuthnCredentialSchema } from './webAuthnCredent
 export interface IUser {
     username: string;
     passkeys: IWebAuthnCredential[];
+    prfSalt?: Buffer<ArrayBuffer>;
 }
 
 export const userSchema = new mongoose.Schema<IUser>({
@@ -13,6 +14,7 @@ export const userSchema = new mongoose.Schema<IUser>({
         unique: true,
     },
     passkeys: [webAuthnCredentialSchema],
+    prfSalt: Buffer,
 });
 
 const User = mongoose.model('User', userSchema);

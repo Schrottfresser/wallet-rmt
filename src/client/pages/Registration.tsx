@@ -1,5 +1,16 @@
-import { startAuthentication, startRegistration } from '@simplewebauthn/browser';
+import { base64URLStringToBuffer, startAuthentication, startRegistration } from '@simplewebauthn/browser';
+import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import { useState } from 'react';
+
+interface PRFExtensionResults {
+    prf?: {
+        results?: {
+            first?: Buffer<ArrayBuffer>;
+            second?: Buffer<ArrayBuffer>;
+        };
+        enabled?: boolean;
+    };
+}
 
 export default function Registration() {
     const [username, setUsername] = useState('');
@@ -16,7 +27,7 @@ export default function Registration() {
 
         const attestationResponse = await startRegistration({ optionsJSON });
 
-        const verificationResp = await fetch('/api/user/webauthn/register/verify', {
+        const verificationResponse = await fetch('/api/user/webauthn/register/verify', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -26,7 +37,7 @@ export default function Registration() {
                 attestationResponse,
             }),
         });
-        const verificationJSON = await verificationResp.json();
+        const verificationJSON = await verificationResponse.json();
 
         console.log(verificationJSON);
     }
@@ -40,10 +51,28 @@ export default function Registration() {
             body: JSON.stringify({ username }),
         });
         const optionsJSON = await optionsResponse.json();
+        optionsJSON.extensions.prf.eval.first = base64URLStringToBuffer(optionsJSON.extensions.prf.eval.first);
 
-        const attestationResponse = await startAuthentication({ optionsJSON });
+        const attestationResponseWebauthn = await startAuthentication({ optionsJSON });
 
-        const verificationResp = await fetch('/api/user/webauthn/login/verify', {
+        const prfExtensionResults = attestationResponseWebauthn.clientExtensionResults as PRFExtensionResults;
+        const prf = prfExtensionResults.prf?.results?.first;
+
+        const prfString = prf ? isoBase64URL.fromBuffer(prf) : undefined;
+        const attestationResponse = {
+            ...attestationResponseWebauthn,
+            clientExtensionResults: {
+                prf: {
+                    results: {
+                        first: prfString,
+                    },
+                },
+            },
+        };
+
+        console.log(attestationResponse);
+
+        const verificationResponse = await fetch('/api/user/webauthn/login/verify', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -53,7 +82,7 @@ export default function Registration() {
                 attestationResponse,
             }),
         });
-        const verificationJSON = await verificationResp.json();
+        const verificationJSON = await verificationResponse.json();
 
         console.log(verificationJSON);
     }

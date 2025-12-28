@@ -1,22 +1,19 @@
 import { Router } from 'express';
 import { validatedHandler } from './validation/index.js';
 import { webAuthnOptionsSchema, webAuthnVerifySchema } from './validation/user.js';
-import env, { APP_URL } from '@server/env.js';
-import WebAuthnChallenge from '@server/model/webauthnChallenge.js';
-import User from '@server/model/user.js';
-import InternalServerError from '@server/error/internalServerError.js';
 import BadRequestError from '@server/error/badRequestError.js';
-import WebAuthnCredential from '@server/model/webAuthnCredential.js';
 import { createSessionToken } from '@server/util/crypto.js';
 import { SESSION_COOKIE } from '@server/constant/cookie.js';
 import {
     generateAuthenticationOptions,
     generateRegistrationOptions,
     isUsernameAvailable,
+    login,
     register,
     verifyAuthenticationResponse,
     verifyRegistrationResponse,
 } from '@server/service/user.js';
+import { base64URLStringToBuffer } from '@simplewebauthn/browser';
 
 const userRouter = Router();
 
@@ -37,7 +34,6 @@ userRouter.post(
     '/webauthn/register/verify',
     validatedHandler(webAuthnVerifySchema, async (data, _req, res) => {
         const { credential } = await verifyRegistrationResponse(data.body.username, data.body.attestationResponse);
-
         const user = await register(data.body.username, {
             id: credential.id,
             publicKey: Buffer.from(credential.publicKey),
@@ -62,7 +58,10 @@ userRouter.post(
 userRouter.post(
     '/webauthn/login/verify',
     validatedHandler(webAuthnVerifySchema, async (data, _req, res) => {
-        const user = await verifyAuthenticationResponse(data.body.username, data.body.attestationResponse);
+        await verifyAuthenticationResponse(data.body.username, data.body.attestationResponse);
+
+        const prf = base64URLStringToBuffer(data.body.attestationResponse.clientExtensionResults.prf.results.first);
+        const user = await login(data.body.username, prf);
 
         const token = await createSessionToken({
             username: data.body.username,
