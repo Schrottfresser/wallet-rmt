@@ -1,12 +1,13 @@
 import env, { APP_URL } from '@server/env.js';
 import SessionPayload from '@server/model/sessionPayload.js';
 import WalletAuthPayload from '@server/model/walletAuthPayload.js';
+import { mnemonicToEntropy } from 'bip39';
 import crypto from 'crypto';
 import { EncryptJWT, generateKeyPair, jwtDecrypt, jwtVerify, SignJWT } from 'jose';
 
 const { publicKey, privateKey } = await generateKeyPair('EdDSA');
 
-let walletAuthKey = generateKey();
+let walletAuthKey = generateWalletAuthKey();
 registerWalletAuthKeyRotate();
 
 export function createSessionToken(payload: SessionPayload) {
@@ -42,14 +43,58 @@ export async function decryptWalletAuthToken(token: string): Promise<WalletAuthP
     return payload;
 }
 
-function generateKey() {
+export async function deriveAESKeyFromPRF(prf: Uint8Array, salt: Uint8Array) {
+    const keyMaterial = await crypto.subtle.importKey('raw', prf, 'HKDF', false, ['deriveKey']);
+    const aesKey = await crypto.subtle.deriveKey(
+        {
+            name: 'HKDF',
+            hash: 'SHA-256',
+            salt,
+            info: new TextEncoder().encode('prf-key'),
+        },
+        keyMaterial,
+        { name: 'AES-GCM', length: 256 },
+        true,
+        ['encrypt', 'decrypt'],
+    );
+
+    return aesKey;
+}
+
+export async function deriveAESKeyFromMnemonic(mnemonic: string) {
+    const backupKey = Buffer.from(mnemonicToEntropy(mnemonic), 'hex');
+    const aesKey = await crypto.subtle.importKey('raw', backupKey, 'AES-GCM', false, ['encrypt', 'decrypt']);
+
+    return aesKey;
+}
+
+export async function wrapMasterKey(masterKey: Uint8Array, aesKey: CryptoKey) {
+    const iv = crypto.randomBytes(12);
+    const ciphertext = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, aesKey, masterKey));
+
+    return { ciphertext, iv };
+}
+
+export async function unwrapMasterKey(wrapped: { ciphertext: Uint8Array; iv: Uint8Array }, aesKey: CryptoKey) {
+    const decryptedCiphertext = new Uint8Array(
+        await crypto.subtle.decrypt({ name: 'AES-GCM', iv: wrapped.iv }, aesKey, wrapped.ciphertext),
+    );
+    const masterKey = await crypto.subtle.importKey('raw', decryptedCiphertext, 'AES-GCM', false, [
+        'encrypt',
+        'decrypt',
+    ]);
+
+    return masterKey;
+}
+
+function generateWalletAuthKey() {
     return crypto.randomBytes(32);
 }
 
 function registerWalletAuthKeyRotate() {
     setInterval(
         () => {
-            walletAuthKey = generateKey();
+            walletAuthKey = generateWalletAuthKey();
             console.log('[crypto] Rotated AES wallet auth key');
         },
         1000 * 60 * 60,
