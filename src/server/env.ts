@@ -1,28 +1,30 @@
 const env = {
     isProd: process.env.NODE_ENV === 'production',
 
-    serverIp: process.env.SERVER_IP || '0.0.0.0',
-    serverPort: Number(process.env.SERVER_PORT) || 8080,
-    serverBase: process.env.SERVER_BASE || '',
+    serverIp: process.env.WALLET_RMT_SERVER_IP || '0.0.0.0',
+    serverPort: Number(process.env.WALLET_RMT_SERVER_PORT) || 8080,
+    serverBase: process.env.WALLET_RMT_SERVER_BASE || '',
 
-    appName: process.env.APP_NAME || 'Wallet RMT',
-    protocol: process.env.PROTOCOL || 'http',
-    host: process.env.HOST || 'localhost:8080',
-    trustProxy: process.env.TRUST_PROXY || false,
+    appName: process.env.WALLET_RMT_APP_NAME || 'Wallet RMT',
+    protocol: process.env.WALLET_RMT_PROTOCOL || 'http',
+    host: process.env.WALLET_RMT_HOST || 'localhost:8080',
+    trustProxy: process.env.WALLET_RMT_TRUST_PROXY || false,
 
-    dbIp: process.env.DB_IP || '127.0.0.1',
-    dbPort: process.env.DB_PORT || '27017',
-    dbName: process.env.DB_NAME || 'wallet-rmt',
+    dbIp: process.env.WALLET_RMT_DB_IP || '127.0.0.1',
+    dbPort: process.env.WALLET_RMT_DB_PORT || '27017',
+    dbName: process.env.WALLET_RMT_DB_NAME || 'wallet-rmt',
 
-    bitcoinRpcUrl: process.env.BITCOIN_RPC_URL || 'http://localhost:18332',
-    bitcoinRpcUser: process.env.BITCOIN_RPC_USER || 'bitcoin',
-    bitcoinRpcPassword: process.env.BITCOIN_RPC_PASSWORD || 'pass1234',
+    bitcoinEnable: Boolean(process.env.WALLET_RMT_BITCOIN_ENABLE),
+    bitcoinRpcUrl: process.env.WALLET_RMT_BITCOIN_RPC_URL || '',
+    bitcoinRpcUser: process.env.WALLET_RMT_BITCOIN_RPC_USER || '',
+    bitcoinRpcPassword: process.env.WALLET_RMT_BITCOIN_RPC_PASSWORD || '',
 
-    moneroWalletRpcUrl: process.env.MONERO_WALLET_RPC_URL || 'http://localhost:18088',
-    moneroWalletRpcUser: process.env.MONERO_WALLET_RPC_USER || 'monero',
-    moneroWalletRpcPassword: process.env.MONERO_WALLET_RPC_PASSWORD || 'pass1234',
+    moneroEnable: Boolean(process.env.WALLET_RMT_MONERO_ENABLE),
+    moneroWalletRpcUrl: process.env.WALLET_RMT_MONERO_WALLET_RPC_URL || '',
+    moneroWalletRpcUser: process.env.WALLET_RMT_MONERO_WALLET_RPC_USER || '',
+    moneroWalletRpcPassword: process.env.WALLET_RMT_MONERO_WALLET_RPC_PASSWORD || '',
 
-    walletAuthExpirationMins: process.env.WALLET_AUTH_EXPIRATION_MINS || '5',
+    walletAuthExpirationMins: process.env.WALLET_RMT_WALLET_AUTH_EXPIRATION_MINS || '5',
 };
 
 export const APP_URL = env.host.split(':')[0];
