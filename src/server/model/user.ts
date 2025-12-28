@@ -1,9 +1,11 @@
 import mongoose from 'mongoose';
 import { IWebAuthnCredential, webAuthnCredentialSchema } from './webAuthnCredential.js';
+import { IEncryptedBuffer, encryptedBufferSchema } from './encryptedBuffer.js';
 
 export interface IUser {
     username: string;
     passkeys: IWebAuthnCredential[];
+    wrappedMasterKeys: Map<string, IEncryptedBuffer>;
     prfSalt?: Buffer<ArrayBuffer>;
 }
 
@@ -14,6 +16,11 @@ export const userSchema = new mongoose.Schema<IUser>({
         unique: true,
     },
     passkeys: [webAuthnCredentialSchema],
+    wrappedMasterKeys: {
+        type: Map,
+        of: encryptedBufferSchema,
+        default: {},
+    },
     prfSalt: Buffer,
 });
 
