@@ -1,4 +1,5 @@
 import env, { APP_URL } from '@server/env.js';
+import logger from '@server/logger.js';
 import SessionPayload from '@server/model/sessionPayload.js';
 import WalletAuthPayload from '@server/model/walletAuthPayload.js';
 import { mnemonicToEntropy } from 'bip39';
@@ -101,7 +102,7 @@ function registerWalletAuthKeyRotate() {
     setInterval(
         () => {
             walletAuthKey = generateWalletAuthKey();
-            console.log('[crypto] Rotated AES wallet auth key');
+            logger.info('Rotated AES wallet auth key');
         },
         1000 * 60 * 60,
     ); // every hour

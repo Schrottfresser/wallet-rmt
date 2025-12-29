@@ -9,6 +9,7 @@ import mongoose from 'mongoose';
 import { errorHandler, prodErrorHandler } from '@server/errorHandler.js';
 import env from '@server/env.js';
 import cookieParser from 'cookie-parser';
+import logger from './logger.js';
 
 const app = express();
 const server = createServer(app);
@@ -62,7 +63,6 @@ app.get('*all', async (req, res, next) => {
     } catch (error) {
         if (error instanceof Error) {
             vite?.ssrFixStacktrace(error);
-            console.log(error.stack);
             next(error);
         }
     }
@@ -73,5 +73,5 @@ app.use(env.isProd ? prodErrorHandler : errorHandler);
 await mongoose.connect(`mongodb://${env.dbIp}:${env.dbPort}/${env.dbName}`);
 
 server.listen(env.serverPort, env.serverIp, () => {
-    console.log(`App is listening on http://${env.serverIp}:${env.serverPort}${env.serverBase}`);
+    logger.info(`App is listening on http://${env.serverIp}:${env.serverPort}${env.serverBase}`);
 });
