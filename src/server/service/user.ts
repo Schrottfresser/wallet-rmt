@@ -22,7 +22,7 @@ import {
     unwrapMasterKey,
     wrapMasterKey,
 } from '@server/util/crypto.js';
-import { isUserData } from '@server/util/userData.js';
+import { addUserDataFolder, isUserData } from '@server/util/userData.js';
 import UnauthorizedError from '@server/error/unauthorizedError.js';
 
 export async function isUsernameAvailable(username: string) {
@@ -223,6 +223,8 @@ export async function login(username: string, credentialId: string, prf: Uint8Ar
 
         mnemonic = await setupMnemonicBackupWrappedMasterKey(username, masterKey);
         await addPrfWrappedMasterKey(username, credentialId, prf, masterKey);
+
+        await addUserDataFolder(username);
     }
 
     return { user, mnemonic };

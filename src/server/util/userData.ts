@@ -9,3 +9,7 @@ export async function isUserData(username: string) {
         return false;
     }
 }
+
+export async function addUserDataFolder(username: string) {
+    await fs.mkdir(`${env.dataDir}/${username}`);
+}

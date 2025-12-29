@@ -28,6 +28,12 @@ import User from '@server/model/mongoose/user.js';
 
 const userRouter = Router();
 
+userRouter.get('/', async (_req, res) => {
+    const users = await User.find();
+
+    res.status(200).json(users);
+});
+
 userRouter.post(
     '/register/options',
     validatedHandler(registerOptionsSchema, async (data, _req, res) => {
@@ -70,7 +76,6 @@ userRouter.post(
     '/login/options',
     validatedHandler(loginOptionsSchema, async (data, _req, res) => {
         const challengePurpose: WebAuthnChallengePurpose = data.body.newCredentialId ? 'auth-new' : 'auth-existing';
-        console.log(challengePurpose);
         const options = await generateAuthenticationOptions(
             data.body.username,
             challengePurpose,
