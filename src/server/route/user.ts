@@ -1,10 +1,17 @@
 import { Router } from 'express';
 import { validatedHandler } from './validation/index.js';
-import { webAuthnOptionsSchema, webAuthnVerifySchema } from './validation/user.js';
+import {
+    registerOptionsSchema,
+    registerSchema,
+    loginOptionsSchema,
+    loginSchema,
+    addPassphraseSchema,
+} from './validation/user.js';
 import BadRequestError from '@server/error/badRequestError.js';
 import { createSessionToken } from '@server/util/crypto.js';
 import { SESSION_COOKIE } from '@server/constant/cookie.js';
 import {
+    addPassphrase,
     generateAuthenticationOptions,
     generateRegistrationOptions,
     isUsernameAvailable,
@@ -14,12 +21,16 @@ import {
     verifyRegistrationResponse,
 } from '@server/service/user.js';
 import { base64URLStringToBuffer } from '@simplewebauthn/browser';
+import { useSession } from './hook/auth.js';
+import UnauthorizedError from '@server/error/unauthorizedError.js';
+import { WebAuthnChallengePurpose } from '@server/model/mongoose/webAuthnChallenge.js';
+import User from '@server/model/mongoose/user.js';
 
 const userRouter = Router();
 
 userRouter.post(
-    '/webauthn/register/options',
-    validatedHandler(webAuthnOptionsSchema, async (data, _req, res) => {
+    '/register/options',
+    validatedHandler(registerOptionsSchema, async (data, _req, res) => {
         if (!isUsernameAvailable(data.body.username)) {
             throw new BadRequestError('Username not available');
         }
@@ -31,14 +42,23 @@ userRouter.post(
 );
 
 userRouter.post(
-    '/webauthn/register/verify',
-    validatedHandler(webAuthnVerifySchema, async (data, _req, res) => {
+    '/register',
+    validatedHandler(registerSchema, async (data, req, res) => {
+        const session = useSession(req);
+        if (session && session.username !== data.body.username) {
+            throw new UnauthorizedError('Not logged in as this user');
+        }
+
         const { credential } = await verifyRegistrationResponse(data.body.username, data.body.attestationResponse);
-        const user = await register(data.body.username, {
-            id: credential.id,
-            publicKey: Buffer.from(credential.publicKey),
-            counter: credential.counter,
-        });
+        const user = await register(
+            data.body.username,
+            {
+                id: credential.id,
+                publicKey: Buffer.from(credential.publicKey),
+                counter: credential.counter,
+            },
+            !!session,
+        );
 
         res.status(200).json({
             username: user.username,
@@ -47,21 +67,30 @@ userRouter.post(
 );
 
 userRouter.post(
-    '/webauthn/login/options',
-    validatedHandler(webAuthnOptionsSchema, async (data, _req, res) => {
-        const options = await generateAuthenticationOptions(data.body.username);
+    '/login/options',
+    validatedHandler(loginOptionsSchema, async (data, _req, res) => {
+        const challengePurpose: WebAuthnChallengePurpose = data.body.newCredentialId ? 'auth-new' : 'auth-existing';
+        console.log(challengePurpose);
+        const options = await generateAuthenticationOptions(
+            data.body.username,
+            challengePurpose,
+            data.body.newCredentialId,
+        );
 
         res.status(200).json(options);
     }),
 );
 
 userRouter.post(
-    '/webauthn/login/verify',
-    validatedHandler(webAuthnVerifySchema, async (data, _req, res) => {
-        await verifyAuthenticationResponse(data.body.username, data.body.attestationResponse);
+    '/login',
+    validatedHandler(loginSchema, async (data, _req, res) => {
+        await verifyAuthenticationResponse(data.body.username, data.body.attestationResponse, 'auth-existing');
 
-        const prf = base64URLStringToBuffer(data.body.attestationResponse.clientExtensionResults.prf.results.first);
-        const user = await login(data.body.username, prf);
+        const credentialId = data.body.attestationResponse.id;
+        const prf = Buffer.from(
+            base64URLStringToBuffer(data.body.attestationResponse.clientExtensionResults.prf.results.first),
+        );
+        const { user, mnemonic } = await login(data.body.username, credentialId, prf);
 
         const token = await createSessionToken({
             username: data.body.username,
@@ -73,6 +102,31 @@ userRouter.post(
             sameSite: 'strict',
             maxAge: 8 * 60 * 60 * 1000,
         });
+
+        res.status(200).json({
+            username: user.username,
+            mnemonic,
+        });
+    }),
+);
+
+userRouter.post(
+    '/passphrase',
+    validatedHandler(addPassphraseSchema, async (data, req, res) => {
+        const session = useSession(req, true);
+
+        await verifyAuthenticationResponse(session.username, data.body.newAttestationResponse, 'auth-new');
+        await verifyAuthenticationResponse(session.username, data.body.attestationResponse, 'auth-existing');
+
+        const credentialId = data.body.attestationResponse.id;
+        const prf = Buffer.from(
+            base64URLStringToBuffer(data.body.attestationResponse.clientExtensionResults.prf.results.first),
+        );
+        const addCredentialId = data.body.newAttestationResponse.id;
+        const addPrf = Buffer.from(
+            base64URLStringToBuffer(data.body.newAttestationResponse.clientExtensionResults.prf.results.first),
+        );
+        const user = await addPassphrase(session.username, credentialId, prf, addCredentialId, addPrf);
 
         res.status(200).json({
             username: user.username,

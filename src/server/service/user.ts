@@ -2,9 +2,8 @@ import crypto from 'crypto';
 import env, { APP_URL } from '@server/env.js';
 import BadRequestError from '@server/error/badRequestError.js';
 import InternalServerError from '@server/error/internalServerError.js';
-import User from '@server/model/user.js';
-import WebAuthnChallenge from '@server/model/webAuthnChallenge.js';
-import WebAuthnCredential, { IWebAuthnCredential } from '@server/model/webAuthnCredential.js';
+import User, { UserDoc } from '@server/model/mongoose/user.js';
+import WebAuthnChallenge, { WebAuthnChallengePurpose } from '@server/model/mongoose/webAuthnChallenge.js';
 import {
     RegistrationResponseJSON,
     AuthenticationResponseJSON,
@@ -12,8 +11,19 @@ import {
     verifyRegistrationResponse as verifyRegistrationResponseWebAuthn,
     generateAuthenticationOptions as generateAuthenticationOptionsWebAuthn,
     verifyAuthenticationResponse as verifyAuthenticationResponseWebAuthn,
+    WebAuthnCredential,
 } from '@simplewebauthn/server';
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
+import { generateMnemonic } from 'bip39';
+import {
+    deriveAESKeyFromMnemonic,
+    deriveAESKeyFromPRF,
+    exportMasterKeyData,
+    unwrapMasterKey,
+    wrapMasterKey,
+} from '@server/util/crypto.js';
+import { isUserData } from '@server/util/userData.js';
+import UnauthorizedError from '@server/error/unauthorizedError.js';
 
 export async function isUsernameAvailable(username: string) {
     const user = await User.find({ username });
@@ -40,13 +50,17 @@ export async function generateRegistrationOptions(username: string) {
         },
     };
 
-    updateUserChallenge(username, options.challenge);
+    await WebAuthnChallenge.findOneAndUpdate(
+        { username, purpose: 'registration' },
+        { challenge: options.challenge },
+        { upsert: true },
+    );
 
     return options;
 }
 
 export async function verifyRegistrationResponse(username: string, response: RegistrationResponseJSON) {
-    const challenge = await WebAuthnChallenge.findOne({ username });
+    const challenge = await WebAuthnChallenge.findOne({ username, purpose: 'registration' });
     if (!challenge) {
         throw new InternalServerError('No challenge found');
     }
@@ -62,37 +76,67 @@ export async function verifyRegistrationResponse(username: string, response: Reg
         throw new BadRequestError('Verification failed');
     }
 
-    deleteUserChallenge(username);
+    await challenge.deleteOne();
 
     return registrationInfo;
 }
 
-export async function register(username: string, webAuthnCredential: IWebAuthnCredential) {
-    const passkey = await WebAuthnCredential.create({
-        id: webAuthnCredential.id,
-        publicKey: Buffer.from(webAuthnCredential.publicKey),
-        counter: webAuthnCredential.counter,
-    });
+export async function register(username: string, credential: WebAuthnCredential, addPasskey?: boolean) {
+    let user: UserDoc | null;
+    if (addPasskey) {
+        user = await User.findOne({ username });
+        if (!user) {
+            throw new BadRequestError('User not found');
+        }
+    } else {
+        user = await User.create({
+            username,
+        });
+    }
 
-    const user = await User.create({
-        username,
-        passkeys: [passkey],
+    user.keySlots.set(credential.id, {
+        type: 'webauthn',
+        data: {
+            id: credential.id,
+            publicKey: Buffer.from(credential.publicKey),
+            counter: credential.counter,
+        },
     });
+    await user.save();
 
     return user;
 }
 
-export async function generateAuthenticationOptions(username: string) {
+export async function generateAuthenticationOptions(
+    username: string,
+    challengePurpose: WebAuthnChallengePurpose,
+    allowCredentialId?: string,
+) {
     const user = await User.findOne({ username });
     if (!user) {
         throw new BadRequestError('User not found');
     }
 
+    let allowCredentials = Array.from(
+        user.keySlots
+            .values()
+            .filter((keySlot) => keySlot.type === 'webauthn' && keySlot.data)
+            .map((keySlot) => ({
+                id: keySlot.data!.id,
+            })),
+    );
+
+    if (allowCredentialId) {
+        allowCredentials = allowCredentials.filter((credential) => credential.id === allowCredentialId);
+    }
+
+    if (!allowCredentials.length) {
+        throw new InternalServerError('No valid credential found');
+    }
+
     const optionsWebAuthn = await generateAuthenticationOptionsWebAuthn({
         rpID: APP_URL,
-        allowCredentials: user.passkeys.map((passkey) => ({
-            id: passkey.id,
-        })),
+        allowCredentials,
         userVerification: 'preferred',
     });
 
@@ -101,7 +145,7 @@ export async function generateAuthenticationOptions(username: string) {
         await user.save();
     }
 
-    const prfSaltBase64URL = isoBase64URL.fromBuffer(user.prfSalt);
+    const prfSaltBase64URL = isoBase64URL.fromBuffer(new Uint8Array(user.prfSalt));
     const options = {
         ...optionsWebAuthn,
         extensions: {
@@ -113,25 +157,31 @@ export async function generateAuthenticationOptions(username: string) {
         },
     };
 
-    updateUserChallenge(username, options.challenge);
+    await WebAuthnChallenge.findOneAndUpdate(
+        { username, purpose: challengePurpose },
+        { challenge: options.challenge },
+        { upsert: true },
+    );
 
     return options;
 }
 
-export async function verifyAuthenticationResponse(username: string, response: AuthenticationResponseJSON) {
+export async function verifyAuthenticationResponse(
+    username: string,
+    response: AuthenticationResponseJSON,
+    challengePurpose: WebAuthnChallengePurpose,
+) {
     const user = await User.findOne({ username });
     if (!user) {
         throw new BadRequestError('User not found');
     }
 
-    const challenge = await WebAuthnChallenge.findOne({ username });
+    const challenge = await WebAuthnChallenge.findOne({ username, purpose: challengePurpose });
     if (!challenge) {
         throw new InternalServerError('No challenge found');
     }
 
-    const passkey = await WebAuthnCredential.findOne({
-        id: response.id,
-    });
+    const passkey = user.keySlots.values().find((keySlot) => keySlot.data?.id === response.id)?.data;
     if (!passkey) {
         throw new InternalServerError('No credential found');
     }
@@ -149,32 +199,98 @@ export async function verifyAuthenticationResponse(username: string, response: A
     });
 
     passkey.counter = authenticationInfo.newCounter;
-    await passkey.save();
+    await user.save();
 
     if (!verified) {
         throw new BadRequestError('Verification failed');
     }
 
-    deleteUserChallenge(username);
+    await challenge.deleteOne();
 
     return authenticationInfo;
 }
 
-export async function login(username: string, prf?: ArrayBuffer) {
+export async function login(username: string, credentialId: string, prf: Uint8Array) {
     const user = await User.findOne({ username });
     if (!user) {
         throw new BadRequestError('User not found');
     }
 
-    console.log(prf);
+    let mnemonic: string | undefined;
+    const firstLogin = !(await isUserData(username));
+    if (firstLogin) {
+        const masterKey = crypto.randomBytes(32);
+
+        mnemonic = await setupMnemonicBackupWrappedMasterKey(username, masterKey);
+        await addPrfWrappedMasterKey(username, credentialId, prf, masterKey);
+    }
+
+    return { user, mnemonic };
+}
+
+export async function addPassphrase(
+    username: string,
+    credentialId: string,
+    prf: Uint8Array,
+    addCredentialId: string,
+    addPrf: Uint8Array,
+) {
+    const user = await User.findOne({ username });
+    if (!user) {
+        throw new BadRequestError('User not found');
+    }
+
+    const keySlot = user.keySlots.get(credentialId);
+    if (!keySlot || !keySlot.salt || !keySlot.ciphertext || !keySlot.iv) {
+        throw new UnauthorizedError('Invalid credential');
+    }
+
+    const prfKey = await deriveAESKeyFromPRF(prf, keySlot.salt);
+    const masterKey = await unwrapMasterKey({ ciphertext: keySlot.ciphertext, iv: keySlot.iv }, prfKey);
+    const masterKeyData = await exportMasterKeyData(masterKey);
+
+    await addPrfWrappedMasterKey(username, addCredentialId, addPrf, masterKeyData);
 
     return user;
 }
 
-async function updateUserChallenge(username: string, challenge: string) {
-    await WebAuthnChallenge.findOneAndUpdate({ username }, { challenge }, { upsert: true });
+async function setupMnemonicBackupWrappedMasterKey(username: string, masterKey: Uint8Array) {
+    const user = await User.findOne({ username });
+    if (!user) {
+        throw new BadRequestError('User not found');
+    }
+
+    const mnemonic = generateMnemonic(256);
+    const backupKey = await deriveAESKeyFromMnemonic(mnemonic);
+    const backupWrappedMasterKey = await wrapMasterKey(masterKey, backupKey);
+
+    user.keySlots.set('backup', {
+        type: 'mnemonic',
+        ciphertext: Buffer.from(backupWrappedMasterKey.ciphertext),
+        iv: Buffer.from(backupWrappedMasterKey.iv),
+    });
+    await user.save();
+
+    return mnemonic;
 }
 
-async function deleteUserChallenge(username: string) {
-    await WebAuthnChallenge.deleteOne({ username });
+async function addPrfWrappedMasterKey(username: string, credentialId: string, prf: Uint8Array, masterKey: Uint8Array) {
+    const user = await User.findOne({ username });
+    if (!user) {
+        throw new BadRequestError('User not found');
+    }
+
+    const salt = crypto.randomBytes(32);
+    const prfKey = await deriveAESKeyFromPRF(prf, salt);
+    const prfWrappedMasterKey = await wrapMasterKey(masterKey, prfKey);
+
+    const keySlot = user.keySlots.get(credentialId);
+    if (!keySlot) {
+        throw new InternalServerError('Key slot not found');
+    }
+
+    keySlot.ciphertext = Buffer.from(prfWrappedMasterKey.ciphertext);
+    keySlot.iv = Buffer.from(prfWrappedMasterKey.iv);
+    keySlot.salt = Buffer.from(salt);
+    await user.save();
 }

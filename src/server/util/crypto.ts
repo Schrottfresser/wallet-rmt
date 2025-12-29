@@ -79,12 +79,18 @@ export async function unwrapMasterKey(wrapped: { ciphertext: Uint8Array; iv: Uin
     const decryptedCiphertext = new Uint8Array(
         await crypto.subtle.decrypt({ name: 'AES-GCM', iv: wrapped.iv }, aesKey, wrapped.ciphertext),
     );
-    const masterKey = await crypto.subtle.importKey('raw', decryptedCiphertext, 'AES-GCM', false, [
+    const masterKey = await crypto.subtle.importKey('raw', decryptedCiphertext, 'AES-GCM', true, [
         'encrypt',
         'decrypt',
     ]);
 
     return masterKey;
+}
+
+export async function exportMasterKeyData(masterKey: CryptoKey) {
+    const masterKeyData = await crypto.subtle.exportKey('raw', masterKey);
+
+    return new Uint8Array(masterKeyData);
 }
 
 function generateWalletAuthKey() {

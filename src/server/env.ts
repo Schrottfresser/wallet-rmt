@@ -14,6 +14,8 @@ const env = {
     dbPort: process.env.WALLET_RMT_DB_PORT || '27017',
     dbName: process.env.WALLET_RMT_DB_NAME || 'wallet-rmt',
 
+    dataDir: process.env.WALLET_RMT_DATA_DIR || '/var/lib/wallet-rmt',
+
     bitcoinEnable: Boolean(process.env.WALLET_RMT_BITCOIN_ENABLE),
     bitcoinRpcUrl: process.env.WALLET_RMT_BITCOIN_RPC_URL || '',
     bitcoinRpcUser: process.env.WALLET_RMT_BITCOIN_RPC_USER || '',

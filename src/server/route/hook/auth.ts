@@ -4,6 +4,7 @@ import { Request } from 'express';
 import { ObjectId } from '../validation/index.js';
 import { decodeJwt } from 'jose';
 import SessionPayload from '@server/model/sessionPayload.js';
+import UnauthorizedError from '@server/error/unauthorizedError.js';
 
 export async function useWalletPassword(req: Request, walletId: ObjectId): Promise<string | undefined> {
     const token = req.cookies[WALLET_AUTH_COOKIE];
@@ -14,11 +15,13 @@ export async function useWalletPassword(req: Request, walletId: ObjectId): Promi
 
         return password;
     } catch {
-        return;
+        return undefined;
     }
 }
 
-export function useSession(req: Request): SessionPayload | undefined {
+export function useSession(req: Request, throwOnUnauthorized: true): SessionPayload;
+export function useSession(req: Request, throwOnUnauthorized?: false): SessionPayload | undefined;
+export function useSession(req: Request, throwOnUnauthorized?: boolean): SessionPayload | undefined {
     const token = req.cookies[SESSION_COOKIE];
 
     try {
@@ -26,6 +29,10 @@ export function useSession(req: Request): SessionPayload | undefined {
 
         return session;
     } catch {
-        return;
+        if (throwOnUnauthorized) {
+            throw new UnauthorizedError('Not logged in');
+        } else {
+            return undefined;
+        }
     }
 }

@@ -1,4 +1,9 @@
-import { base64URLStringToBuffer, startAuthentication, startRegistration } from '@simplewebauthn/browser';
+import {
+    base64URLStringToBuffer,
+    RegistrationResponseJSON,
+    startAuthentication,
+    startRegistration,
+} from '@simplewebauthn/browser';
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import { useState } from 'react';
 
@@ -16,7 +21,7 @@ export default function Registration() {
     const [username, setUsername] = useState('');
 
     async function register() {
-        const optionsResponse = await fetch('/api/user/webauthn/register/options', {
+        const optionsResponse = await fetch('/api/user/register/options', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -27,7 +32,7 @@ export default function Registration() {
 
         const attestationResponse = await startRegistration({ optionsJSON });
 
-        const verificationResponse = await fetch('/api/user/webauthn/register/verify', {
+        const verificationResponse = await fetch('/api/user/register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -43,7 +48,7 @@ export default function Registration() {
     }
 
     async function login() {
-        const optionsResponse = await fetch('/api/user/webauthn/login/options', {
+        const optionsResponse = await fetch('/api/user/login/options', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -70,9 +75,7 @@ export default function Registration() {
             },
         };
 
-        console.log(attestationResponse);
-
-        const verificationResponse = await fetch('/api/user/webauthn/login/verify', {
+        const verificationResponse = await fetch('/api/user/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -87,6 +90,102 @@ export default function Registration() {
         console.log(verificationJSON);
     }
 
+    async function addPasskey() {
+        const optionsResponse = await fetch('/api/user/login/options', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username }),
+        });
+        const optionsJSON = await optionsResponse.json();
+        optionsJSON.extensions.prf.eval.first = base64URLStringToBuffer(optionsJSON.extensions.prf.eval.first);
+
+        let registrationAttestationResponse: RegistrationResponseJSON;
+        {
+            const optionsResponse = await fetch('/api/user/register/options', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username }),
+            });
+            const optionsJSON = await optionsResponse.json();
+
+            registrationAttestationResponse = await startRegistration({ optionsJSON });
+
+            await fetch('/api/user/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username,
+                    attestationResponse: registrationAttestationResponse,
+                }),
+            });
+        }
+
+        {
+            const attestationResponseWebauthn = await startAuthentication({ optionsJSON });
+
+            const prfExtensionResults = attestationResponseWebauthn.clientExtensionResults as PRFExtensionResults;
+            const prf = prfExtensionResults.prf?.results?.first;
+
+            const prfString = prf ? isoBase64URL.fromBuffer(prf) : undefined;
+            const attestationResponse = {
+                ...attestationResponseWebauthn,
+                clientExtensionResults: {
+                    prf: {
+                        results: {
+                            first: prfString,
+                        },
+                    },
+                },
+            };
+
+            const optionsResponse = await fetch('/api/user/login/options', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, newCredentialId: registrationAttestationResponse.id }),
+            });
+            const newOptionsJSON = await optionsResponse.json();
+            newOptionsJSON.extensions.prf.eval.first = base64URLStringToBuffer(
+                newOptionsJSON.extensions.prf.eval.first,
+            );
+
+            const newAttestationResponseWebauthn = await startAuthentication({ optionsJSON: newOptionsJSON });
+
+            const newPrfExtensionResults = newAttestationResponseWebauthn.clientExtensionResults as PRFExtensionResults;
+            const newPrf = newPrfExtensionResults.prf?.results?.first;
+
+            const newPrfString = newPrf ? isoBase64URL.fromBuffer(newPrf) : undefined;
+            const newAttestationResponse = {
+                ...newAttestationResponseWebauthn,
+                clientExtensionResults: {
+                    prf: {
+                        results: {
+                            first: newPrfString,
+                        },
+                    },
+                },
+            };
+
+            await fetch('/api/user/passphrase', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    attestationResponse,
+                    newAttestationResponse,
+                }),
+            });
+        }
+    }
+
     return (
         <div className="mx-auto mt-5 flex w-min gap-2">
             <input type="text" onChange={(event) => setUsername(event.target.value)} className="border-2 p-2" />
@@ -95,6 +194,9 @@ export default function Registration() {
             </button>
             <button className="bg-blue-700 px-5 py-2 hover:cursor-pointer" onClick={login}>
                 Login
+            </button>
+            <button className="bg-orange-700 px-5 py-2 hover:cursor-pointer" onClick={addPasskey}>
+                Add
             </button>
         </div>
     );

@@ -8,7 +8,7 @@ import {
 } from '@server/route/validation/wallet.js';
 import BadRequestError from '@server/error/badRequestError.js';
 import walletRepository from '@server/repository/wallet.js';
-import Wallet from '@server/model/wallet.js';
+import Wallet from '@server/model/mongoose/wallet.js';
 import { Router } from 'express';
 import { createWalletAuthToken, decryptWalletAuthToken } from '@server/util/crypto.js';
 import { WALLET_AUTH_COOKIE } from '@server/constant/cookie.js';

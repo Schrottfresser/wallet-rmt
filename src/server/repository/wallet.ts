@@ -2,7 +2,7 @@ import { ObjectId } from '@server/route/validation/index.js';
 import BitcoinWalletService from '@server/service/wallet/bitcoin.js';
 import CryptoWalletService from '@server/service/wallet/crypto.js';
 import MoneroWalletService from '@server/service/wallet/monero.js';
-import Wallet, { IWallet, WalletDoc } from '@server/model/wallet.js';
+import Wallet, { IWallet, WalletDoc } from '@server/model/mongoose/wallet.js';
 import { LRUCache } from 'lru-cache';
 import env from '@server/env.js';
 

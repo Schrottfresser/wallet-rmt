@@ -2,7 +2,7 @@ import { ObjectId } from '@server/route/validation/index.js';
 import GetBalanceResult from '@server/model/currency/getBalanceResult.js';
 import GetTransferResult from '@server/model/currency/getTransferResult.js';
 import TransferPriority from '@server/model/currency/transferPriority.js';
-import { WalletDoc, WalletType } from '@server/model/wallet.js';
+import { WalletDoc, WalletType } from '@server/model/mongoose/wallet.js';
 
 export default abstract class CryptoWalletService {
     protected wallet: WalletDoc;
