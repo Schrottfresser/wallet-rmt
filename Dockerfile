@@ -1,34 +1,34 @@
 FROM node:22-alpine AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+ENV CI=true
+
+RUN corepack enable
+RUN addgroup -g 10001 wallet-rmt
+RUN adduser -u 10001 -G wallet-rmt -D wallet-rmt
+
+COPY . /app
+WORKDIR /app
+
 
 FROM base AS deps
-RUN corepack enable
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --prod
 
-WORKDIR /home/node/app
-COPY package.json pnpm-lock.yaml ./
-
-RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store pnpm fetch --frozen-lockfile
-RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile --prod
 
 FROM base AS build
-RUN corepack enable
-
-RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
-WORKDIR /home/node/app
-COPY package.json pnpm-lock.yaml ./
-
-RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store pnpm fetch --frozen-lockfile
-RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile
-COPY . .
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN pnpm build
 
-FROM base
-USER node
 
-WORKDIR /home/node/app
-COPY --from=deps --chown=node:node /home/node/app/node_modules /home/node/app/node_modules
-COPY --from=build --chown=node:node /home/node/app/dist /home/node/app/dist
+FROM base
+RUN mkdir -p /var/lib/wallet-rmt /var/log/wallet-rmt
+RUN chown 10001:10001 /var/lib/wallet-rmt /var/log/wallet-rmt
+
+USER wallet-rmt
+COPY --from=deps --chown=wallet-rmt:wallet-rmt /app/node_modules /app/node_modules
+COPY --from=build --chown=wallet-rmt:wallet-rmt /app/dist /app/dist
 
 ENV NODE_ENV=production
-CMD ["node", "./dist/server/index.js"]
-
 EXPOSE 8080
+
+CMD ["pnpm", "serve"]
