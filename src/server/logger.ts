@@ -3,8 +3,16 @@ import env from './env.js';
 
 const { combine, timestamp, printf, colorize, json, errors } = winston.format;
 
+const levelMap: Record<string, string> = {
+    debug: 'D',
+    info: 'I',
+    warn: 'W',
+    error: 'E',
+};
+
 const humanFormat = printf(({ level, message, timestamp, stack }) => {
-    return `${timestamp} ${level}: ${stack || message}`;
+    const shortLevel = levelMap[level];
+    return `${shortLevel} ${timestamp}: ${stack || message}`;
 });
 
 const logger = winston.createLogger({
@@ -15,10 +23,12 @@ const logger = winston.createLogger({
             format: combine(humanFormat, colorize({ all: true })),
         }),
         new winston.transports.File({
+            dirname: env.logDir,
             filename: 'app.log',
             format: humanFormat,
         }),
         new winston.transports.File({
+            dirname: env.logDir,
             filename: 'app.json.log',
             format: json(),
         }),

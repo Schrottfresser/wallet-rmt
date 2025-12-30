@@ -15,6 +15,7 @@ const env = {
     dbName: process.env.WALLET_RMT_DB_NAME || 'wallet-rmt',
 
     dataDir: process.env.WALLET_RMT_DATA_DIR || '/var/lib/wallet-rmt',
+    logDir: process.env.WALLET_RMT_LOG_DIR || '/var/log/wallet-rmt',
 
     bitcoinEnable: Boolean(process.env.WALLET_RMT_BITCOIN_ENABLE),
     bitcoinRpcUrl: process.env.WALLET_RMT_BITCOIN_RPC_URL || '',
