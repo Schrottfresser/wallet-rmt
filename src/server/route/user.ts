@@ -24,15 +24,8 @@ import { base64URLStringToBuffer } from '@simplewebauthn/browser';
 import { useSession } from './hook/auth.js';
 import UnauthorizedError from '@server/error/unauthorizedError.js';
 import { WebAuthnChallengePurpose } from '@server/model/mongoose/webAuthnChallenge.js';
-import User from '@server/model/mongoose/user.js';
 
 const userRouter = Router();
-
-userRouter.get('/', async (_req, res) => {
-    const users = await User.find();
-
-    res.status(200).json(users);
-});
 
 userRouter.post(
     '/register/options',
