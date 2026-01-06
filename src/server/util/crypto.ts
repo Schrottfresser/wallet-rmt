@@ -1,3 +1,4 @@
+import fs from 'fs/promises';
 import env, { APP_URL } from '@server/env.js';
 import logger from '@server/logger.js';
 import SessionPayload from '@server/model/sessionPayload.js';
@@ -5,6 +6,7 @@ import WalletAuthPayload from '@server/model/walletAuthPayload.js';
 import { mnemonicToEntropy } from 'bip39';
 import crypto from 'crypto';
 import { EncryptJWT, generateKeyPair, jwtDecrypt, jwtVerify, SignJWT } from 'jose';
+import path from 'path';
 
 const { publicKey, privateKey } = await generateKeyPair('EdDSA');
 
@@ -69,29 +71,91 @@ export async function deriveAESKeyFromMnemonic(mnemonic: string) {
     return aesKey;
 }
 
-export async function wrapMasterKey(masterKey: Uint8Array, aesKey: CryptoKey) {
+export async function wrapMasterKey(masterKeyData: Uint8Array, aesKey: CryptoKey) {
     const iv = crypto.randomBytes(12);
-    const ciphertext = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, aesKey, masterKey));
+    const ciphertext = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, aesKey, masterKeyData));
 
     return { ciphertext, iv };
 }
 
 export async function unwrapMasterKey(wrapped: { ciphertext: Uint8Array; iv: Uint8Array }, aesKey: CryptoKey) {
-    const decryptedCiphertext = new Uint8Array(
+    const masterKeyData = new Uint8Array(
         await crypto.subtle.decrypt({ name: 'AES-GCM', iv: wrapped.iv }, aesKey, wrapped.ciphertext),
     );
-    const masterKey = await crypto.subtle.importKey('raw', decryptedCiphertext, 'AES-GCM', true, [
-        'encrypt',
-        'decrypt',
-    ]);
 
-    return masterKey;
+    return masterKeyData;
 }
 
 export async function exportMasterKeyData(masterKey: CryptoKey) {
     const masterKeyData = await crypto.subtle.exportKey('raw', masterKey);
 
     return new Uint8Array(masterKeyData);
+}
+
+export async function createMasterKey(masterKeyData: Uint8Array) {
+    const masterKey = await crypto.subtle.importKey('raw', masterKeyData, 'AES-GCM', true, ['encrypt', 'decrypt']);
+
+    return masterKey;
+}
+
+export async function encryptDirectory(dir: string, outputFile: string, key: CryptoKey) {
+    const files = await collectFiles(dir);
+
+    const metadata = files.map((file) => ({
+        path: file.relativePath,
+        size: file.size,
+    }));
+    const metadataBuffer = Buffer.from(JSON.stringify(metadata), 'utf-8');
+    const metadataLengthBuffer = Buffer.alloc(4);
+    metadataLengthBuffer.writeUInt32BE(metadataBuffer.length);
+
+    const fileBuffers = await Promise.all(files.map(async (file) => await fs.readFile(file.fullPath)));
+    const combinedData = Buffer.concat([metadataLengthBuffer, metadataBuffer, ...fileBuffers]);
+
+    const iv = crypto.randomBytes(12);
+    const encrypted = await crypto.subtle.encrypt(
+        {
+            name: 'AES-GCM',
+            iv,
+        },
+        key,
+        combinedData,
+    );
+
+    const finalBuffer = Buffer.concat([iv, Buffer.from(encrypted)]);
+    await fs.writeFile(outputFile, finalBuffer);
+}
+
+export async function decryptDirectory(encryptedFile: string, outputDir: string, key: CryptoKey) {
+    const buffer = await fs.readFile(encryptedFile);
+    const iv = buffer.subarray(0, 12);
+    const ciphertext = buffer.subarray(12);
+
+    const decrypted = Buffer.from(
+        await crypto.subtle.decrypt(
+            {
+                name: 'AES-GCM',
+                iv,
+            },
+            key,
+            ciphertext,
+        ),
+    );
+
+    const metadataLength = decrypted.readUInt32BE();
+    const metadataBuffer = decrypted.subarray(4, 4 + metadataLength);
+    const metadata: CollectedFile[] = JSON.parse(metadataBuffer.toString('utf-8'));
+
+    let offset = 4 + metadataLength;
+    for (const { relativePath, size } of metadata) {
+        const fileBuffer = decrypted.subarray(offset, offset + size);
+        const fileOutputPath = path.join(outputDir, relativePath);
+
+        await fs.mkdir(path.dirname(fileOutputPath), { recursive: true });
+        await fs.writeFile(fileOutputPath, fileBuffer);
+
+        offset += size;
+    }
 }
 
 function generateWalletAuthKey() {
@@ -106,4 +170,30 @@ function registerWalletAuthKeyRotate() {
         },
         1000 * 60 * 60,
     ); // every hour
+}
+
+interface CollectedFile {
+    relativePath: string;
+    fullPath: string;
+    size: number;
+}
+
+async function collectFiles(dir: string, baseDir = dir): Promise<CollectedFile[]> {
+    let files: CollectedFile[] = [];
+
+    for (const entry of await fs.readdir(dir)) {
+        const fullPath = path.join(dir, entry);
+        const stats = await fs.stat(fullPath);
+
+        if (stats.isFile()) {
+            files.push({
+                relativePath: path.relative(baseDir, fullPath),
+                fullPath,
+                size: stats.size,
+            });
+        } else if (stats.isDirectory()) {
+            files = files.concat(await collectFiles(fullPath, baseDir));
+        }
+    }
+    return files;
 }

@@ -16,6 +16,7 @@ const env = {
 
     dataDir: process.env.WALLET_RMT_DATA_DIR || '/var/lib/wallet-rmt',
     logDir: process.env.WALLET_RMT_LOG_DIR || '/var/log/wallet-rmt',
+    walletTmpfsDir: process.env.WALLET_RMT_WALLET_TMPFS_DIR || '/run/wallet-rmt',
 
     bitcoinEnable: Boolean(process.env.WALLET_RMT_BITCOIN_ENABLE),
     bitcoinRpcUrl: process.env.WALLET_RMT_BITCOIN_RPC_URL || '',

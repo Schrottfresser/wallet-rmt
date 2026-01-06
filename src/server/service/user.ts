@@ -16,13 +16,14 @@ import {
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import { generateMnemonic } from 'bip39';
 import {
+    createMasterKey,
     deriveAESKeyFromMnemonic,
     deriveAESKeyFromPRF,
     exportMasterKeyData,
     unwrapMasterKey,
     wrapMasterKey,
 } from '@server/util/crypto.js';
-import { addUserDataFolder, isUserData } from '@server/util/userData.js';
+import { decryptUserData, initUserData, isUserData } from '@server/util/userData.js';
 import UnauthorizedError from '@server/error/unauthorizedError.js';
 
 export async function isUsernameAvailable(username: string) {
@@ -217,14 +218,28 @@ export async function login(username: string, credentialId: string, prf: Uint8Ar
     }
 
     let mnemonic: string | undefined;
+    let masterKey: CryptoKey;
+
     const firstLogin = !(await isUserData(username));
     if (firstLogin) {
-        const masterKey = crypto.randomBytes(32);
+        const masterKeyData = crypto.randomBytes(32);
 
-        mnemonic = await setupMnemonicBackupWrappedMasterKey(username, masterKey);
-        await addPrfWrappedMasterKey(username, credentialId, prf, masterKey);
+        mnemonic = await setupMnemonicBackupWrappedMasterKey(username, masterKeyData);
+        await addPrfWrappedMasterKey(username, credentialId, prf, masterKeyData);
 
-        await addUserDataFolder(username);
+        masterKey = await createMasterKey(masterKeyData);
+        await initUserData(username, masterKey);
+    } else {
+        const keySlot = user.keySlots.get(credentialId);
+        if (!keySlot || !keySlot.salt || !keySlot.ciphertext || !keySlot.iv) {
+            throw new UnauthorizedError('Invalid credential');
+        }
+
+        const prfKey = await deriveAESKeyFromPRF(prf, keySlot.salt);
+        const masterKeyData = await unwrapMasterKey({ ciphertext: keySlot.ciphertext, iv: keySlot.iv }, prfKey);
+        masterKey = await createMasterKey(masterKeyData);
+
+        await decryptUserData(username, masterKey);
     }
 
     return { user, mnemonic };
@@ -248,8 +263,7 @@ export async function addPassphrase(
     }
 
     const prfKey = await deriveAESKeyFromPRF(prf, keySlot.salt);
-    const masterKey = await unwrapMasterKey({ ciphertext: keySlot.ciphertext, iv: keySlot.iv }, prfKey);
-    const masterKeyData = await exportMasterKeyData(masterKey);
+    const masterKeyData = await unwrapMasterKey({ ciphertext: keySlot.ciphertext, iv: keySlot.iv }, prfKey);
 
     await addPrfWrappedMasterKey(username, addCredentialId, addPrf, masterKeyData);
 
