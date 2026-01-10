@@ -1,10 +1,11 @@
 import { SESSION_COOKIE, WALLET_AUTH_COOKIE } from '@server/constant/cookie.js';
-import { decryptWalletAuthToken } from '@server/util/crypto.js';
+import { decryptWalletAuthToken, verifySessionToken } from '@server/util/crypto.js';
 import { Request } from 'express';
 import { ObjectId } from '../validation/index.js';
-import { decodeJwt } from 'jose';
-import SessionPayload from '@server/model/sessionPayload.js';
 import UnauthorizedError from '@server/error/unauthorizedError.js';
+import { JWTSessionPayload, SessionData } from '@server/model/sessionData.js';
+import { readSessionData } from '@server/util/userData.js';
+import env from '@server/env.js';
 
 export async function useWalletPassword(req: Request, walletId: ObjectId): Promise<string | undefined> {
     const token = req.cookies[WALLET_AUTH_COOKIE];
@@ -19,15 +20,24 @@ export async function useWalletPassword(req: Request, walletId: ObjectId): Promi
     }
 }
 
-export function useSession(req: Request, throwOnUnauthorized: true): SessionPayload;
-export function useSession(req: Request, throwOnUnauthorized?: false): SessionPayload | undefined;
-export function useSession(req: Request, throwOnUnauthorized?: boolean): SessionPayload | undefined {
+export async function useSession(req: Request, throwOnUnauthorized: true): Promise<SessionData>;
+export async function useSession(req: Request, throwOnUnauthorized?: false): Promise<SessionData | undefined>;
+export async function useSession(req: Request, throwOnUnauthorized?: boolean): Promise<SessionData | undefined> {
     const token = req.cookies[SESSION_COOKIE];
 
     try {
-        const session = decodeJwt<SessionPayload>(token);
+        const { sid, username } = await verifySessionToken(token);
+        const sessionData = await readSessionData(username);
+        if (sessionData.sid !== sid) {
+            throw new UnauthorizedError('Invalid session');
+        }
 
-        return session;
+        const now = Date.now();
+        if (now - sessionData.creation > env.sessionExpirationMins * 60 * 1000) {
+            throw new UnauthorizedError('Expired session');
+        }
+
+        return sessionData;
     } catch {
         if (throwOnUnauthorized) {
             throw new UnauthorizedError('Not logged in');

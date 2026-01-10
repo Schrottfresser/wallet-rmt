@@ -10,17 +10,17 @@ export interface WebAuthnCredential {
 
 export interface KeySlot {
     type: KeySlotType;
-    ciphertext?: Buffer;
-    iv?: Buffer;
+    ciphertext?: Buffer<ArrayBuffer>;
+    iv?: Buffer<ArrayBuffer>;
     label?: string;
-    salt?: Buffer;
+    salt?: Buffer<ArrayBuffer>;
     data?: WebAuthnCredential;
 }
 
 export interface IUser {
     username: string;
     keySlots: Map<string, KeySlot>;
-    prfSalt?: Buffer;
+    prfSalt?: Buffer<ArrayBuffer>;
 }
 
 const webAuthnCredentialSchema = new mongoose.Schema<WebAuthnCredential>({
@@ -30,7 +30,7 @@ const webAuthnCredentialSchema = new mongoose.Schema<WebAuthnCredential>({
         unique: true,
     },
     publicKey: {
-        type: Buffer,
+        type: Buffer<ArrayBuffer>,
         required: true,
     },
     counter: {
@@ -45,10 +45,10 @@ const keySlotSchema = new mongoose.Schema<KeySlot>({
         enum: ['webauthn', 'mnemonic'],
         required: true,
     },
-    ciphertext: Buffer,
-    iv: Buffer,
+    ciphertext: Buffer<ArrayBuffer>,
+    iv: Buffer<ArrayBuffer>,
     label: String,
-    salt: Buffer,
+    salt: Buffer<ArrayBuffer>,
     data: webAuthnCredentialSchema,
 });
 
@@ -63,7 +63,7 @@ const userSchema = new mongoose.Schema<IUser>({
         of: keySlotSchema,
         default: {},
     },
-    prfSalt: Buffer,
+    prfSalt: Buffer<ArrayBuffer>,
 });
 
 const User = mongoose.model('User', userSchema);

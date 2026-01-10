@@ -11,7 +11,7 @@ const env = {
     trustProxy: process.env.WALLET_RMT_TRUST_PROXY || false,
 
     dbIp: process.env.WALLET_RMT_DB_IP || '127.0.0.1',
-    dbPort: process.env.WALLET_RMT_DB_PORT || '27017',
+    dbPort: Number(process.env.WALLET_RMT_DB_PORT) || 27017,
     dbName: process.env.WALLET_RMT_DB_NAME || 'wallet-rmt',
 
     dataDir: process.env.WALLET_RMT_DATA_DIR || '/var/lib/wallet-rmt',
@@ -28,7 +28,8 @@ const env = {
     moneroWalletRpcUser: process.env.WALLET_RMT_MONERO_WALLET_RPC_USER || '',
     moneroWalletRpcPassword: process.env.WALLET_RMT_MONERO_WALLET_RPC_PASSWORD || '',
 
-    walletAuthExpirationMins: process.env.WALLET_RMT_WALLET_AUTH_EXPIRATION_MINS || '5',
+    sessionExpirationMins: Number(process.env.WALLET_RMT_SESSION_EXPIRATION_MINS) || 15,
+    walletAuthExpirationMins: Number(process.env.WALLET_RMT_WALLET_AUTH_EXPIRATION_MINS) || 5,
 };
 
 export const APP_URL = env.host.split(':')[0];

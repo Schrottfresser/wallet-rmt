@@ -17,13 +17,19 @@ import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import { generateMnemonic } from 'bip39';
 import {
     createMasterKey,
+    createSessionToken,
     deriveAESKeyFromMnemonic,
     deriveAESKeyFromPRF,
-    exportMasterKeyData,
     unwrapMasterKey,
     wrapMasterKey,
 } from '@server/util/crypto.js';
-import { decryptUserData, initUserData, isUserData } from '@server/util/userData.js';
+import {
+    decryptUserData,
+    initUserData,
+    isUserData,
+    removeSessionData,
+    writeSessionData,
+} from '@server/util/userData.js';
 import UnauthorizedError from '@server/error/unauthorizedError.js';
 
 export async function isUsernameAvailable(username: string) {
@@ -211,14 +217,21 @@ export async function verifyAuthenticationResponse(
     return authenticationInfo;
 }
 
-export async function login(username: string, credentialId: string, prf: Uint8Array) {
+export async function login(username: string, credentialId: string, prf: Uint8Array<ArrayBuffer>) {
     const user = await User.findOne({ username });
     if (!user) {
         throw new BadRequestError('User not found');
     }
 
     let mnemonic: string | undefined;
-    let masterKey: CryptoKey;
+    let masterKey: crypto.webcrypto.CryptoKey;
+
+    const sid = crypto.randomUUID();
+    const sessionData = {
+        sid,
+        username,
+        creation: Date.now(),
+    };
 
     const firstLogin = !(await isUserData(username));
     if (firstLogin) {
@@ -228,7 +241,7 @@ export async function login(username: string, credentialId: string, prf: Uint8Ar
         await addPrfWrappedMasterKey(username, credentialId, prf, masterKeyData);
 
         masterKey = await createMasterKey(masterKeyData);
-        await initUserData(username, masterKey);
+        await initUserData(sessionData, masterKey);
     } else {
         const keySlot = user.keySlots.get(credentialId);
         if (!keySlot || !keySlot.salt || !keySlot.ciphertext || !keySlot.iv) {
@@ -240,17 +253,20 @@ export async function login(username: string, credentialId: string, prf: Uint8Ar
         masterKey = await createMasterKey(masterKeyData);
 
         await decryptUserData(username, masterKey);
+        await writeSessionData(sessionData);
     }
 
-    return { user, mnemonic };
+    const token = await createSessionToken(sessionData);
+
+    return { user, token, mnemonic };
 }
 
 export async function addPassphrase(
     username: string,
     credentialId: string,
-    prf: Uint8Array,
+    prf: Uint8Array<ArrayBuffer>,
     addCredentialId: string,
-    addPrf: Uint8Array,
+    addPrf: Uint8Array<ArrayBuffer>,
 ) {
     const user = await User.findOne({ username });
     if (!user) {
@@ -270,7 +286,7 @@ export async function addPassphrase(
     return user;
 }
 
-async function setupMnemonicBackupWrappedMasterKey(username: string, masterKey: Uint8Array) {
+async function setupMnemonicBackupWrappedMasterKey(username: string, masterKey: Uint8Array<ArrayBuffer>) {
     const user = await User.findOne({ username });
     if (!user) {
         throw new BadRequestError('User not found');
@@ -290,7 +306,12 @@ async function setupMnemonicBackupWrappedMasterKey(username: string, masterKey: 
     return mnemonic;
 }
 
-async function addPrfWrappedMasterKey(username: string, credentialId: string, prf: Uint8Array, masterKey: Uint8Array) {
+async function addPrfWrappedMasterKey(
+    username: string,
+    credentialId: string,
+    prf: Uint8Array<ArrayBuffer>,
+    masterKey: Uint8Array<ArrayBuffer>,
+) {
     const user = await User.findOne({ username });
     if (!user) {
         throw new BadRequestError('User not found');

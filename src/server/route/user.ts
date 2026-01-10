@@ -8,7 +8,6 @@ import {
     addPassphraseSchema,
 } from './validation/user.js';
 import BadRequestError from '@server/error/badRequestError.js';
-import { createSessionToken } from '@server/util/crypto.js';
 import { SESSION_COOKIE } from '@server/constant/cookie.js';
 import {
     addPassphrase,
@@ -24,6 +23,7 @@ import { base64URLStringToBuffer } from '@simplewebauthn/browser';
 import { useSession } from './hook/auth.js';
 import UnauthorizedError from '@server/error/unauthorizedError.js';
 import { WebAuthnChallengePurpose } from '@server/model/mongoose/webAuthnChallenge.js';
+import env from '@server/env.js';
 
 const userRouter = Router();
 
@@ -43,7 +43,7 @@ userRouter.post(
 userRouter.post(
     '/register',
     validatedHandler(registerSchema, async (data, req, res) => {
-        const session = useSession(req);
+        const session = await useSession(req);
         if (session && session.username !== data.body.username) {
             throw new UnauthorizedError('Not logged in as this user');
         }
@@ -88,17 +88,13 @@ userRouter.post(
         const prf = Buffer.from(
             base64URLStringToBuffer(data.body.attestationResponse.clientExtensionResults.prf.results.first),
         );
-        const { user, mnemonic } = await login(data.body.username, credentialId, prf);
-
-        const token = await createSessionToken({
-            username: data.body.username,
-        });
+        const { user, token, mnemonic } = await login(data.body.username, credentialId, prf);
 
         res.cookie(SESSION_COOKIE, token, {
             httpOnly: true,
             secure: true,
             sameSite: 'strict',
-            maxAge: 8 * 60 * 60 * 1000,
+            maxAge: env.sessionExpirationMins * 60 * 1000,
         });
 
         res.status(200).json({
@@ -111,7 +107,7 @@ userRouter.post(
 userRouter.post(
     '/passphrase',
     validatedHandler(addPassphraseSchema, async (data, req, res) => {
-        const session = useSession(req, true);
+        const session = await useSession(req, true);
 
         await verifyAuthenticationResponse(session.username, data.body.newAttestationResponse, 'auth-new');
         await verifyAuthenticationResponse(session.username, data.body.attestationResponse, 'auth-existing');

@@ -94,7 +94,7 @@ walletRouter.post(
             httpOnly: true,
             secure: true,
             sameSite: 'strict',
-            maxAge: Number(env.walletAuthExpirationMins) * 60 * 1000, // minutes to millis
+            maxAge: env.walletAuthExpirationMins * 60 * 1000, // minutes to millis
         });
 
         res.status(200).send();

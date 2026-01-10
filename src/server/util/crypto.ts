@@ -1,31 +1,31 @@
 import fs from 'fs/promises';
 import env, { APP_URL } from '@server/env.js';
 import logger from '@server/logger.js';
-import SessionPayload from '@server/model/sessionPayload.js';
 import WalletAuthPayload from '@server/model/walletAuthPayload.js';
 import { mnemonicToEntropy } from 'bip39';
 import crypto from 'crypto';
 import { EncryptJWT, generateKeyPair, jwtDecrypt, jwtVerify, SignJWT } from 'jose';
 import path from 'path';
+import { JWTSessionPayload } from '@server/model/sessionData.js';
 
 const { publicKey, privateKey } = await generateKeyPair('EdDSA');
 
 let walletAuthKey = generateWalletAuthKey();
 registerWalletAuthKeyRotate();
 
-export function createSessionToken(payload: SessionPayload) {
+export function createSessionToken(payload: JWTSessionPayload) {
     return new SignJWT(payload)
         .setProtectedHeader({ alg: 'EdDSA' })
         .setIssuedAt()
         .setIssuer(APP_URL)
         .setAudience('login')
 
-        .setExpirationTime('8h')
+        .setExpirationTime(`${env.sessionExpirationMins}m`)
         .sign(privateKey);
 }
 
 export async function verifySessionToken(token: string) {
-    const { payload } = await jwtVerify(token, publicKey, {
+    const { payload } = await jwtVerify<JWTSessionPayload>(token, publicKey, {
         issuer: APP_URL,
         audience: 'login',
     });
@@ -46,7 +46,7 @@ export async function decryptWalletAuthToken(token: string): Promise<WalletAuthP
     return payload;
 }
 
-export async function deriveAESKeyFromPRF(prf: Uint8Array, salt: Uint8Array) {
+export async function deriveAESKeyFromPRF(prf: Uint8Array<ArrayBuffer>, salt: Uint8Array<ArrayBuffer>) {
     const keyMaterial = await crypto.subtle.importKey('raw', prf, 'HKDF', false, ['deriveKey']);
     const aesKey = await crypto.subtle.deriveKey(
         {
@@ -71,14 +71,17 @@ export async function deriveAESKeyFromMnemonic(mnemonic: string) {
     return aesKey;
 }
 
-export async function wrapMasterKey(masterKeyData: Uint8Array, aesKey: CryptoKey) {
+export async function wrapMasterKey(masterKeyData: Uint8Array<ArrayBuffer>, aesKey: crypto.webcrypto.CryptoKey) {
     const iv = crypto.randomBytes(12);
-    const ciphertext = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, aesKey, masterKeyData));
+    const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, aesKey, masterKeyData);
 
     return { ciphertext, iv };
 }
 
-export async function unwrapMasterKey(wrapped: { ciphertext: Uint8Array; iv: Uint8Array }, aesKey: CryptoKey) {
+export async function unwrapMasterKey(
+    wrapped: { ciphertext: Uint8Array<ArrayBuffer>; iv: Uint8Array<ArrayBuffer> },
+    aesKey: crypto.webcrypto.CryptoKey,
+) {
     const masterKeyData = new Uint8Array(
         await crypto.subtle.decrypt({ name: 'AES-GCM', iv: wrapped.iv }, aesKey, wrapped.ciphertext),
     );
@@ -86,26 +89,22 @@ export async function unwrapMasterKey(wrapped: { ciphertext: Uint8Array; iv: Uin
     return masterKeyData;
 }
 
-export async function exportMasterKeyData(masterKey: CryptoKey) {
+export async function exportMasterKeyData(masterKey: crypto.webcrypto.CryptoKey) {
     const masterKeyData = await crypto.subtle.exportKey('raw', masterKey);
 
     return new Uint8Array(masterKeyData);
 }
 
-export async function createMasterKey(masterKeyData: Uint8Array) {
+export async function createMasterKey(masterKeyData: Uint8Array<ArrayBuffer>) {
     const masterKey = await crypto.subtle.importKey('raw', masterKeyData, 'AES-GCM', true, ['encrypt', 'decrypt']);
 
     return masterKey;
 }
 
-export async function encryptDirectory(dir: string, outputFile: string, key: CryptoKey) {
+export async function encryptDirectory(dir: string, outputFile: string, key: crypto.webcrypto.CryptoKey) {
     const files = await collectFiles(dir);
 
-    const metadata = files.map((file) => ({
-        path: file.relativePath,
-        size: file.size,
-    }));
-    const metadataBuffer = Buffer.from(JSON.stringify(metadata), 'utf-8');
+    const metadataBuffer = Buffer.from(JSON.stringify(files), 'utf-8');
     const metadataLengthBuffer = Buffer.alloc(4);
     metadataLengthBuffer.writeUInt32BE(metadataBuffer.length);
 
@@ -126,7 +125,7 @@ export async function encryptDirectory(dir: string, outputFile: string, key: Cry
     await fs.writeFile(outputFile, finalBuffer);
 }
 
-export async function decryptDirectory(encryptedFile: string, outputDir: string, key: CryptoKey) {
+export async function decryptDirectory(encryptedFile: string, outputDir: string, key: crypto.webcrypto.CryptoKey) {
     const buffer = await fs.readFile(encryptedFile);
     const iv = buffer.subarray(0, 12);
     const ciphertext = buffer.subarray(12);
