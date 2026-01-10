@@ -25,12 +25,15 @@ import { useSession } from './hook/auth.js';
 import UnauthorizedError from '@server/error/unauthorizedError.js';
 import { WebAuthnChallengePurpose } from '@server/model/mongoose/webAuthnChallenge.js';
 import env from '@server/env.js';
+import logger from '@server/logger.js';
 
 const userRouter = Router();
 
 userRouter.post(
     '/register/options',
     validatedHandler(registerOptionsSchema, async (data, _req, res) => {
+        logger.info(`API - Generate registration options for user "${data.body.username}"`);
+
         if (!isUsernameAvailable(data.body.username)) {
             throw new BadRequestError('Username not available');
         }
@@ -44,6 +47,8 @@ userRouter.post(
 userRouter.post(
     '/register',
     validatedHandler(registerSchema, async (data, req, res) => {
+        logger.info(`API - Register user "${data.body.username}"`);
+
         const session = await useSession(req);
         if (session && session.username !== data.body.username) {
             throw new UnauthorizedError('Not logged in as this user');
@@ -69,6 +74,8 @@ userRouter.post(
 userRouter.post(
     '/login/options',
     validatedHandler(loginOptionsSchema, async (data, _req, res) => {
+        logger.info(`API - Generate authentication options for user "${data.body.username}"`);
+
         const challengePurpose: WebAuthnChallengePurpose = data.body.newCredentialId ? 'auth-new' : 'auth-existing';
         const options = await generateAuthenticationOptions(
             data.body.username,
@@ -83,6 +90,8 @@ userRouter.post(
 userRouter.post(
     '/login',
     validatedHandler(loginSchema, async (data, _req, res) => {
+        logger.info(`API - Login user "${data.body.username}"`);
+
         await verifyAuthenticationResponse(data.body.username, data.body.attestationResponse, 'auth-existing');
 
         const credentialId = data.body.attestationResponse.id;
@@ -109,6 +118,7 @@ userRouter.post(
     '/passphrase',
     validatedHandler(addPassphraseSchema, async (data, req, res) => {
         const session = await useSession(req, true);
+        logger.info(`API - Add passphrase for user "${session.username}"`);
 
         await verifyAuthenticationResponse(session.username, data.body.newAttestationResponse, 'auth-new');
         await verifyAuthenticationResponse(session.username, data.body.attestationResponse, 'auth-existing');
@@ -131,6 +141,8 @@ userRouter.post(
 
 userRouter.get('/logout', async (req, res) => {
     const session = await useSession(req, true);
+    logger.info(`API - Logout user "${session.username}"`);
+
     await logout(session.username);
 
     res.clearCookie(SESSION_COOKIE);

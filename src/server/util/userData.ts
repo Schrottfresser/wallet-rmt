@@ -45,7 +45,7 @@ export async function removeTmpfsUserData(username: string) {
 export function scheduleTmpfsUserDataRemoval(username: string, delay: number) {
     setTimeout(async () => {
         removeTmpfsUserData(username);
-        logger.debug(`Tmpfs user data for user ${username} cleaned up`);
+        logger.debug(`Tmpfs user data for user "${username}" cleaned up`);
     }, delay);
 }
 
