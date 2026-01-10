@@ -3,6 +3,7 @@ import fs from 'fs/promises';
 import crypto from 'crypto';
 import { decryptDirectory, encryptDirectory } from './crypto.js';
 import { SessionData } from '@server/model/sessionData.js';
+import logger from '@server/logger.js';
 
 export async function isUserData(username: string) {
     try {
@@ -33,7 +34,19 @@ export async function encryptUserData(username: string, masterKey: crypto.webcry
     const { userTmpfsDir, userDataFile } = generateFilePaths(username);
 
     await encryptDirectory(userTmpfsDir, userDataFile, masterKey);
+}
+
+export async function removeTmpfsUserData(username: string) {
+    const { userTmpfsDir } = generateFilePaths(username);
+
     await fs.rm(userTmpfsDir, { recursive: true, force: true });
+}
+
+export function scheduleTmpfsUserDataRemoval(username: string, delay: number) {
+    setTimeout(async () => {
+        removeTmpfsUserData(username);
+        logger.debug(`Tmpfs user data for user ${username} cleaned up`);
+    }, delay);
 }
 
 export async function writeSessionData(data: SessionData) {
@@ -49,12 +62,6 @@ export async function readSessionData(username: string) {
     const sessionData: SessionData = JSON.parse(rawSessionData.toString('utf-8'));
 
     return sessionData;
-}
-
-export async function removeSessionData(username: string) {
-    const { userTmpfsDir } = generateFilePaths(username);
-
-    await fs.rm(`${userTmpfsDir}/session.json`, { force: true });
 }
 
 function generateFilePaths(username: string) {

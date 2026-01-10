@@ -3,8 +3,8 @@ import { decryptWalletAuthToken, verifySessionToken } from '@server/util/crypto.
 import { Request } from 'express';
 import { ObjectId } from '../validation/index.js';
 import UnauthorizedError from '@server/error/unauthorizedError.js';
-import { JWTSessionPayload, SessionData } from '@server/model/sessionData.js';
-import { readSessionData } from '@server/util/userData.js';
+import { SessionData } from '@server/model/sessionData.js';
+import { readSessionData, removeTmpfsUserData } from '@server/util/userData.js';
 import env from '@server/env.js';
 
 export async function useWalletPassword(req: Request, walletId: ObjectId): Promise<string | undefined> {
@@ -34,6 +34,8 @@ export async function useSession(req: Request, throwOnUnauthorized?: boolean): P
 
         const now = Date.now();
         if (now - sessionData.creation > env.sessionExpirationMins * 60 * 1000) {
+            removeTmpfsUserData(username);
+
             throw new UnauthorizedError('Expired session');
         }
 

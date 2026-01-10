@@ -27,7 +27,7 @@ import {
     decryptUserData,
     initUserData,
     isUserData,
-    removeSessionData,
+    scheduleTmpfsUserDataRemoval,
     writeSessionData,
 } from '@server/util/userData.js';
 import UnauthorizedError from '@server/error/unauthorizedError.js';
@@ -256,6 +256,7 @@ export async function login(username: string, credentialId: string, prf: Uint8Ar
         await writeSessionData(sessionData);
     }
 
+    scheduleTmpfsUserDataRemoval(username, env.sessionExpirationMins * 60 * 1000);
     const token = await createSessionToken(sessionData);
 
     return { user, token, mnemonic };
