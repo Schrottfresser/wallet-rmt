@@ -15,6 +15,7 @@ import {
     generateRegistrationOptions,
     isUsernameAvailable,
     login,
+    logout,
     register,
     verifyAuthenticationResponse,
     verifyRegistrationResponse,
@@ -127,5 +128,13 @@ userRouter.post(
         });
     }),
 );
+
+userRouter.get('/logout', async (req, res) => {
+    const session = await useSession(req, true);
+    await logout(session.username);
+
+    res.clearCookie(SESSION_COOKIE);
+    res.status(200).send();
+});
 
 export default userRouter;

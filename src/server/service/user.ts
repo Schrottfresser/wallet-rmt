@@ -27,6 +27,7 @@ import {
     decryptUserData,
     initUserData,
     isUserData,
+    removeTmpfsUserData,
     scheduleTmpfsUserDataRemoval,
     writeSessionData,
 } from '@server/util/userData.js';
@@ -285,6 +286,10 @@ export async function addPassphrase(
     await addPrfWrappedMasterKey(username, addCredentialId, addPrf, masterKeyData);
 
     return user;
+}
+
+export async function logout(username: string) {
+    await removeTmpfsUserData(username);
 }
 
 async function setupMnemonicBackupWrappedMasterKey(username: string, masterKey: Uint8Array<ArrayBuffer>) {
