@@ -7,11 +7,7 @@ export interface SessionResponse {
     user?: UserResponse;
 }
 
-export interface RegisterResponse {
-    user: UserResponse;
-}
-
 export interface LoginResponse {
-    user: UserResponse;
+    session: SessionResponse;
     mnemonic?: string;
 }

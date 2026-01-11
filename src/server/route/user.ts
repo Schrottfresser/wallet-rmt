@@ -31,6 +31,7 @@ const userRouter = Router();
 
 userRouter.get('/', async (req, res) => {
     const session = await useSession(req);
+    logger.info(`API - Get session with id "${session?.sid}"`);
 
     res.status(200).json({
         isLoggedIn: !!session,
@@ -66,7 +67,7 @@ userRouter.post(
         }
 
         const { credential } = await verifyRegistrationResponse(data.body.username, data.body.attestationResponse);
-        const user = await register(
+        await register(
             data.body.username,
             {
                 id: credential.id,
@@ -76,11 +77,7 @@ userRouter.post(
             !!session,
         );
 
-        res.status(200).json({
-            user: {
-                username: user.username,
-            },
-        });
+        res.status(200).send();
     }),
 );
 
@@ -123,8 +120,11 @@ userRouter.post(
         });
 
         res.status(200).json({
-            user: {
-                username: user.username,
+            session: {
+                isLoggedIn: true,
+                user: {
+                    username: data.body.username,
+                },
             },
             mnemonic,
         });
@@ -157,8 +157,9 @@ userRouter.post(
         const user = await addPassphrase(session.username, credentialId, prfBuffer, addCredentialId, addPrfBuffer);
 
         res.status(200).json({
+            isLoggedIn: true,
             user: {
-                username: user.username,
+                username: session.username,
             },
         });
     }),
@@ -166,7 +167,7 @@ userRouter.post(
 
 userRouter.get('/logout', async (req, res) => {
     const session = await useSession(req, true);
-    logger.info(`API - Logout user "${session.username}"`);
+    logger.info(`API - Logout user "${session.username}" and invalidate session id "${session.sid}"`);
 
     await logout(session.username);
 

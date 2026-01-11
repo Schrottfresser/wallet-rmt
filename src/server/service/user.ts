@@ -95,11 +95,7 @@ export async function verifyRegistrationResponse(username: string, response: Reg
     return registrationInfo;
 }
 
-export async function register(
-    username: string,
-    credential: WebAuthnCredential,
-    addPasskey?: boolean,
-): Promise<UserDoc> {
+export async function register(username: string, credential: WebAuthnCredential, addPasskey?: boolean) {
     let user: UserDoc | null;
     if (addPasskey) {
         user = await User.findOne({ username });
@@ -121,8 +117,6 @@ export async function register(
         },
     });
     await user.save();
-
-    return user;
 }
 
 export async function generateAuthenticationOptions(

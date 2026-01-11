@@ -4,7 +4,7 @@ import {
     PublicKeyCredentialRequestOptionsJSONWithPrf,
 } from '@server/model/webAuthn.js';
 import { base64URLStringToBuffer, startRegistration } from '@simplewebauthn/browser';
-import { RegisterResponse, LoginResponse } from '@server/model/response/user.js';
+import { LoginResponse } from '@server/model/response/user.js';
 
 function useWebAuthn() {
     const generateRegistrationOptions = async (
@@ -22,11 +22,11 @@ function useWebAuthn() {
         return optionsJSON;
     };
 
-    const register = async (username: string): Promise<RegisterResponse> => {
+    const register = async (username: string) => {
         const registrationOptions = await generateRegistrationOptions(username);
         const attestationResponse = await startRegistration({ optionsJSON: registrationOptions });
 
-        const registerResponse = await fetch('/api/user/register', {
+        await fetch('/api/user/register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -36,9 +36,6 @@ function useWebAuthn() {
                 attestationResponse,
             }),
         });
-        const registerJSON = await registerResponse.json();
-
-        return registerJSON;
     };
 
     const generateLoginOptions = async (username: string): Promise<PublicKeyCredentialRequestOptionsJSONWithPrf> => {
