@@ -89,7 +89,11 @@ export async function verifyRegistrationResponse(username: string, response: Reg
     return registrationInfo;
 }
 
-export async function register(username: string, credential: WebAuthnCredential, addPasskey?: boolean) {
+export async function register(
+    username: string,
+    credential: WebAuthnCredential,
+    addPasskey?: boolean,
+): Promise<UserDoc> {
     let user: UserDoc | null;
     if (addPasskey) {
         user = await User.findOne({ username });
@@ -218,7 +222,17 @@ export async function verifyAuthenticationResponse(
     return authenticationInfo;
 }
 
-export async function login(username: string, credentialId: string, prf: Uint8Array<ArrayBuffer>) {
+interface LoginResult {
+    user: UserDoc;
+    token: string;
+    mnemonic?: string;
+}
+
+export async function login(
+    username: string,
+    credentialId: string,
+    prf: Uint8Array<ArrayBuffer>,
+): Promise<LoginResult> {
     const user = await User.findOne({ username });
     if (!user) {
         throw new BadRequestError('User not found');
@@ -269,7 +283,7 @@ export async function addPassphrase(
     prf: Uint8Array<ArrayBuffer>,
     addCredentialId: string,
     addPrf: Uint8Array<ArrayBuffer>,
-) {
+): Promise<UserDoc> {
     const user = await User.findOne({ username });
     if (!user) {
         throw new BadRequestError('User not found');
@@ -292,7 +306,10 @@ export async function logout(username: string) {
     await removeTmpfsUserData(username);
 }
 
-async function setupMnemonicBackupWrappedMasterKey(username: string, masterKey: Uint8Array<ArrayBuffer>) {
+async function setupMnemonicBackupWrappedMasterKey(
+    username: string,
+    masterKey: Uint8Array<ArrayBuffer>,
+): Promise<string> {
     const user = await User.findOne({ username });
     if (!user) {
         throw new BadRequestError('User not found');
