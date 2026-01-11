@@ -56,29 +56,33 @@ class WalletRepository {
     }
 
     private buildCyptoWalletService(wallet: WalletDoc, user: UserDoc): CryptoWalletService | undefined {
-        let walletService: CryptoWalletService;
+        let walletService: CryptoWalletService | undefined = undefined;
         switch (wallet.type) {
             case 'bitcoin':
-                walletService = new BitcoinWalletService(
-                    wallet,
-                    user,
-                    env.bitcoinRpcUrl,
-                    env.bitcoinRpcUser,
-                    env.bitcoinRpcPassword,
-                );
-                break;
+                if (env.bitcoinEnable) {
+                    walletService = new BitcoinWalletService(
+                        wallet,
+                        user,
+                        env.bitcoinRpcUrl,
+                        env.bitcoinRpcUser,
+                        env.bitcoinRpcPassword,
+                    );
+                    break;
+                }
             case 'monero':
-                walletService = new MoneroWalletService(
-                    wallet,
-                    user,
-                    env.moneroWalletRpcUrl,
-                    env.moneroWalletRpcUser,
-                    env.moneroWalletRpcPassword,
-                );
-                break;
-            default:
-                return undefined;
+                if (env.moneroEnable) {
+                    walletService = new MoneroWalletService(
+                        wallet,
+                        user,
+                        env.moneroWalletRpcUrl,
+                        env.moneroWalletRpcUser,
+                        env.moneroWalletRpcPassword,
+                    );
+                    break;
+                }
         }
+
+        return walletService;
     }
 }
 
