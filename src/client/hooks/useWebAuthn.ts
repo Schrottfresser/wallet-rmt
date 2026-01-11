@@ -1,13 +1,15 @@
 import { startAuthenticationWithPRF } from '@client/helpers/webAuthn.js';
 import {
-    base64URLStringToBuffer,
-    RegistrationResponseJSON,
-    AuthenticationResponseJSON,
-    startRegistration,
-} from '@simplewebauthn/browser';
+    PublicKeyCredentialCreationOptionsJSONWithPrf,
+    PublicKeyCredentialRequestOptionsJSONWithPrf,
+} from '@server/model/webAuthn.js';
+import { base64URLStringToBuffer, startRegistration } from '@simplewebauthn/browser';
+import { RegisterResponse, LoginResponse } from '@server/model/response/user.js';
 
 function useWebAuthn() {
-    const getRegistrationOptions = async (username: string) => {
+    const generateRegistrationOptions = async (
+        username: string,
+    ): Promise<PublicKeyCredentialCreationOptionsJSONWithPrf> => {
         const optionsResponse = await fetch('/api/user/register/options', {
             method: 'POST',
             headers: {
@@ -20,11 +22,11 @@ function useWebAuthn() {
         return optionsJSON;
     };
 
-    const register = async (username: string): Promise<RegistrationResponseJSON> => {
-        const registrationOptions = await getRegistrationOptions(username);
+    const register = async (username: string): Promise<RegisterResponse> => {
+        const registrationOptions = await generateRegistrationOptions(username);
         const attestationResponse = await startRegistration({ optionsJSON: registrationOptions });
 
-        const verificationResponse = await fetch('/api/user/register', {
+        const registerResponse = await fetch('/api/user/register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -34,12 +36,12 @@ function useWebAuthn() {
                 attestationResponse,
             }),
         });
-        const verificationJSON = await verificationResponse.json();
+        const registerJSON = await registerResponse.json();
 
-        return verificationJSON;
+        return registerJSON;
     };
 
-    const getLoginOptions = async (username: string) => {
+    const generateLoginOptions = async (username: string): Promise<PublicKeyCredentialRequestOptionsJSONWithPrf> => {
         const optionsResponse = await fetch('/api/user/login/options', {
             method: 'POST',
             headers: {
@@ -53,8 +55,8 @@ function useWebAuthn() {
         return optionsJSON;
     };
 
-    const login = async (username: string): Promise<AuthenticationResponseJSON> => {
-        const loginOptions = await getLoginOptions(username);
+    const login = async (username: string): Promise<LoginResponse> => {
+        const loginOptions = await generateLoginOptions(username);
         const attestationResponse = await startAuthenticationWithPRF(loginOptions);
 
         const loginResponse = await fetch('/api/user/login', {
@@ -72,15 +74,15 @@ function useWebAuthn() {
         return loginJSON;
     };
 
-    const addPasskey = async (username: string) => {
-        const verificationLoginOptions = await getLoginOptions(username);
+    const addPasskey = async (username: string): Promise<LoginResponse> => {
+        const verificationLoginOptions = await generateLoginOptions(username);
         await register(username);
 
         const verificationAttestationResponse = await startAuthenticationWithPRF(verificationLoginOptions);
-        const newLoginOptions = await getLoginOptions(username);
+        const newLoginOptions = await generateLoginOptions(username);
         const newAttestationResponse = await startAuthenticationWithPRF(newLoginOptions);
 
-        await fetch('/api/user/passphrase', {
+        const addPasskeyResponse = await fetch('/api/user/passphrase', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -90,6 +92,9 @@ function useWebAuthn() {
                 newAttestationResponse,
             }),
         });
+        const addPasskeyJSON = await addPasskeyResponse.json();
+
+        return addPasskeyJSON;
     };
 
     return { register, login, addPasskey };

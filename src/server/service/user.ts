@@ -32,6 +32,10 @@ import {
     writeSessionData,
 } from '@server/util/userData.js';
 import UnauthorizedError from '@server/error/unauthorizedError.js';
+import {
+    PublicKeyCredentialCreationOptionsJSONWithPrf,
+    PublicKeyCredentialRequestOptionsJSONWithPrf,
+} from '@server/model/webAuthn.js';
 
 export async function isUsernameAvailable(username: string) {
     const user = await User.find({ username });
@@ -39,7 +43,9 @@ export async function isUsernameAvailable(username: string) {
     return !!user;
 }
 
-export async function generateRegistrationOptions(username: string) {
+export async function generateRegistrationOptions(
+    username: string,
+): Promise<PublicKeyCredentialCreationOptionsJSONWithPrf> {
     const optionsWebAuthn = await generateRegistrationOptionsWebAuthn({
         rpName: env.appName,
         rpID: APP_URL,
@@ -123,7 +129,7 @@ export async function generateAuthenticationOptions(
     username: string,
     challengePurpose: WebAuthnChallengePurpose,
     allowCredentialId?: string,
-) {
+): Promise<PublicKeyCredentialRequestOptionsJSONWithPrf> {
     const user = await User.findOne({ username });
     if (!user) {
         throw new BadRequestError('User not found');
@@ -222,17 +228,7 @@ export async function verifyAuthenticationResponse(
     return authenticationInfo;
 }
 
-interface LoginResult {
-    user: UserDoc;
-    token: string;
-    mnemonic?: string;
-}
-
-export async function login(
-    username: string,
-    credentialId: string,
-    prf: Uint8Array<ArrayBuffer>,
-): Promise<LoginResult> {
+export async function login(username: string, credentialId: string, prf: Uint8Array<ArrayBuffer>) {
     const user = await User.findOne({ username });
     if (!user) {
         throw new BadRequestError('User not found');

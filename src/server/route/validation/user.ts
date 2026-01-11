@@ -10,6 +10,7 @@ const authenticationExtensionsClientOutputsSchema = z.object({
             results: z
                 .object({
                     first: z.string().optional(),
+                    second: z.string().optional(),
                 })
                 .optional(),
         })
