@@ -15,8 +15,6 @@ function useSession() {
     const login = async (username: string) => {
         const response = await webAuthnLogin(username);
 
-        console.log(response.session);
-
         mutate(response.session);
         return response;
     };

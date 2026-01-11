@@ -20,6 +20,7 @@
     "author": "Schrottfresser",
     "license": "MIT",
     "dependencies": {
+        "@heroicons/react": "^2.2.0",
         "@simplewebauthn/browser": "^13.2.2",
         "@simplewebauthn/server": "^13.2.2",
         "bip39": "^3.1.0",
