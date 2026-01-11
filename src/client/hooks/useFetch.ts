@@ -1,5 +1,5 @@
 import apiCache from '@client/apiCache.js';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ErrorResponse } from '@server/model/response/error.js';
 
 export interface FetchError {
@@ -18,21 +18,11 @@ interface State<T> {
 
 const inflight = new Map<string, Promise<any>>();
 
-function useFetch<T>(url: string, method: RESTMethod, ttl?: number) {
+function useFetch<T>(url: string, method: RESTMethod = 'GET', ttl?: number) {
     const [state, setState] = useState<State<T>>({ loading: true });
+    const key = useMemo(() => url, [url]);
 
-    useEffect(() => {
-        const key = url;
-        const cached = apiCache.get(key);
-        if (cached) {
-            setState({
-                data: cached as T,
-                loading: false,
-            });
-
-            return;
-        }
-
+    const refetch = useCallback(() => {
         let promise = inflight.get(key);
         if (!promise) {
             promise = fetch(url, { method, cache: 'no-cache' })
@@ -76,9 +66,24 @@ function useFetch<T>(url: string, method: RESTMethod, ttl?: number) {
                     loading: false,
                 });
             });
-    }, []);
+    }, [url, method, ttl]);
 
-    return state;
+    useEffect(() => {
+        const cached = apiCache.get(key);
+        if (cached) {
+            setState({
+                data: cached as T,
+                loading: false,
+            });
+        } else {
+            refetch();
+        }
+    }, [url]);
+
+    return {
+        ...state,
+        refetch,
+    };
 }
 
 export default useFetch;
