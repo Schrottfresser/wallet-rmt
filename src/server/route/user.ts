@@ -29,6 +29,17 @@ import logger from '@server/logger.js';
 
 const userRouter = Router();
 
+userRouter.get('/', async (req, res) => {
+    const session = await useSession(req);
+
+    res.status(200).json({
+        isLoggedIn: !!session,
+        user: {
+            username: session?.username,
+        },
+    });
+});
+
 userRouter.post(
     '/register/options',
     validatedHandler(registerOptionsSchema, async (data, _req, res) => {
@@ -66,7 +77,9 @@ userRouter.post(
         );
 
         res.status(200).json({
-            username: user.username,
+            user: {
+                username: user.username,
+            },
         });
     }),
 );
@@ -110,7 +123,9 @@ userRouter.post(
         });
 
         res.status(200).json({
-            username: user.username,
+            user: {
+                username: user.username,
+            },
             mnemonic,
         });
     }),
@@ -142,7 +157,9 @@ userRouter.post(
         const user = await addPassphrase(session.username, credentialId, prfBuffer, addCredentialId, addPrfBuffer);
 
         res.status(200).json({
-            username: user.username,
+            user: {
+                username: user.username,
+            },
         });
     }),
 );
