@@ -53,7 +53,7 @@ export async function deriveAESKeyFromPRF(prf: Uint8Array<ArrayBuffer>, salt: Ui
             name: 'HKDF',
             hash: 'SHA-256',
             salt,
-            info: new TextEncoder().encode('prf-key'),
+            info: Buffer.from(new TextEncoder().encode('prf-key')),
         },
         keyMaterial,
         { name: 'AES-GCM', length: 256 },

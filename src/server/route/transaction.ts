@@ -7,16 +7,17 @@ import {
 import BadRequestError from '@server/error/badRequestError.js';
 import walletRepository from '@server/repository/wallet.js';
 import { Router } from 'express';
-import { useWalletPassword } from './hook/auth.js';
+import { useSession, useWalletPassword } from './hook/auth.js';
 
 const transactionRouter = Router();
 
 transactionRouter.get(
     '/',
     validatedHandler(listTransferSchema, async (data, req, res) => {
+        const session = await useSession(req, true);
         const walletPassword = await useWalletPassword(req, data.query.walletId);
 
-        const walletService = await walletRepository.findById(data.query.walletId);
+        const walletService = await walletRepository.findById(data.query.walletId, session.username);
         if (!walletService) {
             throw new BadRequestError('Wallet does not exist');
         }
@@ -30,9 +31,10 @@ transactionRouter.get(
 transactionRouter.post(
     '/',
     validatedHandler(sendTransferSchema, async (data, req, res) => {
+        const session = await useSession(req, true);
         const walletPassword = await useWalletPassword(req, data.query.walletId);
 
-        const walletService = await walletRepository.findById(data.query.walletId);
+        const walletService = await walletRepository.findById(data.query.walletId, session.username);
         if (!walletService) {
             throw new BadRequestError('Wallet does not exist');
         }
@@ -52,9 +54,10 @@ transactionRouter.post(
 transactionRouter.get(
     '/:transferId',
     validatedHandler(retrieveWalletTransferSchema, async (data, req, res) => {
+        const session = await useSession(req, true);
         const walletPassword = await useWalletPassword(req, data.query.walletId);
 
-        const walletService = await walletRepository.findById(data.query.walletId);
+        const walletService = await walletRepository.findById(data.query.walletId, session.username);
         if (!walletService) {
             throw new BadRequestError('Wallet does not exist');
         }
