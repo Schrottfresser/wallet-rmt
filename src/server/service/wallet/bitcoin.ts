@@ -6,13 +6,14 @@ import GetTransferResult from '@server/model/currency/getTransferResult.js';
 import TransferPriority from '@server/model/currency/transferPriority.js';
 import { WalletDoc, WalletType } from '@server/model/mongoose/wallet.js';
 import PQueue from 'p-queue';
+import { UserDoc } from '@server/model/mongoose/user.js';
 
 export default class BitcoinWalletService extends CryptoWalletService {
     private rpc: BitcoinRPC;
     private queue: PQueue;
 
-    constructor(wallet: WalletDoc, url: string, username?: string, password?: string) {
-        super(wallet);
+    constructor(wallet: WalletDoc, user: UserDoc, url: string, username?: string, password?: string) {
+        super(wallet, user);
 
         this.rpc = new BitcoinRPC(url, username, password);
         this.queue = new PQueue({ concurrency: 5 });
@@ -122,14 +123,15 @@ export default class BitcoinWalletService extends CryptoWalletService {
     }
 
     protected async createWallet(password?: string) {
-        const remoteName = this.wallet.remoteName;
-
-        const allWallets = await this.rpc.listwalletdir();
-        if (allWallets.find((wallet) => wallet.name === remoteName)) {
-            await this.open(password);
-        } else {
-            await this.rpc.createwallet(remoteName, password);
-        }
+        return this.queue.add(async () => {
+            const remoteName = this.wallet.remoteName;
+            const allWallets = await this.rpc.listwalletdir();
+            if (allWallets.find((wallet) => wallet.name === remoteName)) {
+                await this.open(password);
+            } else {
+                await this.rpc.createwallet(remoteName, password);
+            }
+        });
     }
 
     private async open(password?: string) {

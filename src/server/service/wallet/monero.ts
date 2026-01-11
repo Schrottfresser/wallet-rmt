@@ -6,13 +6,14 @@ import GetTransferResult from '@server/model/currency/getTransferResult.js';
 import TransferPriority from '@server/model/currency/transferPriority.js';
 import { WalletDoc, WalletType } from '@server/model/mongoose/wallet.js';
 import PQueue from 'p-queue';
+import { UserDoc } from '@server/model/mongoose/user.js';
 
 export default class MoneroWalletService extends CryptoWalletService {
     private rpc: MoneroWalletRPC;
     private queue: PQueue;
 
-    constructor(wallet: WalletDoc, url: string, username?: string, password?: string) {
-        super(wallet);
+    constructor(wallet: WalletDoc, user: UserDoc, url: string, username?: string, password?: string) {
+        super(wallet, user);
 
         this.rpc = new MoneroWalletRPC(url, username, password);
         this.queue = new PQueue({ concurrency: 1 });

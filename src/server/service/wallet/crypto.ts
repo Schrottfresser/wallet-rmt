@@ -3,12 +3,18 @@ import GetBalanceResult from '@server/model/currency/getBalanceResult.js';
 import GetTransferResult from '@server/model/currency/getTransferResult.js';
 import TransferPriority from '@server/model/currency/transferPriority.js';
 import { WalletDoc, WalletType } from '@server/model/mongoose/wallet.js';
+import { UserDoc } from '@server/model/mongoose/user.js';
 
 export default abstract class CryptoWalletService {
     protected wallet: WalletDoc;
+    protected user: UserDoc;
 
-    constructor(wallet: WalletDoc) {
+    constructor(wallet: WalletDoc, user: UserDoc) {
         this.wallet = wallet;
+        this.user = user;
+
+        this.user.wallets.push(this.wallet);
+        this.user.save();
 
         this.createWallet();
     }
@@ -19,6 +25,14 @@ export default abstract class CryptoWalletService {
      */
     public getWalletId(): ObjectId {
         return this.wallet._id;
+    }
+
+    /**
+     * Gets the related user name
+     * @returns the user name
+     */
+    public getUsername(): string {
+        return this.user.username;
     }
 
     /**

@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { IUser } from './user.js';
 
 export type WalletType = 'bitcoin' | 'monero';
 
@@ -31,7 +32,6 @@ export const walletSchema = new mongoose.Schema<IWallet>({
     addresses: {
         type: [String],
         default: [],
-        required: true,
     },
     balance: Number,
     untrustedBalance: Number,

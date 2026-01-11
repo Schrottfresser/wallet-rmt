@@ -13,7 +13,8 @@ import { Router } from 'express';
 import { createWalletAuthToken, decryptWalletAuthToken } from '@server/util/crypto.js';
 import { WALLET_AUTH_COOKIE } from '@server/constant/cookie.js';
 import env from '@server/env.js';
-import { useWalletPassword } from './hook/auth.js';
+import { useSession, useWalletPassword } from './hook/auth.js';
+import InternalServerError from '@server/error/internalServerError.js';
 
 const walletRouter = Router();
 
@@ -25,18 +26,26 @@ walletRouter.get('/', async (_req, res) => {
 
 walletRouter.post(
     '/',
-    validatedHandler(createWalletSchema, async (data, _req, res) => {
-        const walletService = await walletRepository.create({
-            name: data.body.name,
-            type: data.body.type,
-            remoteName: data.body.remoteName,
-            addresses: [],
-        });
+    validatedHandler(createWalletSchema, async (data, req, res) => {
+        const session = await useSession(req, true);
+
+        const walletService = await walletRepository.create(
+            {
+                name: data.body.name,
+                type: data.body.type,
+                remoteName: data.body.remoteName,
+                addresses: [],
+            },
+            session.username,
+        );
         if (!walletService) {
-            throw new BadRequestError('Remote does not exist');
+            throw new BadRequestError('Wallet type does not exist');
         }
 
-        const wallet = Wallet.findById(walletService.getWalletId());
+        const wallet = await Wallet.findById(walletService.getWalletId());
+        if (!wallet) {
+            throw new InternalServerError('Creating the wallet failed');
+        }
 
         res.status(201).json(wallet);
     }),
@@ -44,8 +53,14 @@ walletRouter.post(
 
 walletRouter.get(
     '/:walletId',
-    validatedHandler(retrieveWalletSchema, async (data, _req, res) => {
+    validatedHandler(retrieveWalletSchema, async (data, req, res) => {
+        const session = await useSession(req, true);
+
+        const walletService = await walletRepository.findById(data.params.walletId, session.username);
         const wallet = await Wallet.findById(data.params.walletId);
+        if (!walletService || !wallet) {
+            throw new BadRequestError('Wallet not found');
+        }
 
         res.status(200).json(wallet);
     }),
@@ -103,10 +118,12 @@ walletRouter.post(
 
 walletRouter.post(
     '/:walletId/password',
-    validatedHandler(changeWalletPasswordSchema, async (data, _req, res) => {
-        const walletService = await walletRepository.findById(data.params.walletId);
+    validatedHandler(changeWalletPasswordSchema, async (data, req, res) => {
+        const session = await useSession(req, true);
+
+        const walletService = await walletRepository.findById(data.params.walletId, session.username);
         if (!walletService) {
-            throw new BadRequestError('Wallet does not exist');
+            throw new BadRequestError('Wallet not found');
         }
 
         await walletService.changePassword(data.body.newPassword, data.body.oldPassword);
@@ -118,11 +135,12 @@ walletRouter.post(
 walletRouter.get(
     '/:walletId/address',
     validatedHandler(createWalletAddressSchema, async (data, req, res) => {
+        const session = await useSession(req, true);
         const walletPassword = await useWalletPassword(req, data.params.walletId);
 
-        const walletService = await walletRepository.findById(data.params.walletId);
+        const walletService = await walletRepository.findById(data.params.walletId, session.username);
         if (!walletService) {
-            throw new BadRequestError('Wallet does not exist');
+            throw new BadRequestError('Wallet not found');
         }
 
         const newAddress = await walletService.createAddress(walletPassword);
