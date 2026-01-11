@@ -95,10 +95,12 @@ userRouter.post(
         await verifyAuthenticationResponse(data.body.username, data.body.attestationResponse, 'auth-existing');
 
         const credentialId = data.body.attestationResponse.id;
-        const prf = Buffer.from(
-            base64URLStringToBuffer(data.body.attestationResponse.clientExtensionResults.prf.results.first),
-        );
-        const { user, token, mnemonic } = await login(data.body.username, credentialId, prf);
+        const prf = data.body.attestationResponse.clientExtensionResults.prf?.results?.first;
+        if (!prf) {
+            throw new BadRequestError('PRF required');
+        }
+        const prfBuffer = Buffer.from(base64URLStringToBuffer(prf));
+        const { user, token, mnemonic } = await login(data.body.username, credentialId, prfBuffer);
 
         res.cookie(SESSION_COOKIE, token, {
             httpOnly: true,
@@ -124,14 +126,20 @@ userRouter.post(
         await verifyAuthenticationResponse(session.username, data.body.attestationResponse, 'auth-existing');
 
         const credentialId = data.body.attestationResponse.id;
-        const prf = Buffer.from(
-            base64URLStringToBuffer(data.body.attestationResponse.clientExtensionResults.prf.results.first),
-        );
+        const prf = data.body.attestationResponse.clientExtensionResults.prf?.results?.first;
+        if (!prf) {
+            throw new BadRequestError('PRF required');
+        }
+        const prfBuffer = Buffer.from(base64URLStringToBuffer(prf));
+
         const addCredentialId = data.body.newAttestationResponse.id;
-        const addPrf = Buffer.from(
-            base64URLStringToBuffer(data.body.newAttestationResponse.clientExtensionResults.prf.results.first),
-        );
-        const user = await addPassphrase(session.username, credentialId, prf, addCredentialId, addPrf);
+        const addPrf = data.body.newAttestationResponse.clientExtensionResults.prf?.results?.first;
+        if (!addPrf) {
+            throw new BadRequestError('PRF required');
+        }
+        const addPrfBuffer = Buffer.from(base64URLStringToBuffer(addPrf));
+
+        const user = await addPassphrase(session.username, credentialId, prfBuffer, addCredentialId, addPrfBuffer);
 
         res.status(200).json({
             username: user.username,
