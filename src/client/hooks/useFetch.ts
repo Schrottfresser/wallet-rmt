@@ -8,28 +8,24 @@ export interface FetchError {
     body?: ErrorResponse;
 }
 
-type RESTMethod = 'GET' | 'POST' | 'DELETE';
-
 interface State<T> {
     data?: T;
     error?: FetchError;
     loading: boolean;
 }
 
-const inflight = new Map<string, Promise<any>>();
+const inflight = new Map<string, Promise<unknown>>();
 
-function useFetch<T>(url: string, method: RESTMethod = 'GET', ttl?: number) {
+function useFetch<T>(url: string, ttl?: number) {
     const [state, setState] = useState<State<T>>({ loading: true });
     const key = useMemo(() => url, [url]);
 
     const refetch = useCallback(() => {
         let promise = inflight.get(key);
         if (!promise) {
-            promise = fetch(url, { method, cache: 'no-cache' })
+            promise = fetch(url, { cache: 'no-cache' })
                 .then(async (res) => {
-                    const json = await res.json().catch((error) => {
-                        throw error;
-                    });
+                    const json = await res.json();
 
                     if (!res.ok) {
                         const error: FetchError = {
@@ -50,9 +46,9 @@ function useFetch<T>(url: string, method: RESTMethod = 'GET', ttl?: number) {
         }
 
         promise
-            .then((data: T) => {
+            .then((data) => {
                 setState({
-                    data,
+                    data: data as T,
                     loading: false,
                 });
             })
@@ -66,7 +62,7 @@ function useFetch<T>(url: string, method: RESTMethod = 'GET', ttl?: number) {
                     loading: false,
                 });
             });
-    }, [url, method, ttl]);
+    }, [url, ttl]);
 
     useEffect(() => {
         const cached = apiCache.get(key);
@@ -78,7 +74,7 @@ function useFetch<T>(url: string, method: RESTMethod = 'GET', ttl?: number) {
         } else {
             refetch();
         }
-    }, [url]);
+    }, [url, refetch]);
 
     return {
         ...state,

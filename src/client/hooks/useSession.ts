@@ -6,28 +6,40 @@ function useSession() {
     const { register: webAuthnRegister, login: webAuthnLogin, addPasskey: webAuthnAddPasskey } = useWebAuthn();
     const session = useFetch<SessionResponse>('/api/user');
 
-    const register = (username: string) => {
-        const response = webAuthnRegister(username);
+    const register = async (username: string) => {
+        const response = await webAuthnRegister(username);
 
         session.refetch();
         return response;
     };
 
-    const login = (username: string) => {
-        const response = webAuthnLogin(username);
+    const login = async (username: string) => {
+        const response = await webAuthnLogin(username);
 
         session.refetch();
         return response;
     };
 
-    const addPasskey = (username: string) => {
-        const response = webAuthnAddPasskey(username);
+    const addPasskey = async () => {
+        const username = session.data?.user?.username;
+        if (!username) return;
+
+        const response = await webAuthnAddPasskey(username);
 
         session.refetch();
         return response;
     };
 
-    return { session, register, login, addPasskey };
+    const logout = async () => {
+        const username = session.data?.user?.username;
+        if (!username) return;
+
+        await fetch('/api/user/logout');
+
+        session.refetch();
+    };
+
+    return { session, register, login, addPasskey, logout };
 }
 
 export default useSession;
