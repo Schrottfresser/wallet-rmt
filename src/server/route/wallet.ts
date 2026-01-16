@@ -13,21 +13,28 @@ import { Router } from 'express';
 import { createWalletAuthToken, decryptWalletAuthToken } from '@server/util/crypto.js';
 import { WALLET_AUTH_COOKIE } from '@server/constant/cookie.js';
 import env from '@server/env.js';
-import { useSession, useWalletPassword } from './hook/auth.js';
+import { useSession, useWalletPassword } from '@server/route/hook/auth.js';
 import InternalServerError from '@server/error/internalServerError.js';
+import User from '@server/model/mongoose/user.js';
+import logger from '@server/logger.js';
 
 const walletRouter = Router();
 
-walletRouter.get('/', async (_req, res) => {
-    const allWallets = await Wallet.find();
+walletRouter.get('/', async (req, res) => {
+    const session = await useSession(req, true);
+    logger.info(`API - Get wallets of user "${session.username}"`);
 
-    res.status(200).json(allWallets);
+    const user = await User.findOne({ username: session.username });
+    const wallets = user?.wallets || [];
+
+    res.status(200).json(wallets);
 });
 
 walletRouter.post(
     '/',
     validatedHandler(createWalletSchema, async (data, req, res) => {
         const session = await useSession(req, true);
+        logger.info(`API - Create wallet "${data.body.name}" for user "${session.username}"`);
 
         const walletService = await walletRepository.create(
             {
@@ -55,6 +62,7 @@ walletRouter.get(
     '/:walletId',
     validatedHandler(retrieveWalletSchema, async (data, req, res) => {
         const session = await useSession(req, true);
+        logger.info(`API - Retrieve wallet "${data.params.walletId}" of user "${session.username}"`);
 
         const walletService = await walletRepository.findById(data.params.walletId, session.username);
         const wallet = await Wallet.findById(data.params.walletId);
@@ -75,18 +83,11 @@ walletRouter.get(
     })
 );*/
 
-/*walletsRouter.get(
-    "/:walletId/refresh",
-    createValidatedHandler(refreshWalletSchema, async (data, _req, res) => {
-        const wallet = await refreshWallet(data.params.walletId);
-
-        res.status(200).json(wallet);
-    })
-);*/
-
 walletRouter.post(
     '/:walletId/unlock',
     validatedHandler(unlockWalletSchema, async (data, req, res) => {
+        logger.info(`API - Unlock wallet "${data.params.walletId}"`);
+
         let passwords: {
             [walletId: string]: string;
         };
@@ -120,6 +121,7 @@ walletRouter.post(
     '/:walletId/password',
     validatedHandler(changeWalletPasswordSchema, async (data, req, res) => {
         const session = await useSession(req, true);
+        logger.info(`API - Change password of wallet "${data.params.walletId}" of user "${session.username}"`);
 
         const walletService = await walletRepository.findById(data.params.walletId, session.username);
         if (!walletService) {
@@ -137,6 +139,7 @@ walletRouter.get(
     validatedHandler(createWalletAddressSchema, async (data, req, res) => {
         const session = await useSession(req, true);
         const walletPassword = await useWalletPassword(req, data.params.walletId);
+        logger.info(`API - Create address for wallet "${data.params.walletId}" of user "${session.username}"`);
 
         const walletService = await walletRepository.findById(data.params.walletId, session.username);
         if (!walletService) {

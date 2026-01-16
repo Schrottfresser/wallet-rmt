@@ -8,6 +8,7 @@ import BadRequestError from '@server/error/badRequestError.js';
 import walletRepository from '@server/repository/wallet.js';
 import { Router } from 'express';
 import { useSession, useWalletPassword } from './hook/auth.js';
+import logger from '@server/logger.js';
 
 const transactionRouter = Router();
 
@@ -16,6 +17,7 @@ transactionRouter.get(
     validatedHandler(listTransferSchema, async (data, req, res) => {
         const session = await useSession(req, true);
         const walletPassword = await useWalletPassword(req, data.query.walletId);
+        logger.info(`API - List transfers of wallet "${data.query.walletId}" of user "${session.username}"`);
 
         const walletService = await walletRepository.findById(data.query.walletId, session.username);
         if (!walletService) {
@@ -33,6 +35,7 @@ transactionRouter.post(
     validatedHandler(sendTransferSchema, async (data, req, res) => {
         const session = await useSession(req, true);
         const walletPassword = await useWalletPassword(req, data.query.walletId);
+        logger.info(`API - Send transfer from wallet "${data.query.walletId}" of user "${session.username}"`);
 
         const walletService = await walletRepository.findById(data.query.walletId, session.username);
         if (!walletService) {
@@ -56,6 +59,9 @@ transactionRouter.get(
     validatedHandler(retrieveWalletTransferSchema, async (data, req, res) => {
         const session = await useSession(req, true);
         const walletPassword = await useWalletPassword(req, data.query.walletId);
+        logger.info(
+            `API - Retrieve transfer "${data.params.transferId}" of wallet "${data.query.walletId}" of user "${session.username}"`,
+        );
 
         const walletService = await walletRepository.findById(data.query.walletId, session.username);
         if (!walletService) {
