@@ -48,7 +48,7 @@ function WalletCreateModal({ isOpen, onClose, username }: Readonly<WalletCreateM
         <Modal isOpen={isOpen} onClose={onClose} title="Create Wallet">
             <Formik initialValues={initialValues} validate={validate} onSubmit={handleSubmit}>
                 {({ isSubmitting }) => (
-                    <Form className="mt-5">
+                    <Form>
                         <div className="flex gap-3 items-center">
                             <label htmlFor="name">Wallet name:</label>
                             <Field type="text" id="name" name="name" className="border-2 rounded-md p-1" />

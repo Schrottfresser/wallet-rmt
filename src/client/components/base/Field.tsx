@@ -1,5 +1,6 @@
 import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import { ErrorMessage, Field as FormikField } from 'formik';
+import { useMemo } from 'react';
 
 interface FieldProps {
     type: string;
@@ -20,7 +21,7 @@ function Field({ type, id, name, placeholder, error }: Readonly<FieldProps>) {
             {error && (
                 <div className="text-red-600 text-sm flex items-center gap-1">
                     <ExclamationCircleIcon className="size-5" />
-                    <ErrorMessage name="username" />
+                    {error}
                 </div>
             )}
         </>
