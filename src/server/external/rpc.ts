@@ -1,4 +1,5 @@
 import InternalServerError from '@server/error/internalServerError.js';
+import logger from '@server/logger.js';
 
 export default class RPC {
     private url: string;
@@ -18,6 +19,8 @@ export default class RPC {
 
     protected async request<T>(method: string, path?: string, params?: unknown[]): Promise<T> {
         const requestUrl = `${this.url}/${path ? path : ''}`;
+        logger.debug(`RPC - ${requestUrl} ${method} with ${params?.length || 0} parameters`);
+
         const response = await fetch(requestUrl, {
             method: 'POST',
             headers: {
@@ -40,9 +43,7 @@ export default class RPC {
         const responseJson = await response.json();
 
         if (responseJson.error) {
-            throw new InternalServerError(
-                `JSON RPC error: ${responseJson.error.code}: ${responseJson.error.message}`,
-            );
+            throw new InternalServerError(`JSON RPC error: ${responseJson.error.code}: ${responseJson.error.message}`);
         }
 
         return responseJson.result;
