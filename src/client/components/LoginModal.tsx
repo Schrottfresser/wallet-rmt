@@ -3,7 +3,7 @@ import Field from '@client/components/base/Field.js';
 import Modal from '@client/components/base/Modal.js';
 import useSession from '@client/hooks/useSession.js';
 import { Form, Formik, FormikErrors } from 'formik';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 interface LoginFormValues {
     username: string;
@@ -22,6 +22,9 @@ function LoginModal({ isOpen, onClose }: Readonly<WalletCreateModalProps>) {
     const { login } = useSession();
 
     const [mnemonic, setMnemonic] = useState<string>();
+    useEffect(() => {
+        setMnemonic(undefined);
+    }, [isOpen]);
 
     const modalSize = mnemonic ? 'large' : 'medium';
     const modalTitle = mnemonic ? 'Welcome to Wallet RMT!' : 'Login';
