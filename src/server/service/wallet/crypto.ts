@@ -15,8 +15,6 @@ export default abstract class CryptoWalletService {
 
         this.user.wallets.push(this.wallet);
         this.user.save();
-
-        this.createWallet();
     }
 
     /**

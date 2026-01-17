@@ -17,6 +17,8 @@ export default class BitcoinWalletService extends CryptoWalletService {
 
         this.rpc = new BitcoinRPC(url, username, password);
         this.queue = new PQueue({ concurrency: 5 });
+
+        this.createWallet();
     }
 
     public getType(): WalletType {

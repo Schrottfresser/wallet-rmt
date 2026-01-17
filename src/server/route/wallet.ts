@@ -14,9 +14,9 @@ import { createWalletAuthToken, decryptWalletAuthToken } from '@server/util/cryp
 import { WALLET_AUTH_COOKIE } from '@server/constant/cookie.js';
 import env from '@server/env.js';
 import { useSession, useWalletPassword } from '@server/route/hook/auth.js';
-import InternalServerError from '@server/error/internalServerError.js';
 import User from '@server/model/mongoose/user.js';
 import logger from '@server/logger.js';
+import { encryptUserData } from '@server/util/userData.js';
 
 const walletRouter = Router();
 
@@ -36,11 +36,12 @@ walletRouter.post(
         const session = await useSession(req, true);
         logger.info(`API - Create wallet "${data.body.name}" for user "${session.username}"`);
 
+        const remoteName = `${session.username}/${data.body.name}`;
         const walletService = await walletRepository.create(
             {
                 name: data.body.name,
                 type: data.body.type,
-                remoteName: data.body.remoteName,
+                remoteName: remoteName,
                 addresses: [],
             },
             session.username,
@@ -49,12 +50,10 @@ walletRouter.post(
             throw new BadRequestError('Wallet type does not exist');
         }
 
-        const wallet = await Wallet.findById(walletService.getWalletId());
-        if (!wallet) {
-            throw new InternalServerError('Creating the wallet failed');
-        }
+        const user = await User.findOne({ username: session.username });
+        const wallets = user?.wallets || [];
 
-        res.status(201).json(wallet);
+        res.status(201).json(wallets);
     }),
 );
 

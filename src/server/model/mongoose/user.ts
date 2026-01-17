@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { IWallet, walletSchema } from './wallet.js';
+import { WalletDoc, walletSchema } from './wallet.js';
 
 type KeySlotType = 'webauthn' | 'mnemonic';
 
@@ -21,7 +21,7 @@ export interface KeySlot {
 export interface IUser {
     username: string;
     keySlots: Map<string, KeySlot>;
-    wallets: IWallet[];
+    wallets: WalletDoc[];
     prfSalt?: Buffer<ArrayBuffer>;
 }
 

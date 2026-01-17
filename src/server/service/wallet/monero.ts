@@ -17,6 +17,8 @@ export default class MoneroWalletService extends CryptoWalletService {
 
         this.rpc = new MoneroWalletRPC(url, username, password);
         this.queue = new PQueue({ concurrency: 1 });
+
+        this.createWallet();
     }
 
     public getType(): WalletType {
