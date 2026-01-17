@@ -5,6 +5,8 @@ import { decryptDirectory, encryptDirectory } from './crypto.js';
 import { SessionData } from '@server/model/sessionData.js';
 import logger from '@server/logger.js';
 
+const tmpfsUserDataRemovals = new Map<string, NodeJS.Timeout>();
+
 export async function isUserData(username: string) {
     try {
         await fs.access(`${env.dataDir}/${username}.enc`);
@@ -43,10 +45,15 @@ export async function removeTmpfsUserData(username: string) {
 }
 
 export function scheduleTmpfsUserDataRemoval(username: string, delay: number) {
-    setTimeout(async () => {
+    const timeout = setTimeout(async () => {
         removeTmpfsUserData(username);
         logger.debug(`Tmpfs user data for user "${username}" cleaned up`);
     }, delay);
+
+    const oldTimeout = tmpfsUserDataRemovals.get(username);
+    clearTimeout(oldTimeout);
+
+    tmpfsUserDataRemovals.set(username, timeout);
 }
 
 export async function writeSessionData(data: SessionData) {
