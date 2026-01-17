@@ -16,6 +16,7 @@ function useSession() {
         const response = await webAuthnLogin(username);
 
         mutate(response.session);
+        return response;
     };
 
     const addPasskey = async () => {

@@ -1,6 +1,6 @@
 import useSession from '@client/hooks/useSession.js';
 import Header from '@client/components/Header.js';
-import WalletTable from '@client/components/WalletTable.js';
+import WalletList from '@client/components/WalletList.js';
 import { useState } from 'react';
 import WalletCreateModal from '@client/components/WalletCreateModal.js';
 import Button from '@client/components/base/Button.js';
@@ -32,6 +32,7 @@ function index() {
                         onClose={() => setWalletCreateModalOpen(false)}
                         username={session.user?.username}
                     />
+                    <WalletList />
                 </>
             )}
         </>

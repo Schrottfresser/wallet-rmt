@@ -63,7 +63,13 @@ function LoginModal({ isOpen, onClose }: Readonly<WalletCreateModalProps>) {
                 <Formik initialValues={initialValues} validate={validate} onSubmit={handleSubmit}>
                     {({ isSubmitting, errors }) => (
                         <Form>
-                            <Field type="text" name="username" error={errors.username} placeholder="Username" />
+                            <Field
+                                type="text"
+                                name="username"
+                                error={errors.username}
+                                placeholder="Username"
+                                autoFocus
+                            />
                             <Button
                                 style="solid"
                                 type="submit"

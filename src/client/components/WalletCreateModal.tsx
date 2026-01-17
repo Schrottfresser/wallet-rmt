@@ -1,9 +1,11 @@
 import Button from '@client/components/base/Button.js';
+import Field from '@client/components/base/Field.js';
 import Modal from '@client/components/base/Modal.js';
 import useWallets from '@client/hooks/useWallets.js';
-import { Dialog, DialogPanel, DialogTitle, Select } from '@headlessui/react';
+import { Select } from '@headlessui/react';
+import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import { WalletType } from '@server/model/mongoose/wallet.js';
-import { ErrorMessage, Field, Form, Formik, FormikErrors } from 'formik';
+import { Form, Formik, FormikErrors } from 'formik';
 import { useCallback } from 'react';
 
 interface WalletCreateFormValues {
@@ -28,7 +30,7 @@ function WalletCreateModal({ isOpen, onClose, username }: Readonly<WalletCreateM
     const validate = useCallback((values: WalletCreateFormValues): FormikErrors<WalletCreateFormValues> => {
         const errors: FormikErrors<WalletCreateFormValues> = {};
         if (!values.name) {
-            errors.name = 'Required';
+            errors.name = 'Wallet name required';
         }
 
         return errors;
@@ -47,20 +49,13 @@ function WalletCreateModal({ isOpen, onClose, username }: Readonly<WalletCreateM
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Create Wallet">
             <Formik initialValues={initialValues} validate={validate} onSubmit={handleSubmit}>
-                {({ isSubmitting }) => (
+                {({ isSubmitting, errors }) => (
                     <Form>
-                        <div className="flex gap-3 items-center">
-                            <label htmlFor="name">Wallet name:</label>
-                            <Field type="text" id="name" name="name" className="border-2 rounded-md p-1" />
-                            <ErrorMessage name="name" component="div" className="text-red-600" />
-                        </div>
-                        <div className="flex gap-3 items-center mt-3">
-                            <label htmlFor="type">Wallet type:</label>
-                            <Select id="type" name="type" className="border-2 rounded-md p-1.5">
-                                <option value="bitcoin">Bitcoin</option>
-                                <option value="monero">Monero</option>
-                            </Select>
-                        </div>
+                        <Field type="text" name="name" error={errors.name} placeholder="Wallet name" autoFocus />
+                        <Select id="type" name="type" className="border-2 rounded-md p-1.5 mt-3">
+                            <option value="bitcoin">Bitcoin</option>
+                            <option value="monero">Monero</option>
+                        </Select>
 
                         <div className="mt-8 flex justify-between">
                             <Button style="hollow" text="Cancel" onClick={onClose} className="w-30" />

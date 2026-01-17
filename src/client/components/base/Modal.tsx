@@ -1,4 +1,4 @@
-import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
+import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 import { PropsWithChildren } from 'react';
 
 type ModalWidth = 'small' | 'medium' | 'large';
@@ -24,21 +24,19 @@ function Modal({ isOpen, onClose, children, title, size = 'medium' }: Readonly<M
             break;
     }
 
-    const modalBaseClasses =
-        'w-full rounded-xl border-2 p-5 backdrop-blur-2xl duration-300 ease-out data-closed:opacity-0';
+    const modalBaseClasses = 'w-full rounded-xl border-2 p-5 bg-white duration-300 ease-out data-closed:opacity-0';
     const modalClasses = [modalBaseClasses, modalWidthClasses].join(' ');
 
     return (
         <Dialog open={!!isOpen} onClose={onClose} className="relative z-50">
-            <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
-                <div className="flex min-h-full items-center justify-center p-4">
-                    <DialogPanel transition className={modalClasses}>
-                        <DialogTitle as="h3" className="font-bold text-xl mb-5">
-                            {title}
-                        </DialogTitle>
-                        {children}
-                    </DialogPanel>
-                </div>
+            <DialogBackdrop className="fixed inset-0 bg-black/30 duration-300 ease-out data-closed:opacity-0" />
+            <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
+                <DialogPanel transition className={modalClasses}>
+                    <DialogTitle as="h3" className="font-bold text-xl mb-5">
+                        {title}
+                    </DialogTitle>
+                    {children}
+                </DialogPanel>
             </div>
         </Dialog>
     );
