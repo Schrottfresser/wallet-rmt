@@ -2,7 +2,7 @@ import Header from '@client/components/Header.js';
 import useSession from '@client/hooks/useSession.js';
 import { useState } from 'react';
 
-export default function Registration() {
+export default function Register() {
     const { register, login, addPasskey } = useSession();
     const [username, setUsername] = useState('');
 
