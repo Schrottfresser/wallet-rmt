@@ -1,4 +1,5 @@
 import useSession from '@client/hooks/useSession.js';
+import { Button } from '@headlessui/react';
 import { LockClosedIcon, UserCircleIcon, WalletIcon } from '@heroicons/react/24/solid';
 import { useNavigate } from 'react-router';
 
@@ -31,18 +32,18 @@ function Header() {
                 <h1 className="text-3xl">Wallet RMT</h1>
             </a>
             <div className="flex items-center ml-auto text-lg">
-                <button onClick={() => onLoginButtonClick()} className={loginButtonClassName}>
+                <Button onClick={() => onLoginButtonClick()} className={loginButtonClassName}>
                     <UserCircleIcon className="size-8" />
                     {session.isLoggedIn ? session.user?.username : 'Login'}
-                </button>
+                </Button>
                 {session.isLoggedIn && (
-                    <button
+                    <Button
                         onClick={() => logout()}
                         className="flex items-center gap-1 cursor-pointer hover:bg-gray-300 px-2 h-10 border-2 rounded-r-4xl"
                     >
                         <LockClosedIcon className="size-6" />
                         Logout
-                    </button>
+                    </Button>
                 )}
             </div>
         </header>
