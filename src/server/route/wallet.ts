@@ -16,7 +16,9 @@ import env from '@server/env.js';
 import { useSession, useWalletPassword } from '@server/route/hook/auth.js';
 import User from '@server/model/mongoose/user.js';
 import logger from '@server/logger.js';
-import { encryptUserData } from '@server/util/userData.js';
+import { verifyAuthenticationResponse } from '@server/service/user.js';
+import { base64URLStringToBuffer } from '@simplewebauthn/browser';
+import { createWallet } from '@server/service/wallet/index.js';
 
 const walletRouter = Router();
 
@@ -36,22 +38,15 @@ walletRouter.post(
         const session = await useSession(req, true);
         logger.info(`API - Create wallet "${data.body.name}" for user "${session.username}"`);
 
-        const remoteName = `${session.username}/${data.body.name}`;
-        const walletService = await walletRepository.create(
-            {
-                name: data.body.name,
-                type: data.body.type,
-                remoteName: remoteName,
-                addresses: [],
-            },
-            session.username,
-        );
-        if (!walletService) {
-            throw new BadRequestError('Wallet type does not exist');
+        await verifyAuthenticationResponse(session.username, data.body.attestationResponse, 'auth-existing');
+        const credentialId = data.body.attestationResponse.id;
+        const prf = data.body.attestationResponse.clientExtensionResults.prf?.results?.first;
+        if (!prf) {
+            throw new BadRequestError('PRF required');
         }
+        const prfBuffer = Buffer.from(base64URLStringToBuffer(prf));
 
-        const user = await User.findOne({ username: session.username });
-        const wallets = user?.wallets || [];
+        const wallets = await createWallet(data.body.name, data.body.type, session.username, credentialId, prfBuffer);
 
         res.status(201).json(wallets);
     }),

@@ -123,7 +123,7 @@ userRouter.post(
             session: {
                 isLoggedIn: true,
                 user: {
-                    username: data.body.username,
+                    username: user.username,
                 },
             },
             mnemonic,

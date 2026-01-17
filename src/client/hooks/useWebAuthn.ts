@@ -52,9 +52,15 @@ function useWebAuthn() {
         return optionsJSON;
     };
 
-    const login = async (username: string): Promise<LoginResponse> => {
+    const authenticate = async (username: string) => {
         const loginOptions = await generateLoginOptions(username);
         const attestationResponse = await startAuthenticationWithPRF(loginOptions);
+
+        return attestationResponse;
+    };
+
+    const login = async (username: string): Promise<LoginResponse> => {
+        const attestationResponse = await authenticate(username);
 
         const loginResponse = await fetch('/api/user/login', {
             method: 'POST',
@@ -76,8 +82,7 @@ function useWebAuthn() {
         await register(username);
 
         const verificationAttestationResponse = await startAuthenticationWithPRF(verificationLoginOptions);
-        const newLoginOptions = await generateLoginOptions(username);
-        const newAttestationResponse = await startAuthenticationWithPRF(newLoginOptions);
+        const newAttestationResponse = await authenticate(username);
 
         const addPasskeyResponse = await fetch('/api/user/passphrase', {
             method: 'POST',
@@ -94,7 +99,7 @@ function useWebAuthn() {
         return addPasskeyJSON;
     };
 
-    return { register, login, addPasskey };
+    return { register, authenticate, login, addPasskey };
 }
 
 export default useWebAuthn;

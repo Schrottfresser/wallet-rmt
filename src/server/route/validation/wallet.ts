@@ -1,8 +1,10 @@
 import { objectIdSchema } from '@server/route/validation/index.js';
+import { authenticateResponseSchema } from '@server/route/validation/webAuthn.js';
 import z from 'zod';
 
 export const createWalletSchema = z.object({
     body: z.object({
+        attestationResponse: authenticateResponseSchema,
         name: z.string(),
         type: z.enum(['bitcoin', 'monero']),
     }),
