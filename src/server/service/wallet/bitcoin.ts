@@ -63,16 +63,8 @@ export default class BitcoinWalletService extends CryptoWalletService {
         });
     }
 
-    public async transfer(
-        address: string,
-        amount: number,
-        password?: string,
-        priority?: TransferPriority,
-        subtractFee?: boolean,
-    ) {
+    public async transfer(address: string, amount: number, priority?: TransferPriority, subtractFee?: boolean) {
         return this.queue.add(async () => {
-            await this.open(password);
-
             const estimateMode = toEstimateMode(priority);
 
             const result = await this.rpc.sendtoaddress(
@@ -84,7 +76,6 @@ export default class BitcoinWalletService extends CryptoWalletService {
                 estimateMode,
             );
 
-            await this.close();
             return result;
         });
     }
@@ -124,19 +115,7 @@ export default class BitcoinWalletService extends CryptoWalletService {
         });
     }
 
-    protected async createWallet(password?: string) {
-        return this.queue.add(async () => {
-            const remoteName = this.wallet.remoteName;
-            const allWallets = await this.rpc.listwalletdir();
-            if (allWallets.find((wallet) => wallet.name === remoteName)) {
-                await this.open(password);
-            } else {
-                await this.rpc.createwallet(remoteName, password);
-            }
-        });
-    }
-
-    private async open(password?: string) {
+    public async open(password?: string) {
         await this.rpc.loadwallet(this.wallet.remoteName);
 
         if (password) {
@@ -151,11 +130,23 @@ export default class BitcoinWalletService extends CryptoWalletService {
         await this.wallet.save();
     }
 
-    private async close() {
+    public async close() {
         await this.rpc.walletlock(this.wallet.remoteName);
         await this.rpc.unloadwallet(this.wallet.remoteName);
 
         this.wallet.isLoaded = false;
         await this.wallet.save();
+    }
+
+    protected async createWallet(password?: string) {
+        return this.queue.add(async () => {
+            const remoteName = this.wallet.remoteName;
+            const allWallets = await this.rpc.listwalletdir();
+            if (allWallets.find((wallet) => wallet.name === remoteName)) {
+                await this.open(password);
+            } else {
+                await this.rpc.createwallet(remoteName, password);
+            }
+        });
     }
 }
