@@ -1,9 +1,9 @@
 import useApi from '@client/hooks/useApi.js';
 import useWebAuthn from '@client/hooks/useWebAuthn.js';
-import { IWallet, WalletType } from '@server/model/mongoose/wallet.js';
+import { WalletDoc, WalletType } from '@server/model/mongoose/wallet.js';
 
 function useWallets() {
-    const { data, error, isLoading, mutate } = useApi<IWallet[]>('/api/wallet');
+    const { data, error, isLoading, mutate } = useApi<WalletDoc[]>('/api/wallet');
     const { authenticate } = useWebAuthn();
 
     const createWallet = async (name: string, type: WalletType, username: string) => {

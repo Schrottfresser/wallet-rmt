@@ -12,6 +12,7 @@ export interface IWallet {
     blockHeight?: number;
     isLoaded?: boolean;
     isLocked?: boolean;
+    isDirty?: boolean;
 }
 
 export const walletSchema = new mongoose.Schema<IWallet>({
@@ -37,6 +38,7 @@ export const walletSchema = new mongoose.Schema<IWallet>({
     blockHeight: Number,
     isLoaded: Boolean,
     isLocked: Boolean,
+    isDirty: Boolean,
 });
 
 const Wallet = mongoose.model('Wallet', walletSchema);

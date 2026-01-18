@@ -45,6 +45,9 @@ export default class MoneroWalletService extends CryptoWalletService {
 
             const result = await this.rpc.create_address(0);
 
+            this.wallet.addresses.push(result.address);
+            await this.wallet.save();
+
             await this.close();
             return result.address;
         });

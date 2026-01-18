@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import { decryptDirectory, encryptDirectory } from './crypto.js';
 import { SessionData } from '@server/model/sessionData.js';
 import logger from '@server/logger.js';
+import { sleep } from '@server/util/sleep.js';
 
 const tmpfsUserDataRemovals = new Map<string, NodeJS.Timeout>();
 
@@ -32,9 +33,10 @@ export async function decryptUserData(username: string, masterKey: crypto.webcry
     await decryptDirectory(userDataFile, userTmpfsDir, masterKey);
 }
 
-export async function encryptUserData(username: string, masterKey: crypto.webcrypto.CryptoKey) {
+export async function encryptUserDataAfterTimeout(username: string, masterKey: crypto.webcrypto.CryptoKey) {
     const { userTmpfsDir, userDataFile } = generateFilePaths(username);
 
+    await sleep(500); // avoid race conditions
     await encryptDirectory(userTmpfsDir, userDataFile, masterKey);
 }
 
