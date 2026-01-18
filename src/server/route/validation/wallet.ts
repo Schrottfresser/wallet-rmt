@@ -28,11 +28,17 @@ export const refreshWalletSchema = z.object({
     }),
 });
 
-export const unlockWalletSchema = z.object({
+export const openWalletSchema = z.object({
     body: z.object({
         password: z.string(),
     }),
 
+    params: z.object({
+        walletId: objectIdSchema,
+    }),
+});
+
+export const closeWalletSchema = z.object({
     params: z.object({
         walletId: objectIdSchema,
     }),

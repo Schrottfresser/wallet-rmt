@@ -1,24 +1,10 @@
-import { SESSION_COOKIE, WALLET_AUTH_COOKIE } from '@server/constant/cookie.js';
-import { decryptWalletAuthToken, verifySessionToken } from '@server/util/crypto.js';
+import { SESSION_COOKIE } from '@server/constant/cookie.js';
+import { verifySessionToken } from '@server/util/crypto.js';
 import { Request } from 'express';
-import { ObjectId } from '../validation/index.js';
 import UnauthorizedError from '@server/error/unauthorizedError.js';
 import { SessionData } from '@server/model/sessionData.js';
 import { readSessionData, removeTmpfsUserData } from '@server/util/userData.js';
 import env from '@server/env.js';
-
-export async function useWalletPassword(req: Request, walletId: ObjectId): Promise<string | undefined> {
-    const token = req.cookies[WALLET_AUTH_COOKIE];
-
-    try {
-        const payload = await decryptWalletAuthToken(token);
-        const password = payload.passwords[walletId.toString()];
-
-        return password;
-    } catch {
-        return undefined;
-    }
-}
 
 export async function useSession(req: Request, throwOnUnauthorized: true): Promise<SessionData>;
 export async function useSession(req: Request, throwOnUnauthorized?: false): Promise<SessionData | undefined>;

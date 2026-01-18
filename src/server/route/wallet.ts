@@ -4,16 +4,14 @@ import {
     retrieveWalletSchema,
     changeWalletPasswordSchema,
     createWalletAddressSchema,
-    unlockWalletSchema,
+    openWalletSchema,
+    closeWalletSchema,
 } from '@server/route/validation/wallet.js';
 import BadRequestError from '@server/error/badRequestError.js';
 import walletRepository from '@server/repository/wallet.js';
 import Wallet from '@server/model/mongoose/wallet.js';
 import { Router } from 'express';
-import { createWalletAuthToken, decryptWalletAuthToken } from '@server/util/crypto.js';
-import { WALLET_AUTH_COOKIE } from '@server/constant/cookie.js';
-import env from '@server/env.js';
-import { useSession, useWalletPassword } from '@server/route/hook/auth.js';
+import { useSession } from '@server/route/hook/auth.js';
 import User from '@server/model/mongoose/user.js';
 import logger from '@server/logger.js';
 import { verifyAuthenticationResponse } from '@server/service/user.js';
@@ -78,34 +76,34 @@ walletRouter.get(
 );*/
 
 walletRouter.post(
-    '/:walletId/unlock',
-    validatedHandler(unlockWalletSchema, async (data, req, res) => {
-        logger.info(`API - Unlock wallet "${data.params.walletId}"`);
+    '/:walletId/open',
+    validatedHandler(openWalletSchema, async (data, req, res) => {
+        const session = await useSession(req, true);
+        logger.info(`API - Open wallet "${data.params.walletId}"`);
 
-        let passwords: {
-            [walletId: string]: string;
-        };
-
-        try {
-            const oldToken = req.cookies[WALLET_AUTH_COOKIE];
-            passwords = (await decryptWalletAuthToken(oldToken)).passwords;
-        } catch {
-            passwords = {};
+        const walletService = await walletRepository.findById(data.params.walletId, session.username);
+        if (!walletService) {
+            throw new BadRequestError('Wallet not found');
         }
 
-        const walletId = data.params.walletId.toString();
-        passwords[walletId] = data.body.password;
+        await walletService.open(data.body.password);
 
-        const token = await createWalletAuthToken({
-            passwords,
-        });
+        res.status(200).send();
+    }),
+);
 
-        res.cookie(WALLET_AUTH_COOKIE, token, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'strict',
-            maxAge: env.walletAuthExpirationMins * 60 * 1000, // minutes to millis
-        });
+walletRouter.post(
+    '/:walletId/close',
+    validatedHandler(closeWalletSchema, async (data, req, res) => {
+        const session = await useSession(req, true);
+        logger.info(`API - Close wallet "${data.params.walletId}"`);
+
+        const walletService = await walletRepository.findById(data.params.walletId, session.username);
+        if (!walletService) {
+            throw new BadRequestError('Wallet not found');
+        }
+
+        await walletService.close();
 
         res.status(200).send();
     }),
@@ -132,7 +130,6 @@ walletRouter.get(
     '/:walletId/address',
     validatedHandler(createWalletAddressSchema, async (data, req, res) => {
         const session = await useSession(req, true);
-        const walletPassword = await useWalletPassword(req, data.params.walletId);
         logger.info(`API - Create address for wallet "${data.params.walletId}" of user "${session.username}"`);
 
         const walletService = await walletRepository.findById(data.params.walletId, session.username);
@@ -140,7 +137,7 @@ walletRouter.get(
             throw new BadRequestError('Wallet not found');
         }
 
-        const newAddress = await walletService.createAddress(walletPassword);
+        const newAddress = await walletService.createAddress();
 
         res.status(200).send(newAddress);
     }),

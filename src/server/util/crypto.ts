@@ -1,17 +1,13 @@
 import fs from 'fs/promises';
 import env, { APP_URL } from '@server/env.js';
 import logger from '@server/logger.js';
-import WalletAuthPayload from '@server/model/walletAuthPayload.js';
 import { mnemonicToEntropy } from 'bip39';
 import crypto from 'crypto';
-import { EncryptJWT, generateKeyPair, jwtDecrypt, jwtVerify, SignJWT } from 'jose';
+import { generateKeyPair, jwtVerify, SignJWT } from 'jose';
 import path from 'path';
 import { JWTSessionPayload } from '@server/model/sessionData.js';
 
 const { publicKey, privateKey } = await generateKeyPair('EdDSA');
-
-let walletAuthKey = generateWalletAuthKey();
-registerWalletAuthKeyRotate();
 
 export function createSessionToken(payload: JWTSessionPayload) {
     return new SignJWT(payload)
@@ -29,19 +25,6 @@ export async function verifySessionToken(token: string) {
         issuer: APP_URL,
         audience: 'login',
     });
-
-    return payload;
-}
-
-export function createWalletAuthToken(payload: WalletAuthPayload) {
-    return new EncryptJWT(payload)
-        .setProtectedHeader({ alg: 'dir', enc: 'A256GCM' })
-        .setExpirationTime(`${env.walletAuthExpirationMins}m`)
-        .encrypt(walletAuthKey);
-}
-
-export async function decryptWalletAuthToken(token: string): Promise<WalletAuthPayload> {
-    const { payload } = await jwtDecrypt<WalletAuthPayload>(token, walletAuthKey);
 
     return payload;
 }
@@ -155,20 +138,6 @@ export async function decryptDirectory(encryptedFile: string, outputDir: string,
 
         offset += size;
     }
-}
-
-function generateWalletAuthKey() {
-    return crypto.randomBytes(32);
-}
-
-function registerWalletAuthKeyRotate() {
-    setInterval(
-        () => {
-            walletAuthKey = generateWalletAuthKey();
-            logger.info('Rotated AES wallet auth key');
-        },
-        1000 * 60 * 60,
-    ); // every hour
 }
 
 interface CollectedFile {
