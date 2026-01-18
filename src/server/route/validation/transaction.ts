@@ -12,7 +12,7 @@ export const listTransferSchema = z.object({
 export const sendTransferSchema = z.object({
     body: z.object({
         address: z.string(),
-        amount: z.number().positive(),
+        amount: z.bigint().positive(),
         substractFee: z.boolean().optional(),
         replacable: z.boolean().optional(),
         estimateMode: z.enum(['unimportant', 'normal', 'important']).optional(),
@@ -35,7 +35,7 @@ export const retrieveWalletTransferSchema = z.object({
 
 export const setTransactionFeeSchema = z.object({
     body: z.object({
-        fee: z.number().min(0),
+        fee: z.bigint().positive(),
     }),
 
     query: z.object({

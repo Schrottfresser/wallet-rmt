@@ -7,7 +7,7 @@ export interface IWallet {
     type: WalletType;
     remoteName: string;
     addresses: string[];
-    balance?: number;
+    balance?: bigint;
     untrustedBalance?: number;
     blockHeight?: number;
     isLoaded?: boolean;
@@ -33,7 +33,7 @@ export const walletSchema = new mongoose.Schema<IWallet>({
         type: [String],
         default: [],
     },
-    balance: Number,
+    balance: BigInt,
     untrustedBalance: Number,
     blockHeight: Number,
     isLoaded: Boolean,
