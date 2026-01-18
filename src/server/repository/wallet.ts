@@ -27,7 +27,7 @@ class WalletRepository {
             const wallet = await Wallet.findById(id);
             if (!wallet) return undefined;
 
-            cryptoWalletService = this.buildCyptoWalletService(wallet, user);
+            cryptoWalletService = await this.buildCyptoWalletService(wallet, user);
             cryptoWalletService?.setWallet(wallet);
 
             this.cache.set(id, cryptoWalletService);
@@ -44,7 +44,7 @@ class WalletRepository {
 
         const walletModel = await Wallet.create(wallet);
 
-        const cryptoWalletService = this.buildCyptoWalletService(walletModel, user);
+        const cryptoWalletService = await this.buildCyptoWalletService(walletModel, user);
         cryptoWalletService?.setWallet(walletModel);
 
         this.cache.set(walletModel._id, cryptoWalletService);
@@ -55,12 +55,12 @@ class WalletRepository {
         this.cache.delete(id);
     }
 
-    private buildCyptoWalletService(wallet: WalletDoc, user: UserDoc): CryptoWalletService | undefined {
+    private async buildCyptoWalletService(wallet: WalletDoc, user: UserDoc): Promise<CryptoWalletService | undefined> {
         let walletService: CryptoWalletService | undefined = undefined;
         switch (wallet.type) {
             case 'bitcoin':
                 if (env.bitcoinEnable) {
-                    walletService = new BitcoinWalletService(
+                    walletService = await BitcoinWalletService.create(
                         wallet,
                         user,
                         env.bitcoinRpcUrl,
@@ -71,7 +71,7 @@ class WalletRepository {
                 }
             case 'monero':
                 if (env.moneroEnable) {
-                    walletService = new MoneroWalletService(
+                    walletService = await MoneroWalletService.create(
                         wallet,
                         user,
                         env.moneroWalletRpcUrl,

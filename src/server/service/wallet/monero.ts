@@ -12,13 +12,32 @@ export default class MoneroWalletService extends CryptoWalletService {
     private rpc: MoneroWalletRPC;
     private queue: PQueue;
 
-    constructor(wallet: WalletDoc, user: UserDoc, url: string, username?: string, password?: string) {
+    private constructor(wallet: WalletDoc, user: UserDoc, rpc: MoneroWalletRPC, queue: PQueue) {
         super(wallet, user);
 
-        this.rpc = new MoneroWalletRPC(url, username, password);
-        this.queue = new PQueue({ concurrency: 1 });
+        this.rpc = rpc;
+        this.queue = queue;
+    }
 
-        this.createWallet();
+    /**
+     * Create a MoneroWalletService
+     * @param wallet the wallet to create the service of
+     * @param user the owner of the wallet
+     * @param url the url of the RPC to use
+     * @param username the RPC user
+     * @param password the RPC password
+     * @returns the MoneroWalletService
+     */
+    public static async create(wallet: WalletDoc, user: UserDoc, url: string, username?: string, password?: string) {
+        const rpc = new MoneroWalletRPC(url, username, password);
+        const queue = new PQueue({ concurrency: 1 });
+
+        const walletService = new MoneroWalletService(wallet, user, rpc, queue);
+        await queue.add(async () => {
+            await rpc.create_wallet(wallet.remoteName, password);
+        });
+
+        return walletService;
     }
 
     public getType(): WalletType {
@@ -118,12 +137,6 @@ export default class MoneroWalletService extends CryptoWalletService {
 
             this.wallet.isLoaded = false;
             await this.wallet.save();
-        });
-    }
-
-    protected async createWallet(password?: string) {
-        return this.queue.add(async () => {
-            await this.rpc.create_wallet(this.wallet.remoteName, password);
         });
     }
 }

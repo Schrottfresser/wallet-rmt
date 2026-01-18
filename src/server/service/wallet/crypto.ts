@@ -9,7 +9,7 @@ export default abstract class CryptoWalletService {
     protected wallet: WalletDoc;
     protected user: UserDoc;
 
-    constructor(wallet: WalletDoc, user: UserDoc) {
+    protected constructor(wallet: WalletDoc, user: UserDoc) {
         this.wallet = wallet;
         this.user = user;
 
@@ -106,6 +106,4 @@ export default abstract class CryptoWalletService {
      * Closes the wallet
      */
     public abstract close(): Promise<void>;
-
-    protected abstract createWallet(password?: string): Promise<void>;
 }
