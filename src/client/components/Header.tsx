@@ -34,7 +34,7 @@ function Header() {
             <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
             <header className="flex items-center p-4 border-b-2">
                 <a href="/" className="flex items-center gap-4">
-                    <WalletIcon className="size-12" />
+                    <WalletIcon className="size-12 shrink-0" />
                     <h1 className="text-3xl">Wallet RMT</h1>
                 </a>
                 <div className="flex items-center ml-auto text-lg">

@@ -32,7 +32,7 @@ function Modal({ isOpen, onClose, children, title, size = 'medium' }: Readonly<M
             <DialogBackdrop className="fixed inset-0 bg-black/30 duration-300 ease-out data-closed:opacity-0" />
             <div className="fixed inset-0 flex w-screen items-center justify-center p-4">
                 <DialogPanel transition className={modalClasses}>
-                    <DialogTitle as="h3" className="font-bold text-xl mb-5">
+                    <DialogTitle as="h2" className="font-bold text-xl mb-5">
                         {title}
                     </DialogTitle>
                     {children}
