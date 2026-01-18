@@ -47,7 +47,7 @@ function WalletCreateModal({ isOpen, onClose, username }: Readonly<WalletCreateM
     );
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Create Wallet">
+        <Modal isOpen={isOpen} onClose={onClose} title="Create Wallet" size="medium">
             <Formik initialValues={initialValues} validate={validate} onSubmit={handleSubmit}>
                 {({ isSubmitting, errors }) => (
                     <Form>

@@ -14,13 +14,13 @@ function Modal({ isOpen, onClose, children, title, size = 'medium' }: Readonly<M
     let modalWidthClasses: string;
     switch (size) {
         case 'small':
-            modalWidthClasses = 'max-w-1/5';
+            modalWidthClasses = 'sm:max-w-1/2 md:max-w-1/3 lg:max-w-1/4 xl:max-w-1/5';
             break;
         case 'medium':
-            modalWidthClasses = 'max-w-1/4';
+            modalWidthClasses = 'md:max-w-2/3 lg:max-w-1/2 xl:max-w-1/3';
             break;
         case 'large':
-            modalWidthClasses = 'max-w-1/3';
+            modalWidthClasses = 'lg:max-w-4/5 xl:max-w-2/3';
             break;
     }
 

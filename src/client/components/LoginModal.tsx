@@ -26,7 +26,7 @@ function LoginModal({ isOpen, onClose }: Readonly<WalletCreateModalProps>) {
         setMnemonic(undefined);
     }, [isOpen]);
 
-    const modalSize = mnemonic ? 'large' : 'medium';
+    const modalSize = mnemonic ? 'medium' : 'small';
     const modalTitle = mnemonic ? 'Welcome to Wallet RMT!' : 'Login';
 
     const validate = useCallback((values: LoginFormValues): FormikErrors<LoginFormValues> => {
