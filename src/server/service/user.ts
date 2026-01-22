@@ -36,6 +36,7 @@ import {
     PublicKeyCredentialCreationOptionsJSONWithPrf,
     PublicKeyCredentialRequestOptionsJSONWithPrf,
 } from '@server/model/webAuthn.js';
+import walletRepository from '@server/repository/wallet.js';
 
 export async function isUsernameAvailable(username: string) {
     const user = await User.find({ username });
@@ -293,6 +294,13 @@ export async function addPassphrase(
 }
 
 export async function logout(username: string) {
+    const user = await User.findOne({ username });
+    const wallets = user?.wallets || [];
+
+    for (const wallet of wallets) {
+        const walletService = await walletRepository.findById(wallet._id, username);
+        await walletService?.close();
+    }
     await removeTmpfsUserData(username);
 }
 
