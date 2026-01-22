@@ -8,8 +8,8 @@ interface CreateAccountResult {
 interface GetAccountResult {
     subaddress_accounts: {
         account_index: number;
-        balance: number;
-        unlocked_balance: number;
+        balance: bigint;
+        unlocked_balance: bigint;
         base_address: string;
     }[];
     total_balance: number;
@@ -34,8 +34,8 @@ interface GetAddressResult {
 }
 
 interface GetBalanceResult {
-    balance: number;
-    unlocked_balance: number;
+    balance: bigint;
+    unlocked_balance: bigint;
     multisig_import_needed: boolean;
     time_to_unlock: number;
     blocks_to_unlock: number;
@@ -43,8 +43,8 @@ interface GetBalanceResult {
         account_index: number;
         address_index: number;
         address: string;
-        balance: number;
-        unlocked_balance: number;
+        balance: bigint;
+        unlocked_balance: bigint;
         label: string;
         num_unspent_outputs: number;
         time_to_unlock: number;
@@ -53,8 +53,8 @@ interface GetBalanceResult {
 }
 
 interface TransferResult {
-    amount: number;
-    fee: number;
+    amount: bigint;
+    fee: bigint;
     multisig_txset: string;
     tx_hash: string;
     unsigned_txset: string;
@@ -64,16 +64,16 @@ type TransferType = 'in' | 'out' | 'pending' | 'failed' | 'pool';
 
 interface Transfer {
     address: string;
-    amount: number;
+    amount: bigint;
     confirmations: number;
     double_spend_seen: boolean;
-    fee: number;
+    fee: bigint;
     height: number;
     locked: boolean;
     note: string;
     payment_id: string;
     destinations?: {
-        amount: number;
+        amount: bigint;
         address: string;
     }[];
     subaddr_index: {
@@ -146,19 +146,12 @@ export default class MoneroWalletRPC extends RPC {
     }
 
     public async get_address(accountIndex: number, address_index: number[]) {
-        const result = await this.request<GetAddressResult>('get_address', undefined, [
-            accountIndex,
-            address_index,
-        ]);
+        const result = await this.request<GetAddressResult>('get_address', undefined, [accountIndex, address_index]);
 
         return result;
     }
 
-    public async get_balance(
-        accountIndex: number,
-        addressIndices?: number[],
-        allAccounts?: boolean,
-    ) {
+    public async get_balance(accountIndex: number, addressIndices?: number[], allAccounts?: boolean) {
         const result = await this.request<GetBalanceResult>('get_balance', undefined, [
             accountIndex,
             addressIndices,
@@ -219,10 +212,7 @@ export default class MoneroWalletRPC extends RPC {
     }
 
     public async get_transfer_by_txid(txid: string, accountIndex?: number) {
-        const result = await this.request<Transfer>('get_transfer_by_txid', undefined, [
-            txid,
-            accountIndex,
-        ]);
+        const result = await this.request<Transfer>('get_transfer_by_txid', undefined, [txid, accountIndex]);
 
         return result;
     }

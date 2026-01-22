@@ -1,6 +1,6 @@
 interface GetBalanceResult {
-    balance: number;
-    unlockedBalance: number;
+    balance: bigint;
+    unlockedBalance: bigint;
 }
 
 export default GetBalanceResult;

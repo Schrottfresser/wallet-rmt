@@ -1,8 +1,8 @@
 interface GetTransferResult {
     transactionId: string;
     address: string;
-    amount: number;
-    fee: number;
+    amount: bigint;
+    fee: bigint;
     confirmations: number;
     blockHeight: number;
     timestamp: number;
