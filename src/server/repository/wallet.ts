@@ -9,10 +9,10 @@ import { UserDoc } from '@server/model/mongoose/user.js';
 import { useUser } from '@server/route/hook/user.js';
 
 class WalletRepository {
-    private cache: LRUCache<ObjectId, CryptoWalletService>;
+    private cache: LRUCache<string, CryptoWalletService>;
 
     constructor() {
-        this.cache = new LRUCache<ObjectId, CryptoWalletService>({
+        this.cache = new LRUCache<string, CryptoWalletService>({
             max: 10,
             ttl: 1000 * 60 * 60, // 1 hour
         });
@@ -21,16 +21,14 @@ class WalletRepository {
     public async findById(id: ObjectId, username: string): Promise<CryptoWalletService | undefined> {
         const user = await useUser(username, true);
 
-        let cryptoWalletService = this.cache.get(id);
+        let cryptoWalletService = this.cache.get(id.toString());
 
         if (!cryptoWalletService) {
             const wallet = await Wallet.findById(id);
             if (!wallet) return undefined;
 
             cryptoWalletService = await this.buildCyptoWalletService(wallet, user);
-            cryptoWalletService?.setWallet(wallet);
-
-            this.cache.set(id, cryptoWalletService);
+            this.cache.set(id.toString(), cryptoWalletService);
         }
 
         const walletUsername = cryptoWalletService?.getUsername();
@@ -43,16 +41,17 @@ class WalletRepository {
         const user = await useUser(username, true);
 
         const walletModel = await Wallet.create(wallet);
+        user.wallets.push(walletModel._id);
+        await user.save();
 
         const cryptoWalletService = await this.buildCyptoWalletService(walletModel, user);
-        cryptoWalletService?.setWallet(walletModel);
+        this.cache.set(walletModel._id.toString(), cryptoWalletService);
 
-        this.cache.set(walletModel._id, cryptoWalletService);
         return cryptoWalletService;
     }
 
     public invalidate(id: ObjectId) {
-        this.cache.delete(id);
+        this.cache.delete(id.toString());
     }
 
     private async buildCyptoWalletService(wallet: WalletDoc, user: UserDoc): Promise<CryptoWalletService | undefined> {

@@ -37,10 +37,13 @@ export default class BitcoinWalletService extends CryptoWalletService {
         await queue.add(async () => {
             const remoteName = wallet.remoteName;
             const allWallets = await rpc.listwalletdir();
-            if (allWallets.find((wallet) => wallet.name === remoteName)) {
+            if (allWallets.find((wallet) => wallet.name === remoteName) && !wallet.isLoaded) {
                 await walletService.open(password);
             } else {
                 await rpc.createwallet(remoteName, password);
+                wallet.isLoaded = true;
+
+                await wallet.save();
             }
         });
 

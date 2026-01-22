@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
 
 export type WalletType = 'bitcoin' | 'monero';
 
@@ -42,6 +42,6 @@ export const walletSchema = new mongoose.Schema<IWallet>({
 });
 
 const Wallet = mongoose.model('Wallet', walletSchema);
-export type WalletDoc = InstanceType<typeof Wallet>;
+export type WalletDoc = HydratedDocument<IWallet>;
 
 export default Wallet;

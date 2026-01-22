@@ -9,7 +9,6 @@ import {
 } from '@server/route/validation/wallet.js';
 import BadRequestError from '@server/error/badRequestError.js';
 import walletRepository from '@server/repository/wallet.js';
-import Wallet from '@server/model/mongoose/wallet.js';
 import { Router } from 'express';
 import { useSession } from '@server/route/hook/auth.js';
 import User from '@server/model/mongoose/user.js';
@@ -17,6 +16,7 @@ import logger from '@server/logger.js';
 import { verifyAuthenticationResponse } from '@server/service/user.js';
 import { base64URLStringToBuffer } from '@simplewebauthn/browser';
 import { createWallet } from '@server/service/wallet/index.js';
+import { WalletDoc } from '@server/model/mongoose/wallet.js';
 
 const walletRouter = Router();
 
@@ -24,7 +24,7 @@ walletRouter.get('/', async (req, res) => {
     const session = await useSession(req, true);
     logger.info(`API - Get wallets of user "${session.username}"`);
 
-    const user = await User.findOne({ username: session.username });
+    const user = await User.findOne({ username: session.username }).populate<{ wallets: WalletDoc[] }>('wallets');
     const wallets = user?.wallets || [];
 
     res.status(200).json(wallets);
@@ -57,8 +57,8 @@ walletRouter.get(
         logger.info(`API - Retrieve wallet "${data.params.walletId}" of user "${session.username}"`);
 
         const walletService = await walletRepository.findById(data.params.walletId, session.username);
-        const wallet = await Wallet.findById(data.params.walletId);
-        if (!walletService || !wallet) {
+        const wallet = walletService?.getWallet();
+        if (!wallet) {
             throw new BadRequestError('Wallet not found');
         }
 
@@ -92,7 +92,7 @@ walletRouter.post(
     }),
 );
 
-walletRouter.post(
+walletRouter.get(
     '/:walletId/close',
     validatedHandler(closeWalletSchema, async (data, req, res) => {
         const session = await useSession(req, true);

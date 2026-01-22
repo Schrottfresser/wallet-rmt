@@ -1,4 +1,3 @@
-import { ObjectId } from '@server/route/validation/index.js';
 import GetBalanceResult from '@server/model/currency/getBalanceResult.js';
 import GetTransferResult from '@server/model/currency/getTransferResult.js';
 import TransferPriority from '@server/model/currency/transferPriority.js';
@@ -12,17 +11,14 @@ export default abstract class CryptoWalletService {
     protected constructor(wallet: WalletDoc, user: UserDoc) {
         this.wallet = wallet;
         this.user = user;
-
-        this.user.wallets.push(this.wallet);
-        this.user.save();
     }
 
     /**
-     * Gets the wallet id
-     * @returns the wallet id
+     * Gets the model of the wallet
+     * @returns the wallet model
      */
-    public getWalletId(): ObjectId {
-        return this.wallet._id;
+    public getWallet(): WalletDoc {
+        return this.wallet;
     }
 
     /**
@@ -31,14 +27,6 @@ export default abstract class CryptoWalletService {
      */
     public getUsername(): string {
         return this.user.username;
-    }
-
-    /**
-     * Sets the wallet model to work with
-     * @param wallet the model to set to
-     */
-    public setWallet(wallet: WalletDoc): void {
-        this.wallet = wallet;
     }
 
     /**

@@ -1,5 +1,5 @@
-import mongoose from 'mongoose';
-import { WalletDoc, walletSchema } from './wallet.js';
+import mongoose, { HydratedDocument } from 'mongoose';
+import { ObjectId } from '@server/route/validation/index.js';
 
 type KeySlotType = 'webauthn' | 'mnemonic';
 
@@ -21,7 +21,7 @@ export interface KeySlot {
 export interface IUser {
     username: string;
     keySlots: Map<string, KeySlot>;
-    wallets: WalletDoc[];
+    wallets: ObjectId[];
     prfSalt?: Buffer<ArrayBuffer>;
 }
 
@@ -65,14 +65,16 @@ const userSchema = new mongoose.Schema<IUser>({
         of: keySlotSchema,
         default: {},
     },
-    wallets: {
-        type: [walletSchema],
-        default: [],
-    },
+    wallets: [
+        {
+            type: mongoose.Types.ObjectId,
+            ref: 'Wallet',
+        },
+    ],
     prfSalt: Buffer<ArrayBuffer>,
 });
 
 const User = mongoose.model('User', userSchema);
-export type UserDoc = InstanceType<typeof User>;
+export type UserDoc = HydratedDocument<IUser>;
 
 export default User;
