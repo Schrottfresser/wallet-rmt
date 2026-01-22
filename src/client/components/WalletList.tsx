@@ -12,7 +12,7 @@ import {
     LockOpenIcon,
     PlusIcon,
 } from '@heroicons/react/24/solid';
-import { WalletType } from '@server/model/mongoose/wallet.js';
+import { WalletDoc, WalletType } from '@server/model/mongoose/wallet.js';
 import { useState } from 'react';
 
 const getWalletIcon = (type: WalletType) => {
@@ -26,9 +26,17 @@ const getWalletIcon = (type: WalletType) => {
 
 function WalletList() {
     const { data: session, error: sessionError, isLoading: sessionIsLoading } = useSession();
-    const { data: wallets, error: walletsError, isLoading: walletsIsLoading } = useWallets();
+    const { data: wallets, error: walletsError, isLoading: walletsIsLoading, open, close } = useWallets();
 
     const [walletCreateModalOpen, setWalletCreateModalOpen] = useState<boolean>();
+
+    const handleLockClick = async (wallet: WalletDoc) => {
+        if (wallet.isLoaded) {
+            await close(wallet._id);
+        } else {
+            await open(wallet._id);
+        }
+    };
 
     if (!session || !session.isLoggedIn || !session.user || sessionError || sessionIsLoading) {
         return;
@@ -77,6 +85,7 @@ function WalletList() {
                                     style="solid"
                                     icon={LockIcon}
                                     title={lockButtonTitle}
+                                    onClick={() => handleLockClick(wallet)}
                                     className="text-lg z-10"
                                 />
 

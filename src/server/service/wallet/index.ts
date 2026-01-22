@@ -6,13 +6,24 @@ import walletRepository from '@server/repository/wallet.js';
 import { createMasterKey, deriveAESKeyFromPRF, unwrapMasterKey } from '@server/util/crypto.js';
 import { encryptUserDataAfterTimeout } from '@server/util/userData.js';
 
+export async function retrieveWallets(username: string): Promise<WalletDoc[]> {
+    const user = await User.findOne({ username }).populate<{ wallets: WalletDoc[] }>('wallets');
+    if (!user) {
+        throw new BadRequestError('User not found');
+    }
+
+    const wallets = user.wallets || [];
+
+    return wallets;
+}
+
 export async function createWallet(
     name: string,
     type: WalletType,
     username: string,
     credentialId: string,
     prf: Uint8Array<ArrayBuffer>,
-): Promise<WalletDoc[]> {
+) {
     const user = await User.findOne({ username: username });
     if (!user) {
         throw new BadRequestError('User not found');
@@ -41,7 +52,4 @@ export async function createWallet(
     }
 
     await encryptUserDataAfterTimeout(username, masterKey);
-
-    const wallets = user?.wallets || [];
-    return wallets;
 }

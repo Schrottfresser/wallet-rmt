@@ -11,12 +11,10 @@ import BadRequestError from '@server/error/badRequestError.js';
 import walletRepository from '@server/repository/wallet.js';
 import { Router } from 'express';
 import { useSession } from '@server/route/hook/auth.js';
-import User from '@server/model/mongoose/user.js';
 import logger from '@server/logger.js';
 import { verifyAuthenticationResponse } from '@server/service/user.js';
 import { base64URLStringToBuffer } from '@simplewebauthn/browser';
-import { createWallet } from '@server/service/wallet/index.js';
-import { WalletDoc } from '@server/model/mongoose/wallet.js';
+import { createWallet, retrieveWallets } from '@server/service/wallet/index.js';
 
 const walletRouter = Router();
 
@@ -24,8 +22,7 @@ walletRouter.get('/', async (req, res) => {
     const session = await useSession(req, true);
     logger.info(`API - Get wallets of user "${session.username}"`);
 
-    const user = await User.findOne({ username: session.username }).populate<{ wallets: WalletDoc[] }>('wallets');
-    const wallets = user?.wallets || [];
+    const wallets = await retrieveWallets(session.username);
 
     res.status(200).json(wallets);
 });
@@ -44,7 +41,8 @@ walletRouter.post(
         }
         const prfBuffer = Buffer.from(base64URLStringToBuffer(prf));
 
-        const wallets = await createWallet(data.body.name, data.body.type, session.username, credentialId, prfBuffer);
+        await createWallet(data.body.name, data.body.type, session.username, credentialId, prfBuffer);
+        const wallets = await retrieveWallets(session.username);
 
         res.status(201).json(wallets);
     }),
@@ -87,8 +85,9 @@ walletRouter.post(
         }
 
         await walletService.open(data.body.password);
+        const wallets = await retrieveWallets(session.username);
 
-        res.status(200).send();
+        res.status(200).json(wallets);
     }),
 );
 
@@ -104,8 +103,9 @@ walletRouter.get(
         }
 
         await walletService.close();
+        const wallets = await retrieveWallets(session.username);
 
-        res.status(200).send();
+        res.status(200).json(wallets);
     }),
 );
 

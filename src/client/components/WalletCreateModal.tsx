@@ -25,7 +25,7 @@ interface WalletCreateModalProps {
 }
 
 function WalletCreateModal({ isOpen, onClose, username }: Readonly<WalletCreateModalProps>) {
-    const { createWallet } = useWallets();
+    const { create } = useWallets();
 
     const validate = useCallback((values: WalletCreateFormValues): FormikErrors<WalletCreateFormValues> => {
         const errors: FormikErrors<WalletCreateFormValues> = {};
@@ -38,12 +38,12 @@ function WalletCreateModal({ isOpen, onClose, username }: Readonly<WalletCreateM
 
     const handleSubmit = useCallback(
         async (values: WalletCreateFormValues, { setSubmitting }: { setSubmitting: (submitting: boolean) => void }) => {
-            await createWallet(values.name, values.type, username);
+            await create(values.name, values.type, username);
 
             setSubmitting(false);
             onClose();
         },
-        [createWallet, onClose],
+        [create, onClose],
     );
 
     return (

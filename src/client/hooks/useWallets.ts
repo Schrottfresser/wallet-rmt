@@ -1,15 +1,16 @@
 import useApi from '@client/hooks/useApi.js';
 import useWebAuthn from '@client/hooks/useWebAuthn.js';
 import { WalletDoc, WalletType } from '@server/model/mongoose/wallet.js';
+import { ObjectId } from '@server/route/validation/index.js';
 
 function useWallets() {
     const { data, error, isLoading, mutate } = useApi<WalletDoc[]>('/api/wallet');
     const { authenticate } = useWebAuthn();
 
-    const createWallet = async (name: string, type: WalletType, username: string) => {
+    const create = async (name: string, type: WalletType, username: string) => {
         const attestationResponse = await authenticate(username);
 
-        const createWalletResponse = await fetch('/api/wallet', {
+        const response = await fetch('/api/wallet', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -20,12 +21,34 @@ function useWallets() {
                 attestationResponse,
             }),
         });
-        const createWalletJSON = await createWalletResponse.json();
+        const responseJSON: WalletDoc[] = await response.json();
 
-        mutate(createWalletJSON);
+        mutate(responseJSON, { revalidate: false });
     };
 
-    return { data, error, isLoading, createWallet };
+    const open = async (walletId: ObjectId, password?: string) => {
+        const response = await fetch(`/api/wallet/${walletId}/open`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                password,
+            }),
+        });
+        const responseJSON: WalletDoc[] = await response.json();
+
+        mutate(responseJSON, { revalidate: false });
+    };
+
+    const close = async (walletId: ObjectId) => {
+        const response = await fetch(`/api/wallet/${walletId}/close`);
+        const responseJSON: WalletDoc[] = await response.json();
+
+        mutate(responseJSON, { revalidate: false });
+    };
+
+    return { data, error, isLoading, create, open, close };
 }
 
 export default useWallets;

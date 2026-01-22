@@ -30,7 +30,7 @@ export const refreshWalletSchema = z.object({
 
 export const openWalletSchema = z.object({
     body: z.object({
-        password: z.string(),
+        password: z.string().optional(),
     }),
 
     params: z.object({
