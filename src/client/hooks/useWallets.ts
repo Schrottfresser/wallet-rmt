@@ -1,3 +1,4 @@
+import { parseJSON } from '@client/helpers/json.js';
 import useApi from '@client/hooks/useApi.js';
 import useWebAuthn from '@client/hooks/useWebAuthn.js';
 import { WalletDoc, WalletType } from '@server/model/mongoose/wallet.js';
@@ -21,7 +22,8 @@ function useWallets() {
                 attestationResponse,
             }),
         });
-        const responseJSON: WalletDoc[] = await response.json();
+        const responseText = await response.text();
+        const responseJSON: WalletDoc[] = parseJSON(responseText);
 
         mutate(responseJSON, { revalidate: false });
     };
@@ -36,19 +38,29 @@ function useWallets() {
                 password,
             }),
         });
-        const responseJSON: WalletDoc[] = await response.json();
+        const responseText = await response.text();
+        const responseJSON: WalletDoc[] = parseJSON(responseText);
 
         mutate(responseJSON, { revalidate: false });
     };
 
     const close = async (walletId: ObjectId) => {
         const response = await fetch(`/api/wallet/${walletId}/close`);
-        const responseJSON: WalletDoc[] = await response.json();
+        const responseText = await response.text();
+        const responseJSON: WalletDoc[] = parseJSON(responseText);
 
         mutate(responseJSON, { revalidate: false });
     };
 
-    return { data, error, isLoading, create, open, close };
+    const refresh = async (walletId: ObjectId) => {
+        const response = await fetch(`/api/wallet/${walletId}`);
+        const responseText = await response.text();
+        const responseJSON: WalletDoc[] = parseJSON(responseText);
+
+        mutate(responseJSON, { revalidate: false });
+    };
+
+    return { data, error, isLoading, create, open, close, refresh };
 }
 
 export default useWallets;

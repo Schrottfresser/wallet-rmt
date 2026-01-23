@@ -4,6 +4,7 @@ import MoneroIcon from '@client/components/icons/MoneroIcon.js';
 import WalletCreateModal from '@client/components/WalletCreateModal.js';
 import useSession from '@client/hooks/useSession.js';
 import useWallets from '@client/hooks/useWallets.js';
+import { formatBTC } from '@client/util/currencies.js';
 import { Button as HeadlessButton } from '@headlessui/react';
 import {
     ArrowPathIcon,
@@ -13,6 +14,7 @@ import {
     PlusIcon,
 } from '@heroicons/react/24/solid';
 import { WalletDoc, WalletType } from '@server/model/mongoose/wallet.js';
+import { ObjectId } from '@server/route/validation/index.js';
 import { useState } from 'react';
 
 const getWalletIcon = (type: WalletType) => {
@@ -26,9 +28,13 @@ const getWalletIcon = (type: WalletType) => {
 
 function WalletList() {
     const { data: session, error: sessionError, isLoading: sessionIsLoading } = useSession();
-    const { data: wallets, error: walletsError, isLoading: walletsIsLoading, open, close } = useWallets();
+    const { data: wallets, error: walletsError, isLoading: walletsIsLoading, open, close, refresh } = useWallets();
 
     const [walletCreateModalOpen, setWalletCreateModalOpen] = useState<boolean>();
+
+    const handleRefreshClick = async (walletId: ObjectId) => {
+        await refresh(walletId);
+    };
 
     const handleLockClick = async (wallet: WalletDoc) => {
         if (wallet.isLoaded) {
@@ -62,6 +68,8 @@ function WalletList() {
                         const LockIcon = wallet.isLoaded ? LockOpenIcon : LockClosedIcon;
                         const lockButtonTitle = wallet.isLoaded ? 'Unlock wallet' : 'Lock wallet';
 
+                        const formattedBalance = formatBTC(wallet.balance || 0n);
+
                         return (
                             <li
                                 key={wallet._id.toString()}
@@ -72,13 +80,14 @@ function WalletList() {
                                 <WalletIcon aria-label={wallet.type} className="size-10 shrink-0" />
                                 <span className="font-bold text-lg w-1/2 truncate">{wallet.name}</span>
 
-                                <span className="z-10 cursor-text text-nowrap">0.00000000 BTC</span>
+                                <span className="z-10 cursor-text text-nowrap">{formattedBalance}</span>
 
                                 <Button
                                     style="solid"
                                     icon={ArrowPathIcon}
                                     title="Refresh wallet"
                                     disabled={!wallet.isLoaded}
+                                    onClick={() => handleRefreshClick(wallet._id)}
                                     className="text-lg z-10 ml-auto"
                                 />
                                 <Button

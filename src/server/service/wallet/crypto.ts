@@ -66,7 +66,7 @@ export default abstract class CryptoWalletService {
      */
     public abstract transfer(
         address: string,
-        amount: number,
+        amount: bigint,
         priority?: TransferPriority,
         subtractFee?: boolean,
     ): Promise<string>;

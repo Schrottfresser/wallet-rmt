@@ -20,7 +20,7 @@ const walletRouter = Router();
 
 walletRouter.get('/', async (req, res) => {
     const session = await useSession(req, true);
-    logger.info(`API - Get wallets of user "${session.username}"`);
+    logger.info(`API - Retrieve wallets of user "${session.username}"`);
 
     const wallets = await retrieveWallets(session.username);
 
@@ -42,8 +42,8 @@ walletRouter.post(
         const prfBuffer = Buffer.from(base64URLStringToBuffer(prf));
 
         await createWallet(data.body.name, data.body.type, session.username, credentialId, prfBuffer);
-        const wallets = await retrieveWallets(session.username);
 
+        const wallets = await retrieveWallets(session.username);
         res.status(201).json(wallets);
     }),
 );
@@ -52,15 +52,20 @@ walletRouter.get(
     '/:walletId',
     validatedHandler(retrieveWalletSchema, async (data, req, res) => {
         const session = await useSession(req, true);
-        logger.info(`API - Retrieve wallet "${data.params.walletId}" of user "${session.username}"`);
+        logger.info(`API - Refresh wallet "${data.params.walletId}" of user "${session.username}"`);
 
         const walletService = await walletRepository.findById(data.params.walletId, session.username);
-        const wallet = walletService?.getWallet();
-        if (!wallet) {
+        if (!walletService) {
             throw new BadRequestError('Wallet not found');
         }
 
-        res.status(200).json(wallet);
+        const wallet = walletService.getWallet();
+        const balance = await walletService.getBalance();
+        wallet.balance = balance.unlockedBalance;
+        await wallet.save();
+
+        const wallets = await retrieveWallets(session.username);
+        res.status(200).json(wallets);
     }),
 );
 
@@ -85,8 +90,8 @@ walletRouter.post(
         }
 
         await walletService.open(data.body.password);
-        const wallets = await retrieveWallets(session.username);
 
+        const wallets = await retrieveWallets(session.username);
         res.status(200).json(wallets);
     }),
 );
@@ -103,8 +108,8 @@ walletRouter.get(
         }
 
         await walletService.close();
-        const wallets = await retrieveWallets(session.username);
 
+        const wallets = await retrieveWallets(session.username);
         res.status(200).json(wallets);
     }),
 );
@@ -137,9 +142,10 @@ walletRouter.get(
             throw new BadRequestError('Wallet not found');
         }
 
-        const newAddress = await walletService.createAddress();
+        await walletService.createAddress();
 
-        res.status(200).send(newAddress);
+        const wallets = await retrieveWallets(session.username);
+        res.status(200).send(wallets);
     }),
 );
 
