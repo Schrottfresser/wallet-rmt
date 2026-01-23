@@ -17,16 +17,16 @@ interface ListwalletdirResult {
 
 interface GetbalancesResult {
     mine: {
-        trusted: bigint;
-        untrusted_pending: bigint;
-        immature: bigint;
-        used?: bigint;
+        trusted: number;
+        untrusted_pending: number;
+        immature: number;
+        used?: number;
     };
 
     watchonly?: {
-        trusted: bigint;
-        untrusted_pending: bigint;
-        immature: bigint;
+        trusted: number;
+        untrusted_pending: number;
+        immature: number;
     };
 
     lastprocessedblock: {
@@ -39,10 +39,10 @@ interface ListtransactionsResult {
     involvesWatchonly?: boolean;
     address: string;
     category: TransactionCategory;
-    amount: bigint;
+    amount: number;
     label?: string;
     vout: number;
-    fee: bigint;
+    fee: number;
     confirmations: number;
     generated?: boolean;
     trusted?: boolean;
@@ -60,8 +60,8 @@ interface ListtransactionsResult {
 }
 
 interface GettransactionResult {
-    amount: bigint;
-    fee: bigint;
+    amount: number;
+    fee: number;
     confirmations: number;
     generated?: boolean;
     trusted?: boolean;
@@ -79,10 +79,10 @@ interface GettransactionResult {
         involvesWatchonly: boolean;
         address: string;
         category: TransactionCategory;
-        amount: bigint;
+        amount: number;
         label?: string;
         vout: number;
-        fee: bigint;
+        fee: number;
         abandoned: boolean;
     }[];
     hex: string;

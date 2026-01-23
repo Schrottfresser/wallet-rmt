@@ -26,3 +26,15 @@ export function toPriorityNumber(priority?: TransferPriority): number {
             return 1;
     }
 }
+
+export function toSats(btc: number) {
+    const sats = BigInt(Math.round(btc * 1e8));
+
+    return sats;
+}
+
+export function toBTC(sats: bigint) {
+    const btc = Number(sats) / 1e8;
+
+    return btc;
+}
