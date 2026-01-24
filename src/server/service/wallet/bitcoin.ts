@@ -37,7 +37,7 @@ export default class BitcoinWalletService extends CryptoWalletService {
         await queue.add(async () => {
             const remoteName = wallet.remoteName;
             const allWallets = await rpc.listwalletdir();
-            if (allWallets.find((wallet) => wallet.name === remoteName) && !wallet.isLoaded) {
+            if (allWallets.find((wallet) => wallet.name === remoteName)) {
                 await walletService.open(password);
             } else {
                 await rpc.createwallet(remoteName, password);
@@ -87,8 +87,6 @@ export default class BitcoinWalletService extends CryptoWalletService {
                 balance: toSats(result.mine.untrusted_pending),
                 unlockedBalance: toSats(result.mine.trusted),
             };
-
-            console.log(result);
 
             return response;
         });
@@ -147,6 +145,10 @@ export default class BitcoinWalletService extends CryptoWalletService {
     }
 
     public async open(password?: string) {
+        if (this.wallet.isLoaded) {
+            return;
+        }
+
         await this.rpc.loadwallet(this.wallet.remoteName);
 
         if (password) {
@@ -158,6 +160,10 @@ export default class BitcoinWalletService extends CryptoWalletService {
     }
 
     public async close() {
+        if (!this.wallet.isLoaded) {
+            return;
+        }
+
         await this.rpc.walletlock(this.wallet.remoteName);
         await this.rpc.unloadwallet(this.wallet.remoteName);
 
