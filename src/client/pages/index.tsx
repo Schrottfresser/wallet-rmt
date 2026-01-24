@@ -3,18 +3,18 @@ import Header from '@client/components/Header.js';
 import WalletList from '@client/components/WalletList.js';
 
 function index() {
-    const { data: session, error, isLoading } = useSession();
+    const session = useSession();
 
-    if (isLoading || error || !session) {
+    if (session.isLoading || session.error || !session.data) {
         return;
     }
 
     return (
         <>
             <Header />
-            {session.isLoggedIn && session.user && (
+            {session.data.isLoggedIn && session.data.user && (
                 <>
-                    <WalletList />
+                    <WalletList username={session.data.user.username} />
                 </>
             )}
         </>

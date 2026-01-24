@@ -1,6 +1,6 @@
 import MoneroWalletRPC from '@server/external/moneroWalletRpc.js';
 import CryptoWalletService from '@server/service/wallet/crypto.js';
-import { toPriorityNumber } from '@server/util/currencies.js';
+import { toPriorityNumber } from '@server/util/currency.js';
 import GetBalanceResult from '@server/model/currency/getBalanceResult.js';
 import GetTransferResult from '@server/model/currency/getTransferResult.js';
 import TransferPriority from '@server/model/currency/transferPriority.js';

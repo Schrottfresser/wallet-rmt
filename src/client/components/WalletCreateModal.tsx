@@ -3,7 +3,6 @@ import Field from '@client/components/base/Field.js';
 import Modal from '@client/components/base/Modal.js';
 import useWallets from '@client/hooks/useWallets.js';
 import { Select } from '@headlessui/react';
-import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import { WalletType } from '@server/model/mongoose/wallet.js';
 import { Form, Formik, FormikErrors } from 'formik';
 import { useCallback } from 'react';
@@ -25,7 +24,7 @@ interface WalletCreateModalProps {
 }
 
 function WalletCreateModal({ isOpen, onClose, username }: Readonly<WalletCreateModalProps>) {
-    const { create } = useWallets();
+    const wallets = useWallets();
 
     const validate = useCallback((values: WalletCreateFormValues): FormikErrors<WalletCreateFormValues> => {
         const errors: FormikErrors<WalletCreateFormValues> = {};
@@ -38,12 +37,12 @@ function WalletCreateModal({ isOpen, onClose, username }: Readonly<WalletCreateM
 
     const handleSubmit = useCallback(
         async (values: WalletCreateFormValues, { setSubmitting }: { setSubmitting: (submitting: boolean) => void }) => {
-            await create(values.name, values.type, username);
+            await wallets.create(values.name, values.type, username);
 
             setSubmitting(false);
             onClose();
         },
-        [create, onClose],
+        [wallets.create, onClose],
     );
 
     return (

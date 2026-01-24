@@ -1,6 +1,6 @@
 import BitcoinRPC from '@server/external/bitcoinRpc.js';
 import CryptoWalletService from '@server/service/wallet/crypto.js';
-import { toBTC, toEstimateMode, toSats } from '@server/util/currencies.js';
+import { toBTC, toEstimateMode, toSats } from '@server/util/currency.js';
 import GetBalanceResult from '@server/model/currency/getBalanceResult.js';
 import GetTransferResult from '@server/model/currency/getTransferResult.js';
 import TransferPriority from '@server/model/currency/transferPriority.js';

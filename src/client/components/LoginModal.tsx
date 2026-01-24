@@ -19,7 +19,7 @@ interface WalletCreateModalProps {
 }
 
 function LoginModal({ isOpen, onClose }: Readonly<WalletCreateModalProps>) {
-    const { login } = useSession();
+    const session = useSession();
 
     const [mnemonic, setMnemonic] = useState<string>();
     useEffect(() => {
@@ -40,7 +40,7 @@ function LoginModal({ isOpen, onClose }: Readonly<WalletCreateModalProps>) {
 
     const handleSubmit = useCallback(
         async (values: LoginFormValues, { setSubmitting }: { setSubmitting: (submitting: boolean) => void }) => {
-            const { mnemonic } = await login(values.username);
+            const { mnemonic } = await session.login(values.username);
 
             setSubmitting(false);
             if (!mnemonic) {
@@ -49,7 +49,7 @@ function LoginModal({ isOpen, onClose }: Readonly<WalletCreateModalProps>) {
 
             setMnemonic(mnemonic);
         },
-        [login],
+        [session.login],
     );
 
     return (

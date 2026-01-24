@@ -6,17 +6,17 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 
 function Header() {
-    const { data: session, error, isLoading, logout } = useSession();
+    const session = useSession();
     const navigate = useNavigate();
 
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
-    if (isLoading || error || !session) {
+    if (session.isLoading || session.error || !session.data) {
         return;
     }
 
     const onLoginButtonClick = async () => {
-        if (session.isLoggedIn) {
+        if (session.data?.isLoggedIn) {
             navigate('/user');
         } else {
             setIsLoginModalOpen(true);
@@ -27,7 +27,7 @@ function Header() {
     const loggedInButtonClassName = 'border-y-2 border-l-2 rounded-l-4xl';
     const loggedOutButtonClassName = 'border-2 rounded-4xl';
     const loginButtonClassName =
-        commonButtonClassName + (session.isLoggedIn ? loggedInButtonClassName : loggedOutButtonClassName);
+        commonButtonClassName + (session.data.isLoggedIn ? loggedInButtonClassName : loggedOutButtonClassName);
 
     return (
         <>
@@ -40,11 +40,11 @@ function Header() {
                 <div className="flex items-center ml-auto text-lg">
                     <Button onClick={() => onLoginButtonClick()} className={loginButtonClassName}>
                         <UserCircleIcon className="size-8" />
-                        {session.isLoggedIn ? session.user?.username : 'Login'}
+                        {session.data.isLoggedIn ? session.data.user?.username : 'Login'}
                     </Button>
-                    {session.isLoggedIn && (
+                    {session.data.isLoggedIn && (
                         <Button
-                            onClick={() => logout()}
+                            onClick={() => session.logout()}
                             className="flex items-center gap-1 cursor-pointer hover:bg-gray-300 px-2 h-10 border-2 rounded-r-4xl"
                         >
                             <LockClosedIcon className="size-6" />
