@@ -5,51 +5,36 @@ import {
 } from '@server/model/webAuthn.js';
 import { base64URLStringToBuffer, startRegistration } from '@simplewebauthn/browser';
 import { LoginResponse } from '@server/model/response/user.js';
+import fetcher from '@client/helpers/fetcher.js';
 
 function useWebAuthn() {
     const generateRegistrationOptions = async (
         username: string,
     ): Promise<PublicKeyCredentialCreationOptionsJSONWithPrf> => {
-        const optionsResponse = await fetch('/api/user/register/options', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username }),
-        });
-        const optionsJSON = await optionsResponse.json();
+        const response = await fetcher<PublicKeyCredentialCreationOptionsJSONWithPrf>(
+            '/api/user/register/options',
+            'POST',
+            { username },
+        );
 
-        return optionsJSON;
+        return response;
     };
 
     const register = async (username: string) => {
         const registrationOptions = await generateRegistrationOptions(username);
         const attestationResponse = await startRegistration({ optionsJSON: registrationOptions });
 
-        await fetch('/api/user/register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                username,
-                attestationResponse,
-            }),
+        await fetcher('/api/user/register', 'POST', {
+            username,
+            attestationResponse,
         });
     };
 
     const generateLoginOptions = async (username: string): Promise<PublicKeyCredentialRequestOptionsJSONWithPrf> => {
-        const optionsResponse = await fetch('/api/user/login/options', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username }),
-        });
-        const optionsJSON = await optionsResponse.json();
-        optionsJSON.extensions.prf.eval.first = base64URLStringToBuffer(optionsJSON.extensions.prf.eval.first);
+        const options = await fetcher<any>('/api/user/login/options', 'POST', { username });
+        options.extensions.prf.eval.first = base64URLStringToBuffer(options.extensions.prf.eval.first);
 
-        return optionsJSON;
+        return options;
     };
 
     const authenticate = async (username: string) => {
@@ -62,19 +47,12 @@ function useWebAuthn() {
     const login = async (username: string): Promise<LoginResponse> => {
         const attestationResponse = await authenticate(username);
 
-        const loginResponse = await fetch('/api/user/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                username,
-                attestationResponse,
-            }),
+        const loginResponse = await fetcher<LoginResponse>('/api/user/login', 'POST', {
+            username,
+            attestationResponse,
         });
-        const loginJSON = await loginResponse.json();
 
-        return loginJSON;
+        return loginResponse;
     };
 
     const addPasskey = async (username: string): Promise<LoginResponse> => {
@@ -84,19 +62,12 @@ function useWebAuthn() {
         const verificationAttestationResponse = await startAuthenticationWithPRF(verificationLoginOptions);
         const newAttestationResponse = await authenticate(username);
 
-        const addPasskeyResponse = await fetch('/api/user/passphrase', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                attestationResponse: verificationAttestationResponse,
-                newAttestationResponse,
-            }),
+        const addPasskeyResponse = await fetcher<LoginResponse>('/api/user/passphrase', 'POST', {
+            attestationResponse: verificationAttestationResponse,
+            newAttestationResponse,
         });
-        const addPasskeyJSON = await addPasskeyResponse.json();
 
-        return addPasskeyJSON;
+        return addPasskeyResponse;
     };
 
     return { register, authenticate, login, addPasskey };
