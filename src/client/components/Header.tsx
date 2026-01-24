@@ -3,7 +3,7 @@ import useSession from '@client/hooks/useSession.js';
 import { Button } from '@headlessui/react';
 import { LockClosedIcon, UserCircleIcon, WalletIcon } from '@heroicons/react/24/solid';
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 
 function Header() {
     const session = useSession();
@@ -33,10 +33,10 @@ function Header() {
         <>
             <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
             <header className="flex items-center p-3 h-[var(--header-height)] border-b-2">
-                <a href="/" className="flex items-center gap-4">
+                <Link to="/" className="flex items-center gap-4">
                     <WalletIcon className="size-10 shrink-0" />
                     <h1 className="text-2xl">Wallet RMT</h1>
-                </a>
+                </Link>
                 <div className="flex items-center ml-auto">
                     <Button onClick={() => onLoginButtonClick()} className={loginButtonClassName}>
                         <UserCircleIcon className="size-8" />

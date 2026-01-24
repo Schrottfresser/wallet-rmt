@@ -1,7 +1,7 @@
 import { normalizePath } from '@client/util/common.js';
 import { ChevronRightIcon } from '@heroicons/react/24/solid';
 import { WalletDoc } from '@server/model/mongoose/wallet.js';
-import { useLocation } from 'react-router';
+import { Link, useLocation } from 'react-router';
 
 interface WalletNavigationOption {
     subpath: string;
@@ -52,10 +52,10 @@ function WalletNavigation({ wallet }: Readonly<WalletNavigationProps>) {
 
                 return (
                     <li key={navigationOption.subpath}>
-                        <a href={linkpath} className={classes}>
+                        <Link to={linkpath} className={classes}>
                             <span>{navigationOption.text}</span>
                             <ChevronRightIcon className="size-7" />
-                        </a>
+                        </Link>
                     </li>
                 );
             })}
