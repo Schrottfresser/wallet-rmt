@@ -1,7 +1,7 @@
 import { Route, Routes } from 'react-router';
 import register from './pages/register.js';
 import index from './pages/index.js';
-import wallet from '@client/pages/wallet.js';
+import wallet from '@client/pages/wallet/index.js';
 
 function Router() {
     return (
