@@ -1,6 +1,6 @@
-import WalletActions from '@client/components/WalletActions.js';
-import WalletCard from '@client/components/WalletCard.js';
-import WalletNavigation from '@client/components/WalletNavigation.js';
+import WalletActions from '@client/components/wallet/sidebar/WalletActions.js';
+import WalletCard from '@client/components/wallet/sidebar/WalletCard.js';
+import WalletNavigation from '@client/components/wallet/sidebar/WalletNavigation.js';
 import useWallets from '@client/hooks/useWallets.js';
 import { useCallback, useMemo } from 'react';
 import { useParams } from 'react-router';

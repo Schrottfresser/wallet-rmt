@@ -1,6 +1,6 @@
 import useSession from '@client/hooks/useSession.js';
 import Header from '@client/components/Header.js';
-import WalletList from '@client/components/WalletList.js';
+import WalletList from '@client/components/overview/WalletList.js';
 
 function index() {
     const session = useSession();

@@ -22,7 +22,7 @@ function WalletCard({ wallet }: Readonly<WalletCardProps>) {
                     <h2 className="text-xl">{wallet.name}</h2>
                 </div>
             </div>
-            <p className="mt-6 text-lg">{formattedBalance}</p>
+            <p className="mt-6 ml-2 text-lg">{formattedBalance}</p>
         </div>
     );
 }

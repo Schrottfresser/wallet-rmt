@@ -1,6 +1,6 @@
 import Header from '@client/components/Header.js';
 import NotLoggedIn from '@client/components/NotLoggedIn.js';
-import WalletSidebar from '@client/components/WalletSidebar.js';
+import WalletSidebar from '@client/components/wallet/sidebar/WalletSidebar.js';
 import useSession from '@client/hooks/useSession.js';
 
 function wallet() {

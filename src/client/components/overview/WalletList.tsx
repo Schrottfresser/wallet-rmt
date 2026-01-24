@@ -1,5 +1,5 @@
 import Button from '@client/components/base/Button.js';
-import WalletCreateModal from '@client/components/WalletCreateModal.js';
+import WalletCreateModal from '@client/components/overview/WalletCreateModal.js';
 import { getWalletIcon } from '@client/helpers/currency.js';
 import useWallets from '@client/hooks/useWallets.js';
 import { formatBTC } from '@client/util/currencies.js';
