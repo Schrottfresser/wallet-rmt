@@ -63,7 +63,7 @@ function WalletList({ username }: Readonly<WalletListProps>) {
                                 className="relative mt-2 p-3 rounded-md border-2 flex items-center gap-3 cursor-pointer hover:bg-gray-300"
                             >
                                 <a
-                                    href={`/wallet/${wallet._id}`}
+                                    href={`/wallet/${wallet._id}/`}
                                     className="absolute left-0 top-0 w-full h-full rounded-md cursor-pointer"
                                 />
 
