@@ -32,12 +32,12 @@ function Header() {
     return (
         <>
             <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
-            <header className="flex items-center p-4 border-b-2">
+            <header className="flex items-center p-3 h-[var(--header-height)] border-b-2">
                 <a href="/" className="flex items-center gap-4">
-                    <WalletIcon className="size-12 shrink-0" />
-                    <h1 className="text-3xl">Wallet RMT</h1>
+                    <WalletIcon className="size-10 shrink-0" />
+                    <h1 className="text-2xl">Wallet RMT</h1>
                 </a>
-                <div className="flex items-center ml-auto text-lg">
+                <div className="flex items-center ml-auto">
                     <Button onClick={() => onLoginButtonClick()} className={loginButtonClassName}>
                         <UserCircleIcon className="size-8" />
                         {session.data.isLoggedIn ? session.data.user?.username : 'Login'}

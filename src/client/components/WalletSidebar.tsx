@@ -11,7 +11,7 @@ interface WalletSidebarProps {
 
 function WalletSidebar({ wallet, handleRefreshWallet, handleLockWallet }: Readonly<WalletSidebarProps>) {
     return (
-        <div className="fixed h-full w-90 border-r-2 p-5 overflow-scroll">
+        <div className="fixed flex flex-col w-90 h-[calc(100%-var(--header-height))] border-r-2 p-4 overflow-y-auto">
             <WalletCard wallet={wallet} />
             <WalletNavigation wallet={wallet} />
             <WalletActions

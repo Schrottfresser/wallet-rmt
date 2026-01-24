@@ -10,7 +10,7 @@ interface WalletActionsProps {
 
 function WalletActions({ wallet, handleRefreshWallet, handleLockWallet }: Readonly<WalletActionsProps>) {
     return (
-        <div className="absolute bottom-20 left-0 text-lg w-full p-5">
+        <div className="w-full mt-auto pt-4">
             <Button
                 style="solid"
                 icon={ArrowPathIcon}

@@ -35,15 +35,15 @@ interface WalletNavigationProps {
 
 function WalletNavigation({ wallet }: Readonly<WalletNavigationProps>) {
     return (
-        <ul className="mt-5">
+        <ul className="mt-4">
             {walletNavigationOptions.map((navigationOption) => (
                 <li key={navigationOption.subpath}>
                     <a
                         href={`/wallet/${wallet._id}/${navigationOption.subpath}`}
-                        className="flex items-center justify-between p-2 text-lg border-2 rounded-md hover:bg-gray-300 mt-2"
+                        className="flex items-center justify-between p-2 border-2 rounded-md hover:bg-gray-300 mt-2"
                     >
                         <span>{navigationOption.text}</span>
-                        <ChevronRightIcon className="size-8" />
+                        <ChevronRightIcon className="size-7" />
                     </a>
                 </li>
             ))}
