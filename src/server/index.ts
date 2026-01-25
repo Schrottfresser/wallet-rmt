@@ -10,7 +10,7 @@ import { errorHandler, prodErrorHandler } from '@server/errorHandler.js';
 import env from '@server/env.js';
 import cookieParser from 'cookie-parser';
 import logger from './logger.js';
-import { bigIntReplacer } from '@server/util/json.js';
+import { bigIntReplacer, bigIntReviver } from '@server/util/json.js';
 
 const app = express();
 const server = createServer(app);
@@ -18,7 +18,7 @@ const server = createServer(app);
 app.set('trust proxy', env.trustProxy);
 app.set('json replacer', bigIntReplacer);
 
-app.use(express.json());
+app.use(express.json({ reviver: bigIntReviver }));
 app.use(cookieParser());
 
 let vite: ViteDevServer;
