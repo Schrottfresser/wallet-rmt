@@ -10,10 +10,22 @@ interface FieldProps {
     error?: string;
     autoFocus?: boolean;
     pattern?: RegExp;
+    excludeErrorMessage?: boolean;
     className?: string;
 }
 
-function Field({ type, inputmode, id, name, placeholder, error, autoFocus, pattern, className }: Readonly<FieldProps>) {
+function Field({
+    type,
+    inputmode,
+    id,
+    name,
+    placeholder,
+    error,
+    autoFocus,
+    pattern,
+    excludeErrorMessage,
+    className,
+}: Readonly<FieldProps>) {
     const baseClasses = 'border-2 rounded-md p-1 w-full';
     const errorClasses = error ? 'border-red-600' : '';
     const classes = [baseClasses, errorClasses, className].join(' ');
@@ -30,7 +42,7 @@ function Field({ type, inputmode, id, name, placeholder, error, autoFocus, patte
                 autoFocus={autoFocus}
                 pattern={pattern?.source}
             />
-            {error && (
+            {!excludeErrorMessage && error && (
                 <div className="text-red-600 text-sm flex items-center gap-1">
                     <ExclamationCircleIcon className="size-5" />
                     {error}

@@ -1,16 +1,17 @@
 import Button from '@client/components/base/Button.js';
+import CurrencyValueField from '@client/components/base/CurrencyValueField.js';
 import Field from '@client/components/base/Field.js';
 import useTransactions from '@client/hooks/useTransaction.js';
-import { getAmountValidatorRegex } from '@client/util/currency.js';
 import TransferPriority from '@server/model/currency/transferPriority.js';
 import { WalletDoc } from '@server/model/mongoose/wallet.js';
-import { toSats } from '@server/util/currency.js';
+import { currencyProperties } from '@server/util/currency.js';
 import { Form, Formik, FormikErrors } from 'formik';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect } from 'react';
 
 interface TransferValues {
     address: string;
     amount: string;
+    amountUnit: string;
     estimateMode?: TransferPriority;
     substractFee?: boolean;
 }
@@ -18,6 +19,7 @@ interface TransferValues {
 const initialValues: TransferValues = {
     address: '',
     amount: '',
+    amountUnit: '',
     estimateMode: 'normal',
     substractFee: false,
 };
@@ -30,7 +32,8 @@ interface WalletTransferFormProps {
 function WalletTransferForm({ wallet, username }: WalletTransferFormProps) {
     const { transfer } = useTransactions();
 
-    const amountValidatorRegex = useMemo(() => wallet && getAmountValidatorRegex(wallet.type), [wallet?.type]);
+    const amountValidatorRegex = currencyProperties[wallet.type].amountRegex;
+    const convertLesserUnit = currencyProperties[wallet.type].units.lesser.convert;
 
     const validate = useCallback((values: TransferValues): FormikErrors<TransferValues> => {
         const errors: FormikErrors<TransferValues> = {};
@@ -54,11 +57,16 @@ function WalletTransferForm({ wallet, username }: WalletTransferFormProps) {
                 return;
             }
 
+            const amount =
+                values.amountUnit === currencyProperties[wallet.type].units.main.name
+                    ? convertLesserUnit(values.amount)
+                    : BigInt(values.amount);
+
             const txid = await transfer(
                 username,
                 wallet._id,
                 values.address,
-                toSats(values.amount),
+                amount,
                 values.estimateMode,
                 values.substractFee,
             );
@@ -71,18 +79,21 @@ function WalletTransferForm({ wallet, username }: WalletTransferFormProps) {
     );
 
     return (
-        <Formik initialValues={initialValues} validate={validate} onSubmit={handleSubmit}>
+        <Formik
+            initialValues={{ ...initialValues, amountUnit: currencyProperties[wallet.type].units.main.name }}
+            validate={validate}
+            onSubmit={handleSubmit}
+        >
             {({ isSubmitting, errors }) => (
                 <Form noValidate>
                     <Field type="text" name="address" error={errors.address} placeholder="Transfer address" autoFocus />
-                    <Field
-                        type="text"
-                        inputmode="decimal"
+                    <CurrencyValueField
+                        currency={wallet.type}
                         name="amount"
-                        error={errors.amount}
                         placeholder="Transfer amount"
-                        pattern={amountValidatorRegex}
-                        className="mt-3"
+                        error={errors.amount}
+                        amountValidatorRegex={amountValidatorRegex}
+                        selectName="amountUnit"
                     />
 
                     <Button style="solid" type="submit" text="Send" disabled={isSubmitting} className="w-30 mt-3" />
