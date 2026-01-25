@@ -27,9 +27,17 @@ export default class BitcoinWalletService extends CryptoWalletService {
      * @param url the url of the RPC to use
      * @param username the RPC user
      * @param password the RPC password
+     * @param walletPassword the password to create the wallet with
      * @returns the BitcoinWalletService
      */
-    public static async create(wallet: WalletDoc, user: UserDoc, url: string, username?: string, password?: string) {
+    public static async create(
+        wallet: WalletDoc,
+        user: UserDoc,
+        url: string,
+        username?: string,
+        password?: string,
+        walletPassword?: string,
+    ) {
         const rpc = new BitcoinRPC(url, username, password);
         const queue = new PQueue({ concurrency: 5 });
 
@@ -37,10 +45,8 @@ export default class BitcoinWalletService extends CryptoWalletService {
         await queue.add(async () => {
             const remoteName = wallet.remoteName;
             const allWallets = await rpc.listwalletdir();
-            if (allWallets.find((wallet) => wallet.name === remoteName)) {
-                await walletService.open(password);
-            } else {
-                await rpc.createwallet(remoteName, password);
+            if (!allWallets.find((wallet) => wallet.name === remoteName)) {
+                await rpc.createwallet(remoteName, walletPassword);
                 wallet.isLoaded = true;
 
                 await wallet.save();
@@ -164,7 +170,10 @@ export default class BitcoinWalletService extends CryptoWalletService {
             return;
         }
 
-        await this.rpc.walletlock(this.wallet.remoteName);
+        if (this.wallet.isLocked) {
+            await this.rpc.walletlock(this.wallet.remoteName);
+        }
+
         await this.rpc.unloadwallet(this.wallet.remoteName);
 
         this.wallet.isLoaded = false;

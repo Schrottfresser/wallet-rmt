@@ -26,15 +26,23 @@ export default class MoneroWalletService extends CryptoWalletService {
      * @param url the url of the RPC to use
      * @param username the RPC user
      * @param password the RPC password
+     * @param walletPassword the password to create the wallet with
      * @returns the MoneroWalletService
      */
-    public static async create(wallet: WalletDoc, user: UserDoc, url: string, username?: string, password?: string) {
+    public static async create(
+        wallet: WalletDoc,
+        user: UserDoc,
+        url: string,
+        username?: string,
+        password?: string,
+        walletPassword?: string,
+    ) {
         const rpc = new MoneroWalletRPC(url, username, password);
         const queue = new PQueue({ concurrency: 1 });
 
         const walletService = new MoneroWalletService(wallet, user, rpc, queue);
         await queue.add(async () => {
-            await rpc.create_wallet(wallet.remoteName, password);
+            await rpc.create_wallet(wallet.remoteName, walletPassword);
         });
 
         return walletService;

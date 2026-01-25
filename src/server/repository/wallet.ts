@@ -18,7 +18,11 @@ class WalletRepository {
         });
     }
 
-    public async findById(id: ObjectId, username: string): Promise<CryptoWalletService | undefined> {
+    public async findById(
+        id: ObjectId,
+        username: string,
+        walletPassword?: string,
+    ): Promise<CryptoWalletService | undefined> {
         const user = await useUser(username, true);
 
         let cryptoWalletService = this.cache.get(id.toString());
@@ -27,7 +31,7 @@ class WalletRepository {
             const wallet = await Wallet.findById(id);
             if (!wallet) return undefined;
 
-            cryptoWalletService = await this.buildCyptoWalletService(wallet, user);
+            cryptoWalletService = await this.buildCyptoWalletService(wallet, user, walletPassword);
             this.cache.set(id.toString(), cryptoWalletService);
         }
 
@@ -37,14 +41,18 @@ class WalletRepository {
         return cryptoWalletService;
     }
 
-    public async create(wallet: IWallet, username: string): Promise<CryptoWalletService | undefined> {
+    public async create(
+        wallet: IWallet,
+        username: string,
+        walletPassword?: string,
+    ): Promise<CryptoWalletService | undefined> {
         const user = await useUser(username, true);
 
         const walletModel = await Wallet.create(wallet);
         user.wallets.push(walletModel._id);
         await user.save();
 
-        const cryptoWalletService = await this.buildCyptoWalletService(walletModel, user);
+        const cryptoWalletService = await this.buildCyptoWalletService(walletModel, user, walletPassword);
         this.cache.set(walletModel._id.toString(), cryptoWalletService);
 
         return cryptoWalletService;
@@ -54,7 +62,11 @@ class WalletRepository {
         this.cache.delete(id.toString());
     }
 
-    private async buildCyptoWalletService(wallet: WalletDoc, user: UserDoc): Promise<CryptoWalletService | undefined> {
+    private async buildCyptoWalletService(
+        wallet: WalletDoc,
+        user: UserDoc,
+        walletPassword?: string,
+    ): Promise<CryptoWalletService | undefined> {
         let walletService: CryptoWalletService | undefined = undefined;
         switch (wallet.type) {
             case 'bitcoin':
@@ -65,6 +77,7 @@ class WalletRepository {
                         env.bitcoinRpcUrl,
                         env.bitcoinRpcUser,
                         env.bitcoinRpcPassword,
+                        walletPassword,
                     );
                     break;
                 }
@@ -76,6 +89,7 @@ class WalletRepository {
                         env.moneroWalletRpcUrl,
                         env.moneroWalletRpcUser,
                         env.moneroWalletRpcPassword,
+                        walletPassword,
                     );
                     break;
                 }

@@ -199,16 +199,6 @@ export default class BitcoinRPC extends RPC {
         return result;
     }
 
-    public async settxfee(wallet: string, amount: number) {
-        const walletPath = `wallet/${wallet}`;
-
-        const result = await this.request<boolean>('settxfee', walletPath, [amount]);
-
-        if (!result) {
-            throw new InternalServerError('Setting the transaction fee failed');
-        }
-    }
-
     public async abandontransaction(wallet: string, txid: string) {
         const walletPath = `wallet/${wallet}`;
 
