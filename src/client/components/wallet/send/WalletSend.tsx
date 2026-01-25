@@ -4,9 +4,11 @@ import useTransactions from '@client/hooks/useTransaction.js';
 import useWallets from '@client/hooks/useWallets.js';
 import TransferPriority from '@server/model/currency/transferPriority.js';
 import { toSats } from '@server/util/currency.js';
+import { BITCOIN_AMOUNT_REGEX } from '@server/constant/currency.js';
 import { Form, Formik, FormikErrors } from 'formik';
 import { useCallback, useMemo } from 'react';
 import { useParams } from 'react-router';
+import { getAmountValidatorRegex } from '@client/util/currency.js';
 
 interface TransferValues {
     address: string;
@@ -36,6 +38,8 @@ function WalletSend({ username }: WalletSendProps) {
         [wallets.data, walletId],
     );
 
+    const amountValidatorRegex = useMemo(() => wallet && getAmountValidatorRegex(wallet.type), [wallet?.type]);
+
     const validate = useCallback((values: TransferValues): FormikErrors<TransferValues> => {
         const errors: FormikErrors<TransferValues> = {};
 
@@ -45,6 +49,8 @@ function WalletSend({ username }: WalletSendProps) {
 
         if (!values.amount) {
             errors.amount = 'Transfer amount required';
+        } else if (amountValidatorRegex && !values.amount.match(amountValidatorRegex)) {
+            errors.amount = 'Transfer amount not valid';
         }
 
         return errors;
@@ -80,7 +86,7 @@ function WalletSend({ username }: WalletSendProps) {
         <div className="p-4 w-full shrink">
             <Formik initialValues={initialValues} validate={validate} onSubmit={handleSubmit}>
                 {({ isSubmitting, errors }) => (
-                    <Form>
+                    <Form noValidate>
                         <Field
                             type="text"
                             name="address"
@@ -90,9 +96,11 @@ function WalletSend({ username }: WalletSendProps) {
                         />
                         <Field
                             type="text"
+                            inputmode="decimal"
                             name="amount"
                             error={errors.amount}
                             placeholder="Transfer amount"
+                            pattern={BITCOIN_AMOUNT_REGEX}
                             className="mt-3"
                         />
 

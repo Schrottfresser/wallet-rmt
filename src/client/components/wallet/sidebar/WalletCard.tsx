@@ -7,9 +7,8 @@ interface WalletCardProps {
 }
 
 function WalletCard({ wallet }: Readonly<WalletCardProps>) {
-    const WalletIcon = getWalletIcon(wallet.type);
-    const walletTypeLabel = getWalletTypeLabel(wallet.type);
-
+    const WalletIcon = useMemo(() => getWalletIcon(wallet.type), [wallet.type]);
+    const walletTypeLabel = useMemo(() => getWalletTypeLabel(wallet.type), [wallet.type]);
     const formattedBalance = useMemo(() => formatBTC(wallet.balance || 0n), [wallet.balance]);
 
     return (
