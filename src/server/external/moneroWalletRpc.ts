@@ -8,12 +8,12 @@ interface CreateAccountResult {
 interface GetAccountResult {
     subaddress_accounts: {
         account_index: number;
-        balance: bigint;
-        unlocked_balance: bigint;
+        balance: string;
+        unlocked_balance: string;
         base_address: string;
     }[];
-    total_balance: number;
-    total_unlocked_balance: number;
+    total_balance: string;
+    total_unlocked_balance: string;
 }
 
 interface CreateAddressResult {
@@ -34,8 +34,8 @@ interface GetAddressResult {
 }
 
 interface GetBalanceResult {
-    balance: bigint;
-    unlocked_balance: bigint;
+    balance: string;
+    unlocked_balance: string;
     multisig_import_needed: boolean;
     time_to_unlock: number;
     blocks_to_unlock: number;
@@ -43,8 +43,8 @@ interface GetBalanceResult {
         account_index: number;
         address_index: number;
         address: string;
-        balance: bigint;
-        unlocked_balance: bigint;
+        balance: string;
+        unlocked_balance: string;
         label: string;
         num_unspent_outputs: number;
         time_to_unlock: number;
@@ -53,8 +53,8 @@ interface GetBalanceResult {
 }
 
 interface TransferResult {
-    amount: bigint;
-    fee: bigint;
+    amount: string;
+    fee: string;
     multisig_txset: string;
     tx_hash: string;
     unsigned_txset: string;
@@ -64,16 +64,16 @@ type TransferType = 'in' | 'out' | 'pending' | 'failed' | 'pool';
 
 interface Transfer {
     address: string;
-    amount: bigint;
+    amount: string;
     confirmations: number;
     double_spend_seen: boolean;
-    fee: bigint;
+    fee: string;
     height: number;
     locked: boolean;
     note: string;
     payment_id: string;
     destinations?: {
-        amount: bigint;
+        amount: string;
         address: string;
     }[];
     subaddr_index: {
@@ -162,7 +162,7 @@ export default class MoneroWalletRPC extends RPC {
     }
 
     public async transfer(
-        amount: number,
+        amount: string,
         address: string,
         priority: number,
         accountIndex?: number,

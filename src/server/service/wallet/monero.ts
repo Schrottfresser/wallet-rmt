@@ -70,18 +70,25 @@ export default class MoneroWalletService extends CryptoWalletService {
         return this.queue.add(async () => {
             const result = await this.rpc.get_balance(0);
             const response: GetBalanceResult = {
-                balance: result.balance,
-                unlockedBalance: result.unlocked_balance,
+                balance: BigInt(result.balance),
+                unlockedBalance: BigInt(result.unlocked_balance),
             };
 
             return response;
         });
     }
 
-    public async transfer(address: string, amount: number, priority?: TransferPriority, subtractFee?: boolean) {
+    public async transfer(address: string, amount: bigint, priority?: TransferPriority, subtractFee?: boolean) {
         return this.queue.add(async () => {
             const priorityNumber = toPriorityNumber(priority);
-            const result = await this.rpc.transfer(amount, address, priorityNumber, undefined, undefined, subtractFee);
+            const result = await this.rpc.transfer(
+                amount.toString(),
+                address,
+                priorityNumber,
+                undefined,
+                undefined,
+                subtractFee,
+            );
 
             return result.tx_hash;
         });
@@ -93,8 +100,8 @@ export default class MoneroWalletService extends CryptoWalletService {
             const response: GetTransferResult = {
                 transactionId: result.txid,
                 address: result.address,
-                amount: result.amount,
-                fee: result.fee,
+                amount: BigInt(result.amount),
+                fee: BigInt(result.fee),
                 confirmations: result.confirmations,
                 blockHeight: result.height,
                 timestamp: result.timestamp,
@@ -111,8 +118,8 @@ export default class MoneroWalletService extends CryptoWalletService {
             const response: GetTransferResult[] = allTransfers.map((transfer) => ({
                 transactionId: transfer.txid,
                 address: transfer.address,
-                amount: transfer.amount,
-                fee: transfer.fee,
+                amount: BigInt(transfer.amount),
+                fee: BigInt(transfer.fee),
                 confirmations: transfer.confirmations,
                 blockHeight: transfer.height,
                 timestamp: transfer.timestamp,
