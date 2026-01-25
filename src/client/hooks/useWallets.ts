@@ -1,4 +1,4 @@
-import fetcher from '@client/helpers/fetcher.js';
+import fetcher from '@client/util/fetcher.js';
 import useApi from '@client/hooks/useApi.js';
 import useWebAuthn from '@client/hooks/useWebAuthn.js';
 import { WalletDoc, WalletType } from '@server/model/mongoose/wallet.js';

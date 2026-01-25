@@ -1,5 +1,4 @@
-import { getWalletIcon, getWalletTypeLabel } from '@client/helpers/currency.js';
-import { formatBTC } from '@client/util/currencies.js';
+import { getWalletIcon, getWalletTypeLabel, formatBTC } from '@client/util/currency.js';
 import { WalletDoc } from '@server/model/mongoose/wallet.js';
 import { useMemo } from 'react';
 

@@ -1,4 +1,4 @@
-import fetcher from '@client/helpers/fetcher.js';
+import fetcher from '@client/util/fetcher.js';
 import useWebAuthn from '@client/hooks/useWebAuthn.js';
 import TransferPriority from '@server/model/currency/transferPriority.js';
 import { ObjectId } from '@server/route/validation/index.js';

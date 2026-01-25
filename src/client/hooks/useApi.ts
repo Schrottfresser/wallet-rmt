@@ -1,6 +1,6 @@
 import useSWR from 'swr';
 import { ErrorResponse } from '@server/model/response/error.js';
-import fetcher from '@client/helpers/fetcher.js';
+import fetcher from '@client/util/fetcher.js';
 
 export interface FetchError {
     status: number;

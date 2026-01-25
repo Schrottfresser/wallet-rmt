@@ -1,8 +1,7 @@
 import Button from '@client/components/base/Button.js';
 import WalletCreateModal from '@client/components/overview/WalletCreateModal.js';
-import { getWalletIcon } from '@client/helpers/currency.js';
+import { getWalletIcon, formatBTC } from '@client/util/currency.js';
 import useWallets from '@client/hooks/useWallets.js';
-import { formatBTC } from '@client/util/currencies.js';
 import {
     ArrowPathIcon,
     ArrowTurnDownLeftIcon,

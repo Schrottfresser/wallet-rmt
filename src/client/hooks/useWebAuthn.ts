@@ -1,11 +1,11 @@
-import { startAuthenticationWithPRF } from '@client/helpers/webAuthn.js';
+import { startAuthenticationWithPRF } from '@client/util/webAuthn.js';
 import {
     PublicKeyCredentialCreationOptionsJSONWithPrf,
     PublicKeyCredentialRequestOptionsJSONWithPrf,
 } from '@server/model/webAuthn.js';
 import { base64URLStringToBuffer, startRegistration } from '@simplewebauthn/browser';
 import { LoginResponse } from '@server/model/response/user.js';
-import fetcher from '@client/helpers/fetcher.js';
+import fetcher from '@client/util/fetcher.js';
 
 function useWebAuthn() {
     const generateRegistrationOptions = async (
