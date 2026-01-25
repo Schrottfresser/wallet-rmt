@@ -1,10 +1,10 @@
 import Button from '@client/components/base/Button.js';
 import Field from '@client/components/base/Field.js';
 import Modal from '@client/components/base/Modal.js';
+import Select from '@client/components/base/Select.js';
 import useWallets from '@client/hooks/useWallets.js';
-import { Select } from '@headlessui/react';
 import { WalletType } from '@server/model/mongoose/wallet.js';
-import { Form, Formik, FormikErrors } from 'formik';
+import { Form, Formik, FormikErrors, useField } from 'formik';
 import { useCallback } from 'react';
 
 interface WalletCreateFormValues {
@@ -51,7 +51,7 @@ function WalletCreateModal({ isOpen, onClose, username }: Readonly<WalletCreateM
                 {({ isSubmitting, errors }) => (
                     <Form>
                         <Field type="text" name="name" error={errors.name} placeholder="Wallet name" autoFocus />
-                        <Select id="type" name="type" className="border-2 rounded-md p-1.5 mt-3">
+                        <Select name="type" className="mt-3">
                             <option value="bitcoin">Bitcoin</option>
                             <option value="monero">Monero</option>
                         </Select>
