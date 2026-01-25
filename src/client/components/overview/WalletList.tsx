@@ -45,6 +45,7 @@ function WalletList({ username }: Readonly<WalletListProps>) {
                 <ul>
                     {wallets.data?.map((wallet) => (
                         <WalletListItem
+                            key={wallet._id.toString()}
                             wallet={wallet}
                             handleRefreshClick={handleRefreshClick}
                             handleLockClick={handleLockClick}

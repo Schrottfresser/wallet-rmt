@@ -1,6 +1,5 @@
 import BitcoinRPC from '@server/external/bitcoinRpc.js';
 import CryptoWalletService from '@server/service/wallet/crypto.js';
-import { toBTC, toEstimateMode, toSats } from '@server/util/currency.js';
 import GetBalanceResult from '@server/model/currency/getBalanceResult.js';
 import GetTransferResult from '@server/model/currency/getTransferResult.js';
 import TransferPriority from '@server/model/currency/transferPriority.js';
@@ -8,6 +7,7 @@ import { WalletDoc, WalletType } from '@server/model/mongoose/wallet.js';
 import PQueue from 'p-queue';
 import { UserDoc } from '@server/model/mongoose/user.js';
 import env from '@server/env.js';
+import { currencyProperties, toEstimateMode } from '@server/util/currency.js';
 
 export default class BitcoinWalletService extends CryptoWalletService {
     private rpc: BitcoinRPC;
@@ -90,8 +90,8 @@ export default class BitcoinWalletService extends CryptoWalletService {
         return this.queue.add(async () => {
             const result = await this.rpc.getbalances(this.wallet.remoteName);
             const response: GetBalanceResult = {
-                balance: toSats(result.mine.untrusted_pending),
-                unlockedBalance: toSats(result.mine.trusted),
+                balance: currencyProperties.bitcoin.units.lesser.convert(result.mine.untrusted_pending),
+                unlockedBalance: currencyProperties.bitcoin.units.lesser.convert(result.mine.trusted),
             };
 
             return response;
@@ -105,7 +105,7 @@ export default class BitcoinWalletService extends CryptoWalletService {
             const result = await this.rpc.sendtoaddress(
                 this.wallet.remoteName,
                 address,
-                toBTC(amount),
+                currencyProperties.bitcoin.units.main.convert(amount),
                 subtractFee,
                 true,
                 estimateMode,
@@ -122,8 +122,8 @@ export default class BitcoinWalletService extends CryptoWalletService {
             const response: GetTransferResult = {
                 transactionId: result.txid,
                 address: primaryDetail.address,
-                amount: toSats(result.amount),
-                fee: toSats(result.fee),
+                amount: currencyProperties.bitcoin.units.lesser.convert(result.amount),
+                fee: currencyProperties.bitcoin.units.lesser.convert(result.fee),
                 confirmations: result.confirmations,
                 blockHeight: result.blockheight,
                 timestamp: result.time,
@@ -139,8 +139,8 @@ export default class BitcoinWalletService extends CryptoWalletService {
             const response: GetTransferResult[] = result.map((transaction) => ({
                 transactionId: transaction.txid,
                 address: transaction.address,
-                amount: toSats(transaction.amount),
-                fee: toSats(transaction.fee),
+                amount: currencyProperties.bitcoin.units.lesser.convert(transaction.amount),
+                fee: currencyProperties.bitcoin.units.lesser.convert(transaction.fee),
                 confirmations: transaction.confirmations,
                 blockHeight: transaction.blockheight,
                 timestamp: transaction.time,

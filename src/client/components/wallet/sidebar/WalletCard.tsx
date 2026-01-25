@@ -1,15 +1,15 @@
-import { getWalletIcon, getWalletTypeLabel, formatBTC } from '@client/util/currency.js';
+import { currencyIconMap } from '@client/util/currency.js';
 import { WalletDoc } from '@server/model/mongoose/wallet.js';
-import { useMemo } from 'react';
+import { currencyProperties } from '@server/util/currency.js';
 
 interface WalletCardProps {
     wallet: WalletDoc;
 }
 
 function WalletCard({ wallet }: Readonly<WalletCardProps>) {
-    const WalletIcon = useMemo(() => getWalletIcon(wallet.type), [wallet.type]);
-    const walletTypeLabel = useMemo(() => getWalletTypeLabel(wallet.type), [wallet.type]);
-    const formattedBalance = useMemo(() => formatBTC(wallet.balance || 0n), [wallet.balance]);
+    const WalletIcon = currencyIconMap[wallet.type];
+    const walletTypeLabel = currencyProperties[wallet.type].name;
+    const formattedBalance = currencyProperties[wallet.type].format(wallet.balance || 0n);
 
     return (
         <div className="p-5 border-2 rounded-md">
