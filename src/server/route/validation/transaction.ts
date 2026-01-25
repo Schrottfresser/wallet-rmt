@@ -1,4 +1,5 @@
 import { objectIdSchema } from '@server/route/validation/index.js';
+import { authenticateResponseSchema } from '@server/route/validation/webAuthn.js';
 import z from 'zod';
 
 export const listTransferSchema = z.object({
@@ -11,6 +12,7 @@ export const listTransferSchema = z.object({
 
 export const sendTransferSchema = z.object({
     body: z.object({
+        attestationResponse: authenticateResponseSchema,
         address: z.string(),
         amount: z.bigint().positive(),
         substractFee: z.boolean().optional(),

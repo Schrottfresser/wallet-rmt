@@ -9,6 +9,7 @@ import walletRepository from '@server/repository/wallet.js';
 import { Router } from 'express';
 import { useSession } from './hook/auth.js';
 import logger from '@server/logger.js';
+import { verifyAuthenticationResponse } from '@server/service/user.js';
 
 const transactionRouter = Router();
 
@@ -39,6 +40,8 @@ transactionRouter.post(
         if (!walletService) {
             throw new BadRequestError('Wallet does not exist');
         }
+
+        await verifyAuthenticationResponse(session.username, data.body.attestationResponse, 'auth-existing');
 
         const txid = await walletService.transfer(
             data.body.address,
