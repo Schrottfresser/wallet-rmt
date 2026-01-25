@@ -1,6 +1,5 @@
 import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
-import { ErrorMessage, Field as FormikField } from 'formik';
-import { useMemo } from 'react';
+import { Field as FormikField } from 'formik';
 
 interface FieldProps {
     type: string;
@@ -9,12 +8,13 @@ interface FieldProps {
     placeholder?: string;
     error?: string;
     autoFocus?: boolean;
+    className?: string;
 }
 
-function Field({ type, id, name, placeholder, error, autoFocus }: Readonly<FieldProps>) {
+function Field({ type, id, name, placeholder, error, autoFocus, className }: Readonly<FieldProps>) {
     const baseClasses = 'border-2 rounded-md p-1 w-full';
-    const errorClasses = 'border-red-600';
-    const classes = [baseClasses, error ? errorClasses : ''].join(' ');
+    const errorClasses = error ? 'border-red-600' : '';
+    const classes = [baseClasses, errorClasses, className].join(' ');
 
     return (
         <>

@@ -27,8 +27,8 @@ export function toPriorityNumber(priority?: TransferPriority): number {
     }
 }
 
-export function toSats(btc: number) {
-    const sats = BigInt(Math.round(btc * 1e8));
+export function toSats(btc: number | string) {
+    const sats = BigInt(Math.round(Number(btc) * 1e8));
 
     return sats;
 }
