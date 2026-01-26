@@ -1,12 +1,14 @@
 import Button from '@client/components/base/Button.js';
-import CurrencyValueField from '@client/components/base/CurrencyValueField.js';
 import Field from '@client/components/base/Field.js';
+import Select from '@client/components/base/Select.js';
 import useTransactions from '@client/hooks/useTransaction.js';
+import { Checkbox } from '@headlessui/react';
+import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import TransferPriority from '@server/model/currency/transferPriority.js';
 import { WalletDoc } from '@server/model/mongoose/wallet.js';
 import { currencyProperties } from '@server/util/currency.js';
 import { Form, Formik, FormikErrors } from 'formik';
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 
 interface TransferValues {
     address: string;
@@ -75,8 +77,11 @@ function WalletTransferForm({ wallet, username }: WalletTransferFormProps) {
 
             setSubmitting(false);
         },
-        [transfer],
+        [wallet, transfer],
     );
+
+    const mainUnitName = currencyProperties[wallet.type].units.main.name;
+    const lesserUnitName = currencyProperties[wallet.type].units.lesser.name;
 
     return (
         <Formik
@@ -87,14 +92,44 @@ function WalletTransferForm({ wallet, username }: WalletTransferFormProps) {
             {({ isSubmitting, errors }) => (
                 <Form noValidate>
                     <Field type="text" name="address" error={errors.address} placeholder="Transfer address" autoFocus />
-                    <CurrencyValueField
-                        currency={wallet.type}
-                        name="amount"
-                        placeholder="Transfer amount"
-                        error={errors.amount}
-                        amountValidatorRegex={amountValidatorRegex}
-                        selectName="amountUnit"
-                    />
+
+                    <div className="flex items-center mt-3">
+                        <Field
+                            type="text"
+                            inputmode="decimal"
+                            name="amount"
+                            error={errors.amount}
+                            placeholder="Transfer amount"
+                            pattern={amountValidatorRegex}
+                            excludeErrorMessage
+                            className="mr-2"
+                        />
+                        <Select name="amountUnit" className="border-2 rounded-md p-1.5 mr-3">
+                            <option value={mainUnitName}>{mainUnitName}</option>
+                            <option value={lesserUnitName}>{lesserUnitName}</option>
+                        </Select>
+                        <Field
+                            type="checkbox"
+                            inputmode="decimal"
+                            name="amount"
+                            error={errors.amount}
+                            placeholder="Transfer amount"
+                            pattern={amountValidatorRegex}
+                            excludeErrorMessage
+                            className="mr-2"
+                        />
+                        <Select name="estimateMode" className="border-2 rounded-md p-1.5">
+                            <option value="normal">Normal</option>
+                            <option value="important">Important</option>
+                            <option value="unimportant">Unimportant</option>
+                        </Select>
+                    </div>
+                    {errors.amount && (
+                        <div className="text-red-600 text-sm flex items-center gap-1">
+                            <ExclamationCircleIcon className="size-5" />
+                            {errors.amount}
+                        </div>
+                    )}
 
                     <Button style="solid" type="submit" text="Send" disabled={isSubmitting} className="w-30 mt-3" />
                 </Form>
