@@ -80,6 +80,8 @@ function WalletTransferForm({ wallet, username }: WalletTransferFormProps) {
         [wallet, transfer],
     );
 
+    const currencyName = currencyProperties[wallet.type].name;
+
     const mainUnitName = currencyProperties[wallet.type].units.main.name;
     const lesserUnitName = currencyProperties[wallet.type].units.lesser.name;
 
@@ -91,7 +93,15 @@ function WalletTransferForm({ wallet, username }: WalletTransferFormProps) {
         >
             {({ isSubmitting, errors }) => (
                 <Form noValidate>
-                    <Field type="text" name="address" error={errors.address} placeholder="Transfer address" autoFocus />
+                    <h2 className="text-2xl font-bold">Send {currencyName}</h2>
+                    <Field
+                        type="text"
+                        name="address"
+                        error={errors.address}
+                        placeholder="Transfer address"
+                        autoFocus
+                        className="mt-4"
+                    />
 
                     <div className="flex items-center mt-4">
                         <Field
