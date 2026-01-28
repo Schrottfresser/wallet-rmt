@@ -40,7 +40,13 @@ function useWallets() {
         mutate(response, { revalidate: false });
     };
 
-    return { data, error, isLoading, create, open, close, refresh };
+    const addAddress = async (walletId: ObjectId) => {
+        const response = await fetcher<WalletDoc[]>(`/api/wallet/${walletId}/address`);
+
+        mutate(response, { revalidate: false });
+    };
+
+    return { data, error, isLoading, create, open, close, refresh, addAddress };
 }
 
 export default useWallets;
