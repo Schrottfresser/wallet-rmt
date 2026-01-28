@@ -57,7 +57,7 @@ function WalletList({ username }: Readonly<WalletListProps>) {
                     text="Create"
                     icon={PlusIcon}
                     onClick={() => setWalletCreateModalOpen(true)}
-                    className="text-lg mt-2 ml-auto"
+                    className="text-lg mt-8 ml-auto"
                 />
             </div>
         </>

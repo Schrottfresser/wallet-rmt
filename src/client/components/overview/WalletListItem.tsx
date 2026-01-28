@@ -20,7 +20,7 @@ function WalletListItem({ wallet, handleRefreshClick, handleLockClick }: WalletL
     const lockButtonTitle = wallet.isLoaded ? 'Lock wallet' : 'Unlock wallet';
 
     return (
-        <li className="relative mt-2 p-3 rounded-md border-2 flex items-center gap-3 cursor-pointer hover:bg-gray-300">
+        <li className="relative mt-4 p-3 rounded-md border-2 flex items-center gap-3 cursor-pointer hover:bg-gray-300">
             <Link
                 to={`/wallet/${wallet._id}/`}
                 className="absolute left-0 top-0 w-full h-full rounded-md cursor-pointer"
