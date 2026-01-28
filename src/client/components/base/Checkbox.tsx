@@ -16,6 +16,7 @@ function Checkbox({ name, title, className }: SelectProps) {
 
     return (
         <HeadlessCheckbox
+            id={name}
             value={field.value}
             onChange={(value) => helpers.setValue(value)}
             title={title}

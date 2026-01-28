@@ -1,8 +1,8 @@
 import Button from '@client/components/base/Button.js';
+import Checkbox from '@client/components/base/Checkbox.js';
 import Field from '@client/components/base/Field.js';
 import Select from '@client/components/base/Select.js';
 import useTransactions from '@client/hooks/useTransaction.js';
-import { Checkbox } from '@headlessui/react';
 import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import TransferPriority from '@server/model/currency/transferPriority.js';
 import { WalletDoc } from '@server/model/mongoose/wallet.js';
@@ -93,7 +93,7 @@ function WalletTransferForm({ wallet, username }: WalletTransferFormProps) {
                 <Form noValidate>
                     <Field type="text" name="address" error={errors.address} placeholder="Transfer address" autoFocus />
 
-                    <div className="flex items-center mt-3">
+                    <div className="flex items-center mt-4">
                         <Field
                             type="text"
                             inputmode="decimal"
@@ -104,20 +104,10 @@ function WalletTransferForm({ wallet, username }: WalletTransferFormProps) {
                             excludeErrorMessage
                             className="mr-2"
                         />
-                        <Select name="amountUnit" className="border-2 rounded-md p-1.5 mr-3">
+                        <Select name="amountUnit" className="border-2 rounded-md p-1.5 mr-4">
                             <option value={mainUnitName}>{mainUnitName}</option>
                             <option value={lesserUnitName}>{lesserUnitName}</option>
                         </Select>
-                        <Field
-                            type="checkbox"
-                            inputmode="decimal"
-                            name="amount"
-                            error={errors.amount}
-                            placeholder="Transfer amount"
-                            pattern={amountValidatorRegex}
-                            excludeErrorMessage
-                            className="mr-2"
-                        />
                         <Select name="estimateMode" className="border-2 rounded-md p-1.5">
                             <option value="normal">Normal</option>
                             <option value="important">Important</option>
@@ -131,7 +121,12 @@ function WalletTransferForm({ wallet, username }: WalletTransferFormProps) {
                         </div>
                     )}
 
-                    <Button style="solid" type="submit" text="Send" disabled={isSubmitting} className="w-30 mt-3" />
+                    <div className="flex items-center gap-4 mt-4">
+                        <label htmlFor="substractFee">Substract fee</label>
+                        <Checkbox name="substractFee" title="Substract fee" />
+                    </div>
+
+                    <Button style="solid" type="submit" text="Send" disabled={isSubmitting} className="w-30 mt-8" />
                 </Form>
             )}
         </Formik>
