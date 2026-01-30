@@ -13,10 +13,10 @@ function WalletAddressList({ wallet, addAddress }: WalletAddressListProps) {
         <>
             <h2 className="text-2xl font-bold">Wallet addresses</h2>
             <ul>
-                {wallet.addresses.map((walletAddress, walletAddressIndex) => (
+                {wallet.addresses.map((walletAddress, index) => (
                     <WalletAddressListItem
-                        key={walletAddress}
-                        index={walletAddressIndex}
+                        key={index}
+                        index={index}
                         walletAddress={walletAddress}
                         walletType={wallet.type}
                     />

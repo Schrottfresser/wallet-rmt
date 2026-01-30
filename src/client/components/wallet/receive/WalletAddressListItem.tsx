@@ -26,7 +26,7 @@ function WalletAddressListItem({ index, walletAddress, walletType }: WalletAddre
                     return (
                         <>
                             <DisclosureButton className={buttonClasses}>
-                                <span className="font-bold">{index}:</span>
+                                <span className="font-bold">#{index}</span>
                                 <span>{walletAddress}</span>
 
                                 <ChevronDownIcon className={chevronIconClasses} />

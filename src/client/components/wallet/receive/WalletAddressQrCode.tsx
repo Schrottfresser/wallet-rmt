@@ -25,7 +25,7 @@ function WalletAddressQrCode({ walletType, walletAddress }: WalletAddressQrCodeP
             <img src={qrCode} alt="QR Code" className="aspect-square" />
 
             <div className="absolute inset-0 flex items-center justify-center">
-                <WalletIcon className="size-14 bg-white rounded-xl p-1" />
+                <WalletIcon className="size-15 bg-white rounded-full p-1.5" />
             </div>
         </div>
     );

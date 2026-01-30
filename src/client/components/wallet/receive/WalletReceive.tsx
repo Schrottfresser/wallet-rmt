@@ -12,7 +12,7 @@ function WalletReceive() {
         [wallets.data, walletId],
     );
 
-    if (!wallet || !walletId || wallets.isLoading || wallets.error) {
+    if (!walletId || !wallet || wallets.isLoading || wallets.error) {
         return;
     }
 
