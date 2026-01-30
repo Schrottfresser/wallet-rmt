@@ -3,11 +3,7 @@ import useWallets from '@client/hooks/useWallets.js';
 import { useMemo } from 'react';
 import { useParams } from 'react-router';
 
-interface WalletReceiveProps {
-    username: string;
-}
-
-function WalletReceive({ username }: WalletReceiveProps) {
+function WalletReceive() {
     const { walletId } = useParams();
     const wallets = useWallets();
 
@@ -21,7 +17,7 @@ function WalletReceive({ username }: WalletReceiveProps) {
     }
 
     return (
-        <div className="p-4 w-full shrink">
+        <div className="p-4 w-full shrink h-min">
             <WalletAddressList wallet={wallet} addAddress={() => wallets.addAddress(wallet._id)} />
         </div>
     );

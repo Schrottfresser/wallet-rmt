@@ -39,7 +39,7 @@ function WalletSidebar() {
     }
 
     return (
-        <div className="flex flex-col w-90 h-full border-r-2 p-4 overflow-y-auto shrink-0">
+        <div className="flex flex-col w-90 border-r-2 p-4 overflow-y-auto shrink-0">
             <WalletCard wallet={wallet} />
             <WalletNavigation wallet={wallet} />
             <WalletActions
