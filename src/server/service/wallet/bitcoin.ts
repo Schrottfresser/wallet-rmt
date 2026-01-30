@@ -140,7 +140,7 @@ export default class BitcoinWalletService extends CryptoWalletService {
                 transactionId: transaction.txid,
                 address: transaction.address,
                 amount: currencyProperties.bitcoin.units.lesser.convert(transaction.amount),
-                fee: currencyProperties.bitcoin.units.lesser.convert(transaction.fee),
+                fee: transaction.fee ? currencyProperties.bitcoin.units.lesser.convert(transaction.fee) : undefined,
                 confirmations: transaction.confirmations,
                 blockHeight: transaction.blockheight,
                 timestamp: transaction.time,

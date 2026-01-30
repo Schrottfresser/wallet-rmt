@@ -1,14 +1,15 @@
 import fetcher from '@client/util/fetcher.js';
 import useWebAuthn from '@client/hooks/useWebAuthn.js';
 import TransferPriority from '@server/model/currency/transferPriority.js';
-import { ObjectId } from '@server/route/validation/index.js';
+import useApi from '@client/hooks/useApi.js';
+import GetTransferResult from '@server/model/currency/getTransferResult.js';
 
-function useTransactions() {
+function useTransactions(walletId: string) {
+    const { data, error, isLoading, mutate } = useApi<GetTransferResult[]>(`/api/transaction?walletId=${walletId}`);
     const { authenticate } = useWebAuthn();
 
     const transfer = async (
         username: string,
-        walletId: ObjectId,
         address: string,
         amount: bigint,
         estimateMode?: TransferPriority,
@@ -27,7 +28,7 @@ function useTransactions() {
         return response;
     };
 
-    return { transfer };
+    return { data, error, isLoading, transfer };
 }
 
 export default useTransactions;

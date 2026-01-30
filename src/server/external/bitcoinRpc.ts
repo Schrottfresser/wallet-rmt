@@ -42,7 +42,7 @@ interface ListtransactionsResult {
     amount: number;
     label?: string;
     vout: number;
-    fee: number;
+    fee?: number;
     confirmations: number;
     generated?: boolean;
     trusted?: boolean;

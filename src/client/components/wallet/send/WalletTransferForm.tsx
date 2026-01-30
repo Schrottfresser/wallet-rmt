@@ -2,7 +2,7 @@ import Button from '@client/components/base/Button.js';
 import Checkbox from '@client/components/base/Checkbox.js';
 import Field from '@client/components/base/Field.js';
 import Select from '@client/components/base/Select.js';
-import useTransactions from '@client/hooks/useTransaction.js';
+import useTransactions from '@client/hooks/useTransactions.js';
 import { ExclamationCircleIcon } from '@heroicons/react/24/solid';
 import TransferPriority from '@server/model/currency/transferPriority.js';
 import { WalletDoc } from '@server/model/mongoose/wallet.js';
@@ -32,7 +32,7 @@ interface WalletTransferFormProps {
 }
 
 function WalletTransferForm({ wallet, username }: WalletTransferFormProps) {
-    const { transfer } = useTransactions();
+    const { transfer } = useTransactions(wallet._id.toString());
 
     const amountValidatorRegex = currencyProperties[wallet.type].amountRegex;
     const convertLesserUnit = currencyProperties[wallet.type].units.lesser.convert;
@@ -64,14 +64,7 @@ function WalletTransferForm({ wallet, username }: WalletTransferFormProps) {
                     ? convertLesserUnit(values.amount)
                     : BigInt(values.amount);
 
-            const txid = await transfer(
-                username,
-                wallet._id,
-                values.address,
-                amount,
-                values.estimateMode,
-                values.substractFee,
-            );
+            const txid = await transfer(username, values.address, amount, values.estimateMode, values.substractFee);
 
             console.log(txid);
 
