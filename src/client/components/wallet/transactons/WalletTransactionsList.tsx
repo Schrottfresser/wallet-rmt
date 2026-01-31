@@ -12,8 +12,13 @@ function WalletTransactionsList({ walletType, transfers }: WalletTransactionsLis
         <>
             <h2 className="text-2xl font-bold">Wallet Transactions</h2>
             <ul>
-                {transfers.map((transfer, index) => (
-                    <WalletTransactionsListItem key={index} walletType={walletType} transfer={transfer} index={index} />
+                {transfers.toReversed().map((transfer, index) => (
+                    <WalletTransactionsListItem
+                        key={index}
+                        walletType={walletType}
+                        transfer={transfer}
+                        index={transfers.length - index}
+                    />
                 ))}
             </ul>
         </>

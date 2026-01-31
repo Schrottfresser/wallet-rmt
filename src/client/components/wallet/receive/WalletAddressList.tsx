@@ -16,7 +16,7 @@ function WalletAddressList({ wallet, addAddress }: WalletAddressListProps) {
                 {wallet.addresses.map((walletAddress, index) => (
                     <WalletAddressListItem
                         key={index}
-                        index={index}
+                        index={index + 1}
                         walletAddress={walletAddress}
                         walletType={wallet.type}
                     />
