@@ -9,11 +9,14 @@ interface WalletTransactionsListProps {
 
 function WalletTransactionsList({ walletType, transfers }: WalletTransactionsListProps) {
     return (
-        <ul>
-            {transfers.map((transfer, index) => (
-                <WalletTransactionsListItem key={index} walletType={walletType} transfer={transfer} index={index} />
-            ))}
-        </ul>
+        <>
+            <h2 className="text-2xl font-bold">Wallet Transactions</h2>
+            <ul>
+                {transfers.map((transfer, index) => (
+                    <WalletTransactionsListItem key={index} walletType={walletType} transfer={transfer} index={index} />
+                ))}
+            </ul>
+        </>
     );
 }
 
