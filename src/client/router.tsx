@@ -5,6 +5,7 @@ import wallet from '@client/pages/wallet/index.js';
 import walletSend from '@client/pages/wallet/send.js';
 import walletReceive from '@client/pages/wallet/receive.js';
 import walletTransactions from '@client/pages/wallet/transactons.js';
+import walletSettings from '@client/pages/wallet/settings.js';
 
 function Router() {
     return (
@@ -15,6 +16,7 @@ function Router() {
             <Route path="/wallet/:walletId/send" Component={walletSend} />
             <Route path="/wallet/:walletId/receive" Component={walletReceive} />
             <Route path="/wallet/:walletId/transactions" Component={walletTransactions} />
+            <Route path="/wallet/:walletId/settings" Component={walletSettings} />
         </Routes>
     );
 }
