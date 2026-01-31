@@ -46,7 +46,16 @@ function useWallets() {
         mutate(response, { revalidate: false });
     };
 
-    return { data, error, isLoading, create, open, close, refresh, addAddress };
+    const password = async (walletId: ObjectId, newPassword?: string, oldPassword?: string) => {
+        const response = await fetcher<WalletDoc[]>(`/api/wallet/${walletId}/password`, 'POST', {
+            newPassword,
+            oldPassword,
+        });
+
+        mutate(response, { revalidate: false });
+    };
+
+    return { data, error, isLoading, create, open, close, refresh, addAddress, password };
 }
 
 export default useWallets;

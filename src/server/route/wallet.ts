@@ -127,7 +127,8 @@ walletRouter.post(
 
         await walletService.changePassword(data.body.newPassword, data.body.oldPassword);
 
-        res.status(200).send();
+        const wallets = await retrieveWallets(session.username);
+        res.status(200).json(wallets);
     }),
 );
 
