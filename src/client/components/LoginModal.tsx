@@ -13,12 +13,12 @@ const initialValues: LoginFormValues = {
     username: '',
 };
 
-interface WalletCreateModalProps {
+interface LoginModalProps {
     isOpen?: boolean;
     onClose: () => void;
 }
 
-function LoginModal({ isOpen, onClose }: Readonly<WalletCreateModalProps>) {
+function LoginModal({ isOpen, onClose }: Readonly<LoginModalProps>) {
     const session = useSession();
 
     const [mnemonic, setMnemonic] = useState<string>();
