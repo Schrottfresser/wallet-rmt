@@ -12,16 +12,24 @@ function WalletAddressList({ wallet, addAddress }: WalletAddressListProps) {
     return (
         <>
             <h2 className="text-2xl font-bold">Wallet addresses</h2>
-            <ul>
-                {wallet.addresses.map((walletAddress, index) => (
-                    <WalletAddressListItem
-                        key={index}
-                        index={index + 1}
-                        walletAddress={walletAddress}
-                        walletType={wallet.type}
-                    />
-                ))}
-            </ul>
+            {wallet.addresses.length ? (
+                <ul>
+                    {wallet.addresses.map((walletAddress, index) => (
+                        <WalletAddressListItem
+                            key={index}
+                            index={index + 1}
+                            walletAddress={walletAddress}
+                            walletType={wallet.type}
+                        />
+                    ))}
+                </ul>
+            ) : (
+                <p className="mt-4">
+                    You did not add any wallet address yet.
+                    <br />
+                    Try adding a new one by clicking on the button below.
+                </p>
+            )}
 
             <Button
                 style="solid"

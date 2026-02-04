@@ -42,16 +42,24 @@ function WalletList({ username }: Readonly<WalletListProps>) {
 
             <div className="lg:max-w-2/3 xl:max-w-1/2 mx-auto mt-5 p-3">
                 <h2 className="text-2xl font-bold">Wallet list</h2>
-                <ul>
-                    {wallets.data?.map((wallet) => (
-                        <WalletListItem
-                            key={wallet._id.toString()}
-                            wallet={wallet}
-                            handleRefreshClick={handleRefreshClick}
-                            handleLockClick={handleLockClick}
-                        />
-                    ))}
-                </ul>
+                {wallets.data?.length ? (
+                    <ul>
+                        {wallets.data?.map((wallet) => (
+                            <WalletListItem
+                                key={wallet._id.toString()}
+                                wallet={wallet}
+                                handleRefreshClick={handleRefreshClick}
+                                handleLockClick={handleLockClick}
+                            />
+                        ))}
+                    </ul>
+                ) : (
+                    <p className="mt-4">
+                        You did not create any wallet yet.
+                        <br />
+                        Try creating a new one by clicking on the button below.
+                    </p>
+                )}
                 <Button
                     style="solid"
                     text="Create"
