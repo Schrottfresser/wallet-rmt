@@ -9,6 +9,7 @@ const env = {
     protocol: process.env.WALLET_RMT_PROTOCOL || 'http',
     host: process.env.WALLET_RMT_HOST || 'localhost:8080',
     trustProxy: process.env.WALLET_RMT_TRUST_PROXY || false,
+    enableRegistration: Boolean(process.env.WALLET_RMT_ENABLE_REGISTRATION),
 
     dbIp: process.env.WALLET_RMT_DB_IP || '127.0.0.1',
     dbPort: Number(process.env.WALLET_RMT_DB_PORT) || 27017,

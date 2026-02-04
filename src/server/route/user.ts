@@ -41,45 +41,47 @@ userRouter.get('/', async (req, res) => {
     });
 });
 
-userRouter.post(
-    '/register/options',
-    validatedHandler(registerOptionsSchema, async (data, _req, res) => {
-        logger.info(`API - Generate registration options for user "${data.body.username}"`);
+if (env.enableRegistration) {
+    userRouter.post(
+        '/register/options',
+        validatedHandler(registerOptionsSchema, async (data, _req, res) => {
+            logger.info(`API - Generate registration options for user "${data.body.username}"`);
 
-        if (!isUsernameAvailable(data.body.username)) {
-            throw new BadRequestError('Username not available');
-        }
+            if (!isUsernameAvailable(data.body.username)) {
+                throw new BadRequestError('Username not available');
+            }
 
-        const options = await generateRegistrationOptions(data.body.username);
+            const options = await generateRegistrationOptions(data.body.username);
 
-        res.status(200).json(options);
-    }),
-);
+            res.status(200).json(options);
+        }),
+    );
 
-userRouter.post(
-    '/register',
-    validatedHandler(registerSchema, async (data, req, res) => {
-        logger.info(`API - Register user "${data.body.username}"`);
+    userRouter.post(
+        '/register',
+        validatedHandler(registerSchema, async (data, req, res) => {
+            logger.info(`API - Register user "${data.body.username}"`);
 
-        const session = await useSession(req);
-        if (session && session.username !== data.body.username) {
-            throw new UnauthorizedError('Not logged in as this user');
-        }
+            const session = await useSession(req);
+            if (session && session.username !== data.body.username) {
+                throw new UnauthorizedError('Not logged in as this user');
+            }
 
-        const { credential } = await verifyRegistrationResponse(data.body.username, data.body.attestationResponse);
-        await register(
-            data.body.username,
-            {
-                id: credential.id,
-                publicKey: Buffer.from(credential.publicKey),
-                counter: credential.counter,
-            },
-            !!session,
-        );
+            const { credential } = await verifyRegistrationResponse(data.body.username, data.body.attestationResponse);
+            await register(
+                data.body.username,
+                {
+                    id: credential.id,
+                    publicKey: Buffer.from(credential.publicKey),
+                    counter: credential.counter,
+                },
+                !!session,
+            );
 
-        res.status(200).send();
-    }),
-);
+            res.status(200).send();
+        }),
+    );
+}
 
 userRouter.post(
     '/login/options',
