@@ -9,11 +9,11 @@
         "resolveJsonModule": true,
         "esModuleInterop": true,
         "lib": ["DOM", "DOM.Iterable", "ESNext"],
+        "rootDir": ".",
         "typeRoots": ["./types", "./node_modules/@types"],
-        "baseUrl": "src",
         "paths": {
-            "@client/*": ["client/*"],
-            "@server/*": ["server/*"]
+            "@client/*": ["./src/client/*"],
+            "@server/*": ["./src/server/*"]
         }
     },
     "include": ["./vite.config.ts"]
