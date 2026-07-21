@@ -6,6 +6,7 @@ import { WalletDoc } from '@server/model/mongoose/wallet.js';
 import { ObjectId } from '@server/route/validation/index.js';
 import { useState } from 'react';
 import WalletListItem from '@client/components/overview/WalletListItem.js';
+import useSettings from '@client/hooks/useSettings.js';
 
 interface WalletListProps {
     username: string;
@@ -13,8 +14,11 @@ interface WalletListProps {
 
 function WalletList({ username }: Readonly<WalletListProps>) {
     const wallets = useWallets();
+    const { data: settings } = useSettings();
 
     const [walletCreateModalOpen, setWalletCreateModalOpen] = useState<boolean>();
+
+    const allowWalletCreate = !!settings?.walletTypes.length;
 
     const handleRefreshClick = async (walletId: ObjectId) => {
         await wallets.refresh(walletId);
@@ -54,19 +58,24 @@ function WalletList({ username }: Readonly<WalletListProps>) {
                         ))}
                     </ul>
                 ) : (
-                    <p className="mt-4">
+                    <div className="mt-4">
                         You did not create any wallet yet.
-                        <br />
-                        Try creating a new one by clicking on the button below.
-                    </p>
+                        {allowWalletCreate ? (
+                            <p>Try creating a new one by clicking on the button below.</p>
+                        ) : (
+                            <p>No new wallet can be created currently.</p>
+                        )}
+                    </div>
                 )}
-                <Button
-                    style="solid"
-                    text="Create"
-                    icon={PlusIcon}
-                    onClick={() => setWalletCreateModalOpen(true)}
-                    className="text-lg mt-8 ml-auto"
-                />
+                {allowWalletCreate && (
+                    <Button
+                        style="solid"
+                        text="Create"
+                        icon={PlusIcon}
+                        onClick={() => setWalletCreateModalOpen(true)}
+                        className="text-lg mt-8 ml-auto"
+                    />
+                )}
             </div>
         </>
     );

@@ -2,9 +2,11 @@ import Button from '@client/components/base/Button.js';
 import Field from '@client/components/base/Field.js';
 import Modal from '@client/components/base/Modal.js';
 import Select from '@client/components/base/Select.js';
+import useSettings from '@client/hooks/useSettings.js';
 import useWallets from '@client/hooks/useWallets.js';
 import { WalletType } from '@server/model/mongoose/wallet.js';
-import { Form, Formik, FormikErrors, useField } from 'formik';
+import { currencyProperties } from '@server/util/currency.js';
+import { Form, Formik, FormikErrors } from 'formik';
 import { useCallback } from 'react';
 
 interface WalletCreateFormValues {
@@ -25,6 +27,7 @@ interface WalletCreateModalProps {
 
 function WalletCreateModal({ isOpen, onClose, username }: Readonly<WalletCreateModalProps>) {
     const wallets = useWallets();
+    const { data: settings } = useSettings();
 
     const validate = useCallback((values: WalletCreateFormValues): FormikErrors<WalletCreateFormValues> => {
         const errors: FormikErrors<WalletCreateFormValues> = {};
@@ -52,8 +55,9 @@ function WalletCreateModal({ isOpen, onClose, username }: Readonly<WalletCreateM
                     <Form>
                         <Field type="text" name="name" error={errors.name} placeholder="Wallet name" autoFocus />
                         <Select name="type" className="mt-3">
-                            <option value="bitcoin">Bitcoin</option>
-                            <option value="monero">Monero</option>
+                            {settings?.walletTypes.map((walletType) => (
+                                <option value={walletType}>{currencyProperties[walletType].name}</option>
+                            ))}
                         </Select>
 
                         <div className="mt-8 flex justify-between">
